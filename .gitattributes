@@ -1,0 +1,10 @@
+* text=auto
+*.cs text eol=lf
+*.shader text eol=lf
+*.md text eol=lf
+*.ps1 text eol=crlf
+*.jpg binary
+*.png binary
+*.meta whitespace=-blank-at-eol
+*.asset whitespace=-blank-at-eol
+*.unity whitespace=-blank-at-eol

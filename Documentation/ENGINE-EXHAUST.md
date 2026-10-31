@@ -1,0 +1,15 @@
+# Engines and dark funnel exhaust
+
+Player: `Builds/Windows-EngineSmoke/Ironclads.exe`, also opened by `Start-Ironclads.ps1`. Open **Ships → Engines & funnel smoke**, choose a vessel, and use Stopped, Cold boilers, Slow, Half or Full. The effort slider adjusts between presets. Niagara emits from its two modeled funnel mouths; Stonewall emits from its single mouth. Both begin at half visual effort in a new scenario.
+
+This replaces the earlier faint generic funnel particles. Each outlet has its own coal-stoking modulation, varied dark puffs, four billow textures and world-space advection. Full effort emits 40 puffs/second before modulation per funnel; stopped screws with banked boilers emit 3. Cold boilers emit none, while existing smoke continues to dissipate. Smoke darkens, thickens and grows with engine load. It expands and fades toward gray over a randomized 36–57 seconds. The shared atmospheric transport includes weather wind in m/s, gusts, spatial eddies, height shear and variable buoyancy. Existing clouds remain in world space as ships are repositioned. Continuous visual movement naturally leaves a trail; wind can carry smoke ahead, astern or abeam rather than always artificially forcing it aft.
+
+Visual orders indicate engine activity; they do not set speed, move the board pieces, rotate submerged screw meshes, or enforce engineering rules. Exhaust output is a visual approximation of coal firing, not a physical relationship between screw RPM and soot. Cold boilers and banked boilers are deliberately separate settings.
+
+`ShipState.engineLoad` and `ShipState.boilersLit` serialize with table saves and undo snapshots. Existing version-1 saves remain readable; old saves without these fields may load with cold/default engine settings, which can be reset from this panel. **Clear existing funnel plumes** removes old clouds while allowing lit boilers to keep emitting. Entering globe mode clears the local plumes; returning resumes sources.
+
+Three systems have bounded 2,600-particle budgets each. They share one exhaust material and density atlas. These add transparent overdraw, especially when several plumes overlap. Hull vertex/render-mesh counts remain those of pass four. Battery effects retain the louder realism-pass sound and variable powder smoke.
+
+Build: `Ironclads.Editor.ProjectBuilder.DeliverEngineSmoke`. Player validation: `.tools/verify-player.ps1 -BuildDirectory 'Builds\Windows-EngineSmoke'` (Direct3D 11). The default-graphics unattended run returned blank captures; the Direct3D 11 rerun passed and produced inspected images of both ships' plumes. The visible player still uses Unity's default graphics selection.
+
+Checks cover all three funnel attachments, effort-dependent output, cold-boiler cutoff with residual smoke, live rise/drift, world-space persistence during placement, serialization, unchanged board positions/time, and clearing. Captures show each ship's loaded exhaust, alongside all existing battery/weather/chart/globe/reference checks. No historical smoke-emission rates or fluid dynamics are asserted.
