@@ -42,11 +42,17 @@ namespace Ironclads
         public void Save() => File.WriteAllText(SavePath, JsonUtility.ToJson(this, true));
         public static Scenario Load()
         {
-            var s = JsonUtility.FromJson<Scenario>(File.ReadAllText(SavePath));
+            return Parse(File.ReadAllText(SavePath));
+        }
+        public static Scenario Parse(string json)
+        {
+            var s = JsonUtility.FromJson<Scenario>(json);
             if (s == null || s.version != 1 || s.ships == null || s.ships.Length != 2 ||
                 !Finite(s.latitude) || !Finite(s.longitude) || Math.Abs(s.latitude) > 90 || Math.Abs(s.longitude) > 180)
                 throw new InvalidDataException("Invalid scenario location or ship list.");
             var date = s.Date;
+            if(s.umpireNotes==null)s.umpireNotes="";
+            if(s.umpireNotes.Length>4000||s.turn<1||s.turn>1000000)throw new InvalidDataException("Invalid notes or turn counter.");
             if (date.Year < 1600 || date.Year > 9998) throw new InvalidDataException("Year must be 1600–9998.");
             foreach (var ship in s.ships)
                 if (ship == null || !Finite(ship.east) || !Finite(ship.north) || !Finite(ship.heading) || !Finite(ship.speed) ||

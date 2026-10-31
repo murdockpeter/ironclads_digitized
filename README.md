@@ -1,5 +1,7 @@
 # Ironclads — Ferrol
 
+**Development build: direct TCP/IP multiplayer.** Run `Builds/Windows-TCP/Ironclads.exe` (or `Start-Ironclads.ps1`) and open **Multiplayer · direct TCP/IP**. The host picks a ship and shares its reachable IPv4 address, TCP port (7777 by default) and session code. The guest receives the other ship. Weather/time/table management belong to the host; ship moves, engine settings and cannon triggers synchronize. See [connection instructions](Documentation/MULTIPLAYER.md). Build this development version with `Ironclads.Editor.ProjectBuilder.DeliverMultiplayer`; the published v1.0.0 release remains unchanged.
+
 **Version 1.0.0** — a Windows virtual sea table for a human umpire. Download the Windows ZIP from [GitHub Releases](https://github.com/murdockpeter/ironclads_digitized/releases), extract the entire archive, then run `Ironclads.exe`. Keep its `_Data` folder and Unity DLLs beside it. No Unity installation or network connection is needed to play.
 
 ![Ironclads — Ferrol: Niagara with engine exhaust and umpire controls](Documentation/preview.png)

@@ -42,7 +42,7 @@ namespace Ironclads
         readonly Stack<string> undo=new Stack<string>();
         GUIStyle label;Material chartMat;
         public void Remember(){undo.Push(JsonUtility.ToJson(scene.scenario));if(undo.Count>100)undo.Clear();}
-        public void Undo(){if(undo.Count>0){scene.scenario=JsonUtility.FromJson<Scenario>(undo.Pop());scene.status="Previous board position restored.";}}
+        public void Undo(){if(scene.network!=null&&!scene.network.CanManage)return;if(undo.Count>0){scene.scenario=JsonUtility.FromJson<Scenario>(undo.Pop());scene.status="Previous board position restored.";}}
         void Start(){Build();if(scene.scenario.hexMode)Snap();}
         public void Build()
         {
@@ -108,17 +108,20 @@ namespace Ironclads
         }
         public void Place(Hex h)
         {
+            if(scene.network!=null&&!scene.network.CanControl(scene.selected)){scene.status="You can place only your assigned ship.";return;}
             if(!OnBoard(h)){scene.status="Outside the local 41 × 37 hex board.";return;}
             Remember();var s=scene.scenario.ships[scene.selected];Vector3 p=Center(h);s.east=p.x;s.north=p.z;
             scene.status=$"Placed {s.name} in local hex {h}.";
+            scene.network?.SubmitShip(scene.selected);
         }
         public void Snap()
         {
+            if(scene.network!=null&&!scene.network.CanManage)return;
             Remember();foreach(var s in scene.scenario.ships){var p=Center(At(s.Position));s.east=p.x;s.north=p.z;s.heading=Facing(s.heading)*60;}
         }
         public void Move(int sign) {var ship=scene.scenario.ships[scene.selected];Hex h=At(ship.Position),d=Directions[Facing(ship.heading)];Place(new Hex(h.q+sign*d.q,h.r+sign*d.r));}
-        public void Turn(int sign){Remember();var s=scene.scenario.ships[scene.selected];s.heading=((Facing(s.heading)+sign+6)%6)*60;}
-        public void NextTurn(){Remember();scene.animateTime=false;scene.scenario.utc=scene.scenario.Date.AddSeconds(TurnSeconds).ToString("yyyy-MM-ddTHH:mm:ssZ");scene.scenario.turn++;scene.status="Turn advanced 3 minutes. Ship positions remain where the umpire placed them.";}
+        public void Turn(int sign){if(scene.network!=null&&!scene.network.CanControl(scene.selected))return;Remember();var s=scene.scenario.ships[scene.selected];s.heading=((Facing(s.heading)+sign+6)%6)*60;scene.network?.SubmitShip(scene.selected);}
+        public void NextTurn(){if(scene.network!=null&&!scene.network.CanManage)return;Remember();scene.animateTime=false;scene.scenario.utc=scene.scenario.Date.AddSeconds(TurnSeconds).ToString("yyyy-MM-ddTHH:mm:ssZ");scene.scenario.turn++;scene.status="Turn advanced 3 minutes. Ship positions remain where the umpire placed them.";}
         public void Export()
         {
             string path=Path.Combine(Application.persistentDataPath,"umpire-positions.csv");

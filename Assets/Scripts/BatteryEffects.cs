@@ -43,6 +43,11 @@ namespace Ironclads
         }
         public bool Fire(int ship,int side)
         {
+            if(scene.network!=null&&scene.network.Active)return scene.network.RequestFire(ship,side);
+            return FireLocal(ship,side);
+        }
+        internal bool FireLocal(int ship,int side)
+        {
             if(scene.globeMode||firing[ship])return false;
             var mounts=Battery(ship,side);if(mounts.Length==0)return false;
             EnsureEffects();firing[ship]=true;StartCoroutine(Salvo(ship,mounts));return true;

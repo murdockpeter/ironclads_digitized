@@ -19,6 +19,10 @@ namespace Ironclads
         bool sheetOpen;
         float sheetZoom=.65f;
         string lat="43.43",lon="-8.65",date="1865-03-24T14:00:00Z",col="21",row="19",east="0",north="0";
+        string networkAddress="127.0.0.1",networkPort="7777",networkCode=MultiplayerSession.NewCode();
+        int hostShip;
+        bool OwnShip=>scene.network==null||scene.network.CanControl(scene.selected);
+        bool ManageTable=>scene.network==null||scene.network.CanManage;
         readonly Color gold=new Color(.92f,.70f,.37f),ink=new Color(.72f,.81f,.82f),teal=new Color(.38f,.79f,.76f);
         static Texture2D Texture(Color c){var t=new Texture2D(1,1);t.SetPixel(0,0,c);t.Apply();return t;}
         void Styles()
@@ -62,8 +66,9 @@ namespace Ironclads
             GUILayout.EndHorizontal();
             if(Button("Gunnery tools / bearings & arcs"))ShowTab(4);
             if(Button("Fire batteries / smoke & sound"))ShowTab(5);
+            if(Button(scene.network!=null&&scene.network.Active?"Multiplayer · "+(scene.network.IsHost?"HOST":"GUEST"):"Multiplayer · direct TCP/IP"))ShowTab(7);
             scroll=GUILayout.BeginScrollView(scroll,false,false,GUILayout.ExpandHeight(true));
-            switch(tab){case 0:Vessels();break;case 1:Weather();break;case 2:Chart();break;case 3:Sources();break;case 4:Gunnery();break;case 5:FireBatteries();break;case 6:Engines();break;}
+            switch(tab){case 0:Vessels();break;case 1:GUI.enabled=ManageTable;Weather();GUI.enabled=true;break;case 2:Chart();break;case 3:Sources();break;case 4:Gunnery();break;case 5:FireBatteries();break;case 6:Engines();break;case 7:Multiplayer();break;}
             GUILayout.Space(18);GUILayout.EndScrollView();
             GUILayout.Label("RMB orbit  ·  Wheel zoom  ·  MMB pan\n1 / 2 focus  ·  Tab globe  ·  H hide UI  ·  v"+Application.version,small);
             GUILayout.EndArea();
@@ -97,8 +102,10 @@ namespace Ironclads
             if(Button("Stern detail")){chart.topDown=false;scene.InspectStern();}
             if(Button("Engines & funnel smoke"))ShowTab(6);
             Heading("POSITION & FACING");
+            GUI.enabled=scene.network==null||!scene.network.Active;
             bool hex=GUILayout.Toggle(scene.scenario.hexMode,"Use Ironclads hex placement",toggle);
             if(hex!=scene.scenario.hexMode){scene.scenario.hexMode=hex;if(hex)chart.Snap();}
+            GUI.enabled=OwnShip;
             Hex at=RuleChart.At(ship.Position);
             Text($"Local hex {at}    ·    {RuleChart.Facings[RuleChart.Facing(ship.heading)]} / {ship.heading:0}°");
             if(hex) {
@@ -123,6 +130,8 @@ namespace Ironclads
                 }GUILayout.EndHorizontal();
                 if(Button("Advance visual movement 60 seconds")){chart.Remember();scene.Step(60);}
             }
+            GUI.enabled=true;
+            if(!OwnShip)GUILayout.Label("Opponent's ship: inspect and measure only.",small);
             Heading("RANGE BETWEEN SHIPS");
             var a=scene.scenario.ships[0];var b=scene.scenario.ships[1];
             int range=RuleChart.Range(RuleChart.At(a.Position),RuleChart.At(b.Position));
@@ -131,9 +140,10 @@ namespace Ironclads
             Vector3 delta=b.Position-a.Position;float bearing=Mathf.Repeat(Mathf.Atan2(delta.x,delta.z)*Mathf.Rad2Deg,360);
             GUILayout.Label($"Niagara → Stonewall bearing {bearing:0}° true",small);
             Heading("TURN & NOTES");
+            GUI.enabled=ManageTable;
             if(Button($"End turn {scene.scenario.turn}  →  +3 minutes"))chart.NextTurn();
-            scene.scenario.umpireNotes=GUILayout.TextArea(scene.scenario.umpireNotes,field,GUILayout.Height(64));
-            GUILayout.BeginHorizontal();if(Button("Undo placement"))chart.Undo();if(Button("Log positions"))chart.Export();GUILayout.EndHorizontal();
+            scene.scenario.umpireNotes=GUILayout.TextArea(scene.scenario.umpireNotes,4000,field,GUILayout.Height(64));
+            GUILayout.BeginHorizontal();if(Button("Undo placement"))chart.Undo();GUI.enabled=true;if(Button("Log positions"))chart.Export();GUILayout.EndHorizontal();
             SaveLoad();
         }
         void Weather()
@@ -182,15 +192,44 @@ namespace Ironclads
             chart.showArcs=GUILayout.Toggle(chart.showArcs,"Stonewall sheet arc guides",toggle);
             bool top=GUILayout.Toggle(chart.topDown,"Overhead chart view (north up)",toggle);
             if(top!=chart.topDown){chart.topDown=top;if(top){scene.globeMode=false;scene.Overview();scene.distance=Mathf.Max(900,scene.distance);}}
-            if(Button("Snap both ships to hexes / facings")){scene.scenario.hexMode=true;chart.Snap();}
+            GUI.enabled=ManageTable;if(Button("Snap both ships to hexes / facings")){scene.scenario.hexMode=true;chart.Snap();}GUI.enabled=true;
             Heading("USING THE MAP");
             Text("Range is the shortest hex path, excluding the firing hex and including the target hex (rules p. 18).");
             Text("Placement and facing controls carry out your orders. You decide movement allowances, turning capacity, current, collisions, line of sight, fire and damage.");
             Text("The local 41 × 37 chart has its own IDs. It does not reproduce printed mapboards I–IV or their shoals and boundaries.");
             Heading("FERROL SCENARIO 4D");
             Text("The supplied rules include the three-ship breakout on 24 March 1865. This scene is your two-ship variant. Sacramento and the original board arrangement are not included.");
-            if(Button("Use 4D wind / visibility as visual preset")){scene.scenario.windFrom=0;scene.scenario.visibilityKm=30*RuleChart.HexMeters/1000;scene.status="Wind FROM north; visual fog visibility set to 30 hexes (2.7432 km). Umpire decides actual sighting.";}
+            GUI.enabled=ManageTable;if(Button("Use 4D wind / visibility as visual preset")){scene.scenario.windFrom=0;scene.scenario.visibilityKm=30*RuleChart.HexMeters/1000;scene.status="Wind FROM north; visual fog visibility set to 30 hexes (2.7432 km). Umpire decides actual sighting.";}GUI.enabled=true;
             if(Button("Take screenshot  ·  F12"))scene.Screenshot();
+        }
+        void Multiplayer()
+        {
+            var session=scene.network;
+            Heading("ONE VS ONE · DIRECT TCP/IP");Text(session.ConnectionStatus);
+            if(session.Active) {
+                if(session.IsHost)Text($"Host IPv4: {session.HostAddresses}\nTCP port {session.Port}\nSession code: {session.SessionCode}");
+                if(session.LocalShip>=0)Text("Your ship: "+scene.scenario.ships[session.LocalShip].name);
+                if(session.LocalShip>=0&&Button("Inspect my ship")){chart.topDown=false;scene.Focus(session.LocalShip);}
+                if(Button(session.IsHost?"Stop hosting / return offline":"Disconnect / return offline"))session.Stop();
+                Text("Each player places, turns and fires their assigned ship. The host controls weather, time, shared notes, loading/resetting the table and undo. Views and measuring guides remain local.");
+            } else {
+                Heading("HOST A TABLE");
+                hostShip=GUILayout.SelectionGrid(hostShip,new[]{"Host: Niagara","Host: Stonewall"},1,button);
+                GUILayout.Label("TCP port",small);networkPort=GUILayout.TextField(networkPort,5,field);
+                GUILayout.Label("Session code (share with opponent)",small);networkCode=GUILayout.TextField(networkCode,64,field);
+                if(Button("New random session code"))networkCode=MultiplayerSession.NewCode();
+                if(Button("Host this table")) {
+                    if(int.TryParse(networkPort,out int port)&&port>=1&&port<=65535)session.Host(port,hostShip,networkCode);else scene.status="Enter a TCP port from 1 to 65535.";
+                }
+                Heading("JOIN A HOST");GUILayout.Label("Host IPv4 address",small);networkAddress=GUILayout.TextField(networkAddress,45,field);
+                if(Button("Join using IP / port / code above")) {
+                    if(int.TryParse(networkPort,out int port))session.Join(networkAddress.Trim(),port,networkCode);else scene.status="Enter the host's TCP port.";
+                }
+            }
+            Heading("CONNECTING THE TWO COMPUTERS");
+            Text("Use the host's LAN IPv4 address, TCP port (default 7777) and session code. Internet hosting requires a reachable/forwarded TCP port, or a VPN linking the computers. No lobby, relay or automatic port forwarding is used.");
+            Text("Direct TCP is unencrypted. Use a trusted LAN or VPN. Allow the host player through its firewall when hosting. 127.0.0.1 is only for testing two players on the same computer.");
+            Text("Multiplayer uses manual hex placement. Joining replaces your local table with the host's table. Disconnect retains the latest table and restores offline umpire control. Cannon triggers synchronize; smoke and sound are rendered locally.");
         }
         void Engines()
         {
@@ -201,10 +240,11 @@ namespace Ironclads
             Text(scene.selected==0?"Two funnels · single screw":"One funnel · twin screws");
             if(Button("Inspect selected ship")){chart.topDown=false;scene.Focus(scene.selected);}
             Heading("VISUAL ENGINE ORDER");
+            GUI.enabled=OwnShip;
             GUILayout.BeginHorizontal();if(Button("Stopped"))exhaust.SetOrder(scene.selected,0);if(Button("Cold boilers"))exhaust.SetOrder(scene.selected,0,false);GUILayout.EndHorizontal();
             GUILayout.BeginHorizontal();if(Button("Slow"))exhaust.SetOrder(scene.selected,.25f);if(Button("Half"))exhaust.SetOrder(scene.selected,.55f);if(Button("Full"))exhaust.SetOrder(scene.selected,1);GUILayout.EndHorizontal();
             bool lit=GUILayout.Toggle(ship.boilersLit,"Boilers lit",toggle);if(lit!=ship.boilersLit)exhaust.SetOrder(scene.selected,ship.engineLoad,lit);
-            GUI.enabled=ship.boilersLit;ship.engineLoad=Slider("Visual engine effort",ship.engineLoad,0,1);GUI.enabled=true;
+            GUI.enabled=OwnShip&&ship.boilersLit;float previousLoad=ship.engineLoad;ship.engineLoad=Slider("Visual engine effort",ship.engineLoad,0,1);if(Mathf.Abs(previousLoad-ship.engineLoad)>.0001f)scene.network?.SubmitShip(scene.selected);GUI.enabled=true;
             Text(!ship.boilersLit?"Cold: new smoke stops; the existing plume disperses.":ship.engineLoad<.01f?"Screws stopped, boilers banked: light residual smoke.":$"Screws turning · engine effort {ship.engineLoad*100:0}%");
             Heading("EXHAUST & WIND");
             Text($"Wind FROM {scene.scenario.windFrom:0}° at {scene.scenario.windKnots:0.0} kn\nPlumes drift TOWARD {Mathf.Repeat(scene.scenario.windFrom+180,360):0}°");
@@ -221,7 +261,7 @@ namespace Ironclads
             GUILayout.BeginHorizontal();if(Button("Niagara"))scene.selected=0;if(Button("Stonewall"))scene.selected=1;GUILayout.EndHorizontal();
             Text(scene.scenario.ships[scene.selected].name);
             if(scene.globeMode)Text("Return to sea to fire a battery.");
-            bool wasEnabled=GUI.enabled;GUI.enabled=!scene.globeMode&&!effects.firing[scene.selected];
+            bool wasEnabled=GUI.enabled;GUI.enabled=!scene.globeMode&&!effects.firing[scene.selected]&&OwnShip;
             if(scene.selected==0) {
                 if(Button("Fire PORT · five 150-pdr Parrotts"))effects.Fire(0,-1);
                 if(Button("Fire STARBOARD · five 150-pdr Parrotts"))effects.Fire(0,1);
@@ -305,7 +345,7 @@ namespace Ironclads
             Text("The globe uses NASA's March 2004 Blue Marble land cover. Sun position uses the NOAA solar approximation. Local ocean is rendered separately at meter scale.");
             if(Button("NHHC historical ship records"))Application.OpenURL("https://www.history.navy.mil/research/histories/ship-histories/confederate_ships/stonewall.html");
             Heading("SESSION");SaveLoad();
-            if(Button("Reset to the two-ship setup")){chart.Remember();scene.scenario=new Scenario();chart.Snap();scene.Overview();date=scene.scenario.utc;scene.status="Default what-if setup restored.";}
+            GUI.enabled=ManageTable;if(Button("Reset to the two-ship setup")){chart.Remember();scene.scenario=new Scenario();chart.Snap();scene.Overview();date=scene.scenario.utc;scene.status="Default what-if setup restored.";}GUI.enabled=true;
         }
         void OpenReference(string name)
         {
@@ -314,10 +354,11 @@ namespace Ironclads
         }
         void SaveLoad()
         {
+            bool previousEnabled=GUI.enabled;GUI.enabled=true;
             GUILayout.BeginHorizontal();
             if(Button("Save table"))try{scene.scenario.Save();scene.status="Saved: "+Scenario.SavePath;}catch(Exception e){Error(e);}
-            if(Button("Load table"))try{var loaded=Scenario.Load();chart.Remember();scene.scenario=loaded;date=loaded.utc;lat=loaded.latitude.ToString(CultureInfo.InvariantCulture);lon=loaded.longitude.ToString(CultureInfo.InvariantCulture);scene.Overview();scene.status="Saved table loaded.";}catch(Exception e){Error(e);}
-            GUILayout.EndHorizontal();
+            GUI.enabled=ManageTable;if(Button("Load table"))try{var loaded=Scenario.Load();chart.Remember();scene.scenario=loaded;if(scene.network!=null&&scene.network.Active){scene.scenario.hexMode=true;chart.Snap();}date=loaded.utc;lat=loaded.latitude.ToString(CultureInfo.InvariantCulture);lon=loaded.longitude.ToString(CultureInfo.InvariantCulture);scene.Overview();scene.status="Saved table loaded.";}catch(Exception e){Error(e);}
+            GUILayout.EndHorizontal();GUI.enabled=previousEnabled;
         }
         void ShipLabels()
         {

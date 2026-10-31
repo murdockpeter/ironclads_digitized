@@ -15,6 +15,7 @@ namespace Ironclads
         public Light sun;
         public bool globeMode, animateTime, showOverlay = true, soundEnabled = true;
         public int selected;
+        public MultiplayerSession network;
         public Vector3 target = new Vector3(0,6,50);
         public float yaw = -40, pitch = 22, distance = 350;
         public float globeYaw = -8, globePitch = 43, globeDistance = 325;
@@ -58,7 +59,9 @@ namespace Ironclads
             gameObject.AddComponent<GunneryTools>().scene=this;
             gameObject.AddComponent<BatteryEffects>().scene=this;
             gameObject.AddComponent<EngineExhaust>().scene=this;
+            network=gameObject.AddComponent<MultiplayerSession>();network.scene=this;
             if(Application.isPlaying&&Array.IndexOf(Environment.GetCommandLineArgs(),"-verify-runtime")>=0)gameObject.AddComponent<RuntimeVerification>();
+            if(Application.isPlaying&&Array.IndexOf(Environment.GetCommandLineArgs(),"-verify-network")>=0)gameObject.AddComponent<NetworkVerification>();
             UpdateWorld();SetCamera();
         }
         void Awake() => Initialize();
@@ -123,6 +126,7 @@ namespace Ironclads
         void Update()
         {
             if(!initialized)return;
+            if(network!=null&&network.Active){animateTime=false;scenario.hexMode=true;}
             if(Input.GetKeyDown(KeyCode.Tab)) ToggleGlobe();
             if(Input.GetKeyDown(KeyCode.H))showOverlay=!showOverlay;
             if(Input.GetKeyDown(KeyCode.F))Focus(selected);
@@ -189,6 +193,7 @@ namespace Ironclads
         public void ToggleGlobe() {globeMode=!globeMode;if(globeMode){globeYaw=(float)scenario.longitude;globePitch=(float)scenario.latitude;}UpdateWorld();SetCamera();}
         void PickGlobe()
         {
+            if(network!=null&&!network.CanManage){status="The host controls the table location.";return;}
             Ray ray=view.ScreenPointToRay(Input.mousePosition);
             if(Physics.Raycast(ray,out var hit,1000)) {
                 Vector2 ll=Navigation.GlobeLatLon(hit.point-globeRoot.position);
@@ -196,7 +201,7 @@ namespace Ironclads
                 status="Sea board relocated. Globe imagery is modern; local shorelines are not yet modeled.";
             }
         }
-        public void Step(float seconds) {scenario.Advance(seconds);animateTime=false;status=$"Advanced {seconds:0} seconds. Movement is kinematic; adjudicate effects yourself.";}
+        public void Step(float seconds) {if(network!=null&&network.Active){status="Continuous movement is disabled in multiplayer; place your ship by hex.";return;}scenario.Advance(seconds);animateTime=false;status=$"Advanced {seconds:0} seconds. Movement is kinematic; adjudicate effects yourself.";}
         public void Screenshot()
         {
             string path=System.IO.Path.Combine(Application.persistentDataPath,"Ironclads-"+DateTime.Now.ToString("yyyyMMdd-HHmmss")+".png");

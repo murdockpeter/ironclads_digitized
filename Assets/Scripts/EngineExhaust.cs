@@ -35,8 +35,10 @@ namespace Ironclads
         }
         public void SetOrder(int ship,float load,bool lit=true)
         {
+            if(scene.network!=null&&!scene.network.CanControl(ship)){scene.status="You can change engine orders only for your assigned ship.";return;}
             GetComponent<RuleChart>().Remember();var state=scene.scenario.ships[ship];state.engineLoad=Mathf.Clamp01(load);state.boilersLit=lit;
             scene.status=state.name+": "+(!lit?"boilers cold":load<=0?"screws stopped / boilers banked":load<.35f?"slow engine effort":load<.8f?"half engine effort":"full engine effort")+" (visual only).";
+            scene.network?.SubmitShip(ship);
         }
         void LateUpdate()
         {
