@@ -1,5 +1,7 @@
 # Unity development and builds
 
+Current development build: `Ironclads.Editor.ProjectBuilder.DeliverMultiplayer` produces `Builds/Windows-TCP` (`1.1.0-dev`). Run `.tools/verify-network.ps1` for a real two-process loopback test and `.tools/verify-player.ps1 -BuildDirectory 'Builds\Windows-TCP'` for graphical/offline regression checks. The stable v1.0.0 tag/release is unchanged.
+
 Public 1.0.0 release build (works without private reference assets):
 
 ```powershell

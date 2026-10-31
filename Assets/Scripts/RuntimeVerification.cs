@@ -49,6 +49,7 @@ namespace Ironclads
             Check(!GunneryTools.RayCrossesHex(Vector3.zero,180,new Hex(0,2)),"Boundary ray incorrectly crossed a hex behind it.");
             scene.scenario=JsonUtility.FromJson<Scenario>(initial);scene.status="Runtime checks: manual placement, range and turn clock passed.";
             yield return Capture(Path.Combine(output,"Player-interface.png"));
+            panel.ShowTab(7);yield return new WaitForSeconds(.2f);yield return Capture(Path.Combine(output,"Player-multiplayer.png"));
             chart.topDown=true;scene.distance=1100;panel.ShowTab(2);yield return new WaitForSeconds(.2f);
             yield return Capture(Path.Combine(output,"Player-chart.png"));
             var guns=scene.GetComponent<GunneryTools>();scene.selected=1;guns.preset=0;guns.visible=true;chart.showRange=false;panel.ShowTab(4);

@@ -23,13 +23,14 @@ namespace Ironclads.Editor
         public static void DeliverSalvos(){Prepare();GeometryReview.RunPass4();BuildWindowsTo("Builds/Windows-Salvos");}
         public static void DeliverSalvoRealism(){Prepare();BatteryRealismReview.Verify();GeometryReview.RunPass4();BuildWindowsTo("Builds/Windows-Salvos-Realism");}
         public static void DeliverEngineSmoke(){Prepare();BatteryRealismReview.Verify();GeometryReview.RunPass4();BuildWindowsTo("Builds/Windows-EngineSmoke");}
-        public static void DeliverRelease(){Prepare();BuildWindowsTo("Builds/Windows-v1.0.0");}
+        public static void DeliverRelease(){Prepare();BuildWindowsTo("Builds/Windows-"+PlayerSettings.bundleVersion);}
+        public static void DeliverMultiplayer(){Prepare();BuildWindowsTo("Builds/Windows-TCP");}
         [MenuItem("Ironclads/Prepare project and ship assets")]
         public static void Prepare()
         {
             Directory.CreateDirectory("Assets/Generated");Directory.CreateDirectory("Artifacts");
             PlayerSettings.companyName="Ironclads";PlayerSettings.productName="Ironclads — Ferrol";
-            PlayerSettings.bundleVersion="1.0.0";
+            PlayerSettings.bundleVersion="1.1.0-dev";
             PlayerSettings.defaultScreenWidth=1600;PlayerSettings.defaultScreenHeight=1000;
             PlayerSettings.fullScreenMode=FullScreenMode.Windowed;PlayerSettings.runInBackground=true;
             PlayerSettings.resizableWindow=true;PlayerSettings.colorSpace=ColorSpace.Linear;
