@@ -1,5 +1,9 @@
 # Direct TCP/IP one-versus-one multiplayer
 
+**Latest: 1.2.1-dev / protocol 4**, `Builds/Windows-HamptonRoads-Union/Ironclads.exe`. The Monitor player also fires grounded Minnesota's batteries; the host sets Minnesota's availability and grounded position. Salvos and support state replicate. The wrecks of Congress and Cumberland are common scenery. Both players need this build. [Supporting ships](Hampton-Union-Ships.md).
+
+The latest player is **1.2.0-dev**, `Builds/Windows-HamptonRoads/Ironclads.exe`, built with `Ironclads.Editor.ProjectBuilder.DeliverHamptonRoads`. It supports either scenario and either tabletop ruleset. Protocol **3** requires matching builds. The host chooses the scenario/ruleset and either ship; exact miniatures positions, courses, current/ordered speeds, distance used, turn class and Monitor turret angle synchronize as well as the original hex controls. See [Hampton Roads](Hampton-Roads.md) and [Iron & Fire](Iron-and-Fire.md). The earlier development-build instructions below remain useful for the original Ferrol TCP player.
+
 The development player is `Builds/Windows-TCP/Ironclads.exe`, version `1.1.0-dev`. This does not modify the published v1.0.0 release. It uses built-in .NET TCP sockets with no Unity lobby/relay account, added networking package, automatic router configuration, or external service.
 
 ## Connect

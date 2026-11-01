@@ -7,7 +7,10 @@ namespace Ironclads
     [Serializable] public class ShipState
     {
         public string name;
-        public float east, north, heading, speed;
+        public float east, north, heading, speed, turretHeading;
+        public float orderedSpeed,movementUsed;
+        public int turnClass=3;
+        public bool astern,orderedAstern;
         public float engineLoad=.55f;
         public bool boilersLit=true;
         public ShipState(string name, float east, float north, float heading)
@@ -24,6 +27,23 @@ namespace Ironclads
     [Serializable] public class Scenario
     {
         public int version = 1;
+        public string scenarioId = "ferrol";
+        public string rulesetId="ironclads";
+        public bool Miniatures => rulesetId=="iron-fire";
+        public bool Hampton => scenarioId == "hampton-roads";
+        public int supportVersion=1;
+        public ShipState minnesota=NewMinnesota();
+        public int minnesotaPortGuns=11,minnesotaStarboardGuns=21,minnesotaBowGuns=1;
+        public static ShipState NewMinnesota()=>new ShipState("USS Minnesota",-650,-450,90){engineLoad=.15f};
+        public ShipState State(int i)=>i==2?minnesota:ships[i];
+        public string ShortName(int i) => Hampton ? (i==0?"Monitor":"Virginia") : (i==0?"Niagara":"Stonewall");
+        public float Length(int i) => Hampton?(i==0?52.4256f:80.16f):(i==0?100.228f:52.3756f);
+        public float Deck(int i) => Hampton?(i==0?.4572f:.29f):(i==0?4.3f:1.85f);
+        public static Scenario HamptonRoads() => new Scenario {
+            scenarioId="hampton-roads",latitude=36.983,longitude=-76.385,utc="1862-03-09T14:00:00Z",
+            windKnots=7,windFrom=270,cloud=.22f,waveHeight=.18f,visibilityKm=22,
+            ships=new[]{new ShipState("USS Monitor",-115,20,0),new ShipState("CSS Virginia (Merrimack)",120,150,240){turnClass=4}}
+        };
         public double latitude = 43.43, longitude = -8.65;
         public string utc = "1865-03-24T14:00:00Z";
         public int turn = 1;
@@ -51,6 +71,15 @@ namespace Ironclads
                 !Finite(s.latitude) || !Finite(s.longitude) || Math.Abs(s.latitude) > 90 || Math.Abs(s.longitude) > 180)
                 throw new InvalidDataException("Invalid scenario location or ship list.");
             var date = s.Date;
+            if(string.IsNullOrEmpty(s.scenarioId))s.scenarioId="ferrol";
+            if(s.scenarioId!="ferrol"&&s.scenarioId!="hampton-roads")throw new InvalidDataException("Unknown scenario.");
+            if(string.IsNullOrEmpty(s.rulesetId))s.rulesetId="ironclads";
+            if(s.rulesetId!="ironclads"&&s.rulesetId!="iron-fire")throw new InvalidDataException("Unknown tabletop ruleset.");
+            if(s.Miniatures)s.hexMode=false;
+            if(s.minnesota==null||s.supportVersion==0){s.minnesota=NewMinnesota();s.minnesotaPortGuns=11;s.minnesotaStarboardGuns=21;s.minnesotaBowGuns=1;s.supportVersion=1;}
+            var auxiliary=s.minnesota;
+            if(!Finite(auxiliary.east)||!Finite(auxiliary.north)||!Finite(auxiliary.heading)||!Finite(auxiliary.engineLoad)||Math.Abs(auxiliary.east)>20000||Math.Abs(auxiliary.north)>20000||s.minnesotaPortGuns<0||s.minnesotaPortGuns>21||s.minnesotaStarboardGuns<0||s.minnesotaStarboardGuns>21||s.minnesotaBowGuns<0||s.minnesotaBowGuns>1)throw new InvalidDataException("Invalid Minnesota support state.");
+            auxiliary.name="USS Minnesota";auxiliary.speed=auxiliary.orderedSpeed=0;auxiliary.engineLoad=Mathf.Clamp01(auxiliary.engineLoad);
             if(s.umpireNotes==null)s.umpireNotes="";
             if(s.umpireNotes.Length>4000||s.turn<1||s.turn>1000000)throw new InvalidDataException("Invalid notes or turn counter.");
             if (date.Year < 1600 || date.Year > 9998) throw new InvalidDataException("Year must be 1600–9998.");
@@ -59,9 +88,14 @@ namespace Ironclads
                     Math.Abs(ship.east) > 20000 || Math.Abs(ship.north) > 20000 || ship.speed < 0 || ship.speed > 20)
                     throw new InvalidDataException("Invalid ship position or speed (20 km local scene limit).");
             foreach(var ship in s.ships) {
-                if(!Finite(ship.engineLoad))throw new InvalidDataException("Invalid engine smoke setting.");
+                if(!Finite(ship.engineLoad)||!Finite(ship.turretHeading))throw new InvalidDataException("Invalid engine or turret setting.");
                 ship.engineLoad=Mathf.Clamp01(ship.engineLoad);
+                ship.turretHeading=Mathf.Repeat(ship.turretHeading,360);
+                if(ship.turnClass==0)ship.turnClass=3; // field absent in pre-miniatures saves
+                if(!Finite(ship.orderedSpeed)||!Finite(ship.movementUsed)||ship.orderedSpeed<0||ship.orderedSpeed>20||ship.movementUsed<0||ship.movementUsed>100||ship.turnClass<1||ship.turnClass>5)throw new InvalidDataException("Invalid miniatures movement order.");
             }
+            s.ships[0].name=s.Hampton?"USS Monitor":"USS Niagara";
+            s.ships[1].name=s.Hampton?"CSS Virginia (Merrimack)":"CSS Stonewall";
             if (!Finite(s.windKnots) || !Finite(s.windFrom) || !Finite(s.cloud) || !Finite(s.rain) || !Finite(s.visibilityKm) || !Finite(s.waveHeight))
                 throw new InvalidDataException("Invalid weather values.");
             s.windKnots = Mathf.Clamp(s.windKnots, 0, 50); s.windFrom = Mathf.Repeat(s.windFrom, 360);

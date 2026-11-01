@@ -119,7 +119,7 @@ NavMeshSettings:
     debug:
       m_Flags: 0
   m_NavMeshData: {fileID: 0}
---- !u!1 &1580643142
+--- !u!1 &1649023147
 GameObject:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -127,8 +127,8 @@ GameObject:
   m_PrefabAsset: {fileID: 0}
   serializedVersion: 6
   m_Component:
-  - component: {fileID: 1580643144}
-  - component: {fileID: 1580643143}
+  - component: {fileID: 1649023149}
+  - component: {fileID: 1649023148}
   m_Layer: 0
   m_Name: "Ironclads \u2014 scene controller"
   m_TagString: Untagged
@@ -136,13 +136,13 @@ GameObject:
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!114 &1580643143
+--- !u!114 &1649023148
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1580643142}
+  m_GameObject: {fileID: 1649023147}
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 3af9005141bf1934a95bdcfa68f7a414, type: 3}
@@ -150,6 +150,26 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Ironclads.MaritimeScene
   scenario:
     version: 1
+    scenarioId: ferrol
+    rulesetId: ironclads
+    supportVersion: 1
+    minnesota:
+      name: USS Minnesota
+      east: -650
+      north: -450
+      heading: 90
+      speed: 0
+      turretHeading: 0
+      orderedSpeed: 0
+      movementUsed: 0
+      turnClass: 3
+      astern: 0
+      orderedAstern: 0
+      engineLoad: 0.15
+      boilersLit: 1
+    minnesotaPortGuns: 11
+    minnesotaStarboardGuns: 21
+    minnesotaBowGuns: 1
     latitude: 43.43
     longitude: -8.65
     utc: 1865-03-24T14:00:00Z
@@ -168,6 +188,12 @@ MonoBehaviour:
       north: 20
       heading: 25
       speed: 0
+      turretHeading: 0
+      orderedSpeed: 0
+      movementUsed: 0
+      turnClass: 3
+      astern: 0
+      orderedAstern: 0
       engineLoad: 0.55
       boilersLit: 1
     - name: CSS Stonewall
@@ -175,6 +201,12 @@ MonoBehaviour:
       north: 150
       heading: 230
       speed: 0
+      turretHeading: 0
+      orderedSpeed: 0
+      movementUsed: 0
+      turnClass: 3
+      astern: 0
+      orderedAstern: 0
       engineLoad: 0.55
       boilersLit: 1
   view: {fileID: 0}
@@ -203,13 +235,15 @@ MonoBehaviour:
   globeDistance: 325
   status: Scenario ready. You have the conn.
   rain: {fileID: 0}
---- !u!4 &1580643144
+  terrain: {fileID: 0}
+  support: {fileID: 0}
+--- !u!4 &1649023149
 Transform:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1580643142}
+  m_GameObject: {fileID: 1649023147}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
@@ -222,4 +256,4 @@ Transform:
 SceneRoots:
   m_ObjectHideFlags: 0
   m_Roots:
-  - {fileID: 1580643144}
+  - {fileID: 1649023149}

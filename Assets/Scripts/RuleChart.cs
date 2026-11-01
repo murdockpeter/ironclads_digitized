@@ -75,22 +75,22 @@ namespace Ironclads
         {
             if(scene==null||scene.seaRoot==null)return;if(grid==null)Build();
             Shader.SetGlobalFloat("_ChartWaveHeight",scene.scenario.waveHeight);
-            grid.SetActive(showGrid&&!scene.globeMode&&scene.showOverlay);
+            grid.SetActive(showGrid&&!scene.scenario.Miniatures&&!scene.globeMode&&scene.showOverlay);
             rangeLine.gameObject.SetActive(showRange&&!scene.globeMode&&scene.showOverlay);
             var s=scene.scenario;
             for(int i=0;i<2;i++) {
-                Vector3 center=Center(At(s.ships[i].Position))+Vector3.up*.2f;
-                rings[i].gameObject.SetActive(showGrid&&!scene.globeMode&&scene.showOverlay);
-                headings[i].gameObject.SetActive(showGrid&&!scene.globeMode&&scene.showOverlay);
+                Vector3 center=(s.Miniatures?s.ships[i].Position:Center(At(s.ships[i].Position)))+Vector3.up*.2f;
+                rings[i].gameObject.SetActive(showGrid&&!s.Miniatures&&!scene.globeMode&&scene.showOverlay);
+                headings[i].gameObject.SetActive((s.Miniatures?showRange:showGrid)&&!scene.globeMode&&scene.showOverlay);
                 var pts=new Vector3[7];for(int k=0;k<7;k++)pts[k]=center+new Vector3(Mathf.Cos(k*Mathf.PI/3)*Radius,0,Mathf.Sin(k*Mathf.PI/3)*Radius);
                 rings[i].SetPositions(pts);
                 Quaternion rotation=Quaternion.Euler(0,s.ships[i].heading,0);Vector3 forward=rotation*Vector3.forward,right=rotation*Vector3.right,tip=center+forward*Radius*.8f;
                 headings[i].SetPositions(new[]{center,tip,tip-forward*7+right*4,tip,tip-forward*7-right*4});
             }
-            rangeLine.SetPosition(0,Center(At(s.ships[0].Position))+Vector3.up*.25f);
-            rangeLine.SetPosition(1,Center(At(s.ships[1].Position))+Vector3.up*.25f);
+            rangeLine.SetPosition(0,(s.Miniatures?s.ships[0].Position:Center(At(s.ships[0].Position)))+Vector3.up*.25f);
+            rangeLine.SetPosition(1,(s.Miniatures?s.ships[1].Position:Center(At(s.ships[1].Position)))+Vector3.up*.25f);
             for(int i=0;i<3;i++) {
-                arcs[i].gameObject.SetActive(showArcs&&!scene.globeMode&&scene.selected==1&&scene.showOverlay);
+                arcs[i].gameObject.SetActive(showArcs&&!scene.globeMode&&scene.selected==1&&!scene.scenario.Hampton&&scene.showOverlay);
                 Vector3 origin=s.ships[1].Position+Vector3.up*.2f;
                 float start=s.ships[1].heading+(i==0?-90:i==1?-150:30),sweep=i==0?180:120;
                 var pts=new Vector3[33];pts[0]=origin;pts[32]=origin;
@@ -116,26 +116,28 @@ namespace Ironclads
         }
         public void Snap()
         {
-            if(scene.network!=null&&!scene.network.CanManage)return;
+            if(scene.scenario.Miniatures||(scene.network!=null&&!scene.network.CanManage))return;
             Remember();foreach(var s in scene.scenario.ships){var p=Center(At(s.Position));s.east=p.x;s.north=p.z;s.heading=Facing(s.heading)*60;}
         }
         public void Move(int sign) {var ship=scene.scenario.ships[scene.selected];Hex h=At(ship.Position),d=Directions[Facing(ship.heading)];Place(new Hex(h.q+sign*d.q,h.r+sign*d.r));}
         public void Turn(int sign){if(scene.network!=null&&!scene.network.CanControl(scene.selected))return;Remember();var s=scene.scenario.ships[scene.selected];s.heading=((Facing(s.heading)+sign+6)%6)*60;scene.network?.SubmitShip(scene.selected);}
-        public void NextTurn(){if(scene.network!=null&&!scene.network.CanManage)return;Remember();scene.animateTime=false;scene.scenario.utc=scene.scenario.Date.AddSeconds(TurnSeconds).ToString("yyyy-MM-ddTHH:mm:ssZ");scene.scenario.turn++;scene.status="Turn advanced 3 minutes. Ship positions remain where the umpire placed them.";}
+        public void NextTurn(){if(scene.network!=null&&!scene.network.CanManage)return;Remember();scene.animateTime=false;scene.scenario.utc=scene.scenario.Date.AddSeconds(TurnSeconds).ToString("yyyy-MM-ddTHH:mm:ssZ");scene.scenario.turn++;if(scene.scenario.Miniatures)foreach(var ship in scene.scenario.ships){ship.speed=ship.orderedSpeed;ship.astern=ship.orderedAstern;ship.movementUsed=0;}scene.status="Turn advanced 3 minutes. Ship positions remain where the umpire placed them.";}
         public void Export()
         {
-            string path=Path.Combine(Application.persistentDataPath,"umpire-positions.csv");
-            bool header=!File.Exists(path);var sb=new StringBuilder();if(header)sb.AppendLine("turn,utc,ship,local_hex,east_m,north_m,heading_deg,notes");
+            bool mini=scene.scenario.Miniatures;
+            string path=Path.Combine(Application.persistentDataPath,mini?"iron-fire-positions.csv":"umpire-positions.csv");
+            bool header=!File.Exists(path);var sb=new StringBuilder();if(header)sb.AppendLine(mini?"turn,utc,ship,local_hex,east_m,north_m,heading_deg,speed_kn,ordered_speed_kn,astern,ordered_astern,movement_used_in,turn_class,notes":"turn,utc,ship,local_hex,east_m,north_m,heading_deg,notes");
             foreach(var s in scene.scenario.ships) {
                 sb.Append(scene.scenario.turn).Append(',').Append(scene.scenario.utc).Append(',').Append(s.name).Append(',').Append(At(s.Position)).Append(',');
                 sb.Append(s.east.ToString("F3",CultureInfo.InvariantCulture)).Append(',').Append(s.north.ToString("F3",CultureInfo.InvariantCulture)).Append(',').Append(s.heading.ToString("F1",CultureInfo.InvariantCulture)).Append(',');
+                if(mini)sb.Append(s.speed.ToString("F3",CultureInfo.InvariantCulture)).Append(',').Append(s.orderedSpeed.ToString("F3",CultureInfo.InvariantCulture)).Append(',').Append(s.astern).Append(',').Append(s.orderedAstern).Append(',').Append(s.movementUsed.ToString("F3",CultureInfo.InvariantCulture)).Append(',').Append(s.turnClass).Append(',');
                 sb.Append('"').Append(scene.scenario.umpireNotes.Replace("\"","\"\"")).AppendLine("\"");
             }
             File.AppendAllText(path,sb.ToString());scene.status="Position log appended: "+path;
         }
         void OnGUI()
         {
-            if(scene==null||scene.globeMode||!scene.showOverlay||!showGrid||!showLabels||scene.distance<220)return;
+            if(scene==null||scene.scenario.Miniatures||scene.globeMode||!scene.showOverlay||!showGrid||!showLabels||scene.distance<220)return;
             if(label==null)label=new GUIStyle(GUI.skin.label){fontSize=10,alignment=TextAnchor.MiddleCenter,normal={textColor=new Color(.67f,.85f,.83f,.65f)}};
             Hex near=At(scene.target);int radius=Mathf.Clamp(Mathf.CeilToInt(scene.distance/HexMeters),4,25);
             for(int q=near.q-radius;q<=near.q+radius;q++)for(int r=near.r-radius;r<=near.r+radius;r++) {

@@ -8,6 +8,11 @@ namespace Ironclads
         public MaritimeScene scene;
         public bool visible, rangeRings=true, pickedTarget;
         public Hex targetHex;
+        public Vector3 freeTarget;
+        public bool minnesotaOrigin;
+        public int FiringShip=>minnesotaOrigin&&scene.scenario.Hampton?2:scene.selected;
+        public int TargetShip=>FiringShip==2?1:1-FiringShip;
+        public ShipState FiringState=>scene.scenario.State(FiringShip);
         public int preset;
         public float reach=6, customSweep=120, customCenter=90;
         public static readonly string[] Presets={"Stonewall: bow 300-pdr / 180°","Stonewall: port 70-pdr / 120°","Stonewall: starboard 70-pdr / 120°","Custom angle guide"};
@@ -15,14 +20,15 @@ namespace Ironclads
         readonly LineRenderer[] bands=new LineRenderer[12];
         public float Sweep=>preset==0?180:preset<3?120:customSweep;
         public float Offset=>preset==0?0:preset==1?-90:preset==2?90:customCenter;
-        public Vector3 Origin=>RuleChart.Center(RuleChart.At(scene.scenario.ships[scene.selected].Position));
-        public Hex Target=>pickedTarget?targetHex:RuleChart.At(scene.scenario.ships[1-scene.selected].Position);
-        public float AxisBearing=>Mathf.Repeat(scene.scenario.ships[scene.selected].heading+Offset,360);
+        public Vector3 Origin=>scene.scenario.Miniatures?FiringState.Position:RuleChart.Center(RuleChart.At(FiringState.Position));
+        public Vector3 TargetPoint=>scene.scenario.Miniatures?(pickedTarget?freeTarget:scene.scenario.ships[TargetShip].Position):RuleChart.Center(Target);
+        public Hex Target=>pickedTarget?targetHex:RuleChart.At(scene.scenario.ships[TargetShip].Position);
+        public float AxisBearing=>Mathf.Repeat(FiringState.heading+Offset,360);
         public static float Bearing(Vector3 delta)=>Mathf.Repeat(Mathf.Atan2(delta.x,delta.z)*Mathf.Rad2Deg,360);
         public static bool Within(float bearing,float axis,float sweep)=>Mathf.Abs(Mathf.DeltaAngle(axis,bearing))<=sweep*.5f+.0001f;
         static Vector3 Direction(float bearing)=>Quaternion.Euler(0,bearing,0)*Vector3.forward;
-        public bool SameHex=>RuleChart.At(Origin).Equals(Target);
-        public float TargetBearing=>Bearing(RuleChart.Center(Target)-Origin);
+        public bool SameHex=>scene.scenario.Miniatures?Vector3.Distance(Origin,TargetPoint)<.001f:RuleChart.At(Origin).Equals(Target);
+        public float TargetBearing=>Bearing(TargetPoint-Origin);
         public int Range=>RuleChart.Range(RuleChart.At(Origin),Target);
         // A ray crossing the target polygon flags split-hex cases for the umpire.
         public static bool RayCrossesHex(Vector3 origin,float bearing,Hex hex)
@@ -35,7 +41,7 @@ namespace Ironclads
             }
             return min<=.001f&&max>=-.001f&&forward>0;
         }
-        public bool SplitHex=>!SameHex&&Sweep<359.99f&&(RayCrossesHex(Origin,AxisBearing-Sweep/2,Target)||RayCrossesHex(Origin,AxisBearing+Sweep/2,Target));
+        public bool SplitHex=>!scene.scenario.Miniatures&&!SameHex&&Sweep<359.99f&&(RayCrossesHex(Origin,AxisBearing-Sweep/2,Target)||RayCrossesHex(Origin,AxisBearing+Sweep/2,Target));
         LineRenderer Line(string name,Color color,float width)
         {
             var material=new Material(Shader.Find("Ironclads/Chart"));material.SetColor("_Color",color);
@@ -53,7 +59,7 @@ namespace Ironclads
         void LateUpdate()
         {
             if(scene==null||scene.seaRoot==null)return;if(sector==null)Build();
-            if(scene.selected==0&&preset<3)preset=3;
+            if((scene.selected==0||scene.scenario.Hampton||scene.scenario.Miniatures)&&preset<3)preset=3;
             bool show=visible&&!scene.globeMode&&scene.showOverlay;
             foreach(var line in new[]{sector,axis,sight,targetOutline})line.gameObject.SetActive(show);
             for(int i=0;i<bands.Length;i++)bands[i].gameObject.SetActive(show&&rangeRings&&i<Mathf.RoundToInt(reach));
@@ -61,13 +67,13 @@ namespace Ironclads
             // Alt-click measures; Shift-click remains placement only.
             if(Input.GetKey(KeyCode.LeftAlt)&&!Input.GetKey(KeyCode.LeftShift)&&Input.GetMouseButtonDown(0)&&Input.mousePosition.x>330&&Input.mousePosition.y>55&&Input.mousePosition.y<Screen.height-100) {
                 var plane=new Plane(Vector3.up,Vector3.zero);var ray=scene.view.ScreenPointToRay(Input.mousePosition);
-                if(plane.Raycast(ray,out float distance)){var h=RuleChart.At(ray.GetPoint(distance));if(RuleChart.OnBoard(h)){targetHex=h;pickedTarget=true;}}
+                if(plane.Raycast(ray,out float distance)){var point=ray.GetPoint(distance);var h=RuleChart.At(point);if(scene.scenario.Miniatures?CourseMovement.Inside(point):RuleChart.OnBoard(h)){targetHex=h;freeTarget=point;pickedTarget=true;}}
             }
-            Vector3 origin=Origin+Vector3.up*.38f,target=RuleChart.Center(Target)+Vector3.up*.38f;
+            Vector3 origin=Origin+Vector3.up*.38f,target=TargetPoint+Vector3.up*.38f;
             var points=new Vector3[99];points[0]=origin;points[98]=origin;
             for(int i=0;i<=96;i++)points[i+1]=origin+Direction(AxisBearing-Sweep/2+Sweep*i/96)*reach*RuleChart.HexMeters;
             Positions(sector,points);Positions(axis,new[]{origin,origin+Direction(AxisBearing)*reach*RuleChart.HexMeters});Positions(sight,new[]{origin,target});
-            var hex=new Vector3[7];for(int i=0;i<7;i++)hex[i]=target+new Vector3(Mathf.Cos(i*Mathf.PI/3)*RuleChart.Radius,0,Mathf.Sin(i*Mathf.PI/3)*RuleChart.Radius);Positions(targetOutline,hex);
+            var hex=new Vector3[7];for(int i=0;i<7;i++)hex[i]=target+new Vector3(Mathf.Cos(i*Mathf.PI/3),0,Mathf.Sin(i*Mathf.PI/3))*(scene.scenario.Miniatures?8:RuleChart.Radius);Positions(targetOutline,hex);
             for(int i=0;i<bands.Length;i++)if(bands[i].gameObject.activeSelf) {
                 var ring=new Vector3[97];for(int j=0;j<ring.Length;j++)ring[j]=origin+Direction(AxisBearing-Sweep/2+Sweep*j/96)*(i+1)*RuleChart.HexMeters;Positions(bands[i],ring);
             }

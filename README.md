@@ -1,4 +1,14 @@
-# Ironclads — Ferrol
+# Ironclads — Ferrol & Hampton Roads
+
+**Latest: supporting Union ships (1.2.1-dev).** `Start-Ironclads.ps1 -IronFire` opens `Builds/Windows-HamptonRoads-Union/Ironclads.exe`. Hampton Roads now includes **grounded USS Minnesota**, with adjustable usable batteries and engine exhaust, plus the wrecks of **USS Congress** and **USS Cumberland**. Open **Union ships / Minnesota & wrecks** for inspection and firing controls. The Monitor player also commands Minnesota's guns in TCP play; both players need protocol 4. Build with `Ironclads.Editor.ProjectBuilder.DeliverUnionShips`. [Details and historical limits](Documentation/Hampton-Union-Ships.md).
+
+**Latest development build: Hampton Roads and Iron & Fire support (1.2.0-dev).** Run `Start-Ironclads.ps1` to open Hampton Roads, or `Start-Ironclads.ps1 -IronFire` to open it with miniatures movement. The executable is `Builds/Windows-HamptonRoads/Ironclads.exe`. **Scenarios / shores & forts** selects either ship pair and either tabletop mode. The published v1.0.0 release remains unchanged.
+
+Hampton Roads adds **USS Monitor** with a manually rotating twin XI-inch turret, **CSS Virginia (Merrimack)** with a fixed ten-gun casemate, ship-specific firing/exhaust effects, approximate coastal terrain, Fort Monroe, the unfinished Rip Raps fort and shore batteries. Landmark camera controls are in the scenario panel. Terrain and forts are historical scenery; depth, grounding, line of sight and shore fire remain manual. [Reconstruction notes and sources](Documentation/Hampton-Roads.md).
+
+**Iron & Fire**, based on the supplied David Manley third-edition rulebook, adds exact courses, measured straight/curved movement, 1 inch = 100 yards, turning-circle radii, separate current/ordered speeds, end-of-turn orders, drift and exact-position gunnery rulers. Combat and movement eligibility remain umpire decisions. TCP synchronizes both modes; both players need this build (protocol 3). [Miniatures instructions](Documentation/Iron-and-Fire.md).
+
+Build with `Ironclads.Editor.ProjectBuilder.DeliverHamptonRoads`. Verify using `.tools/verify-player.ps1 -BuildDirectory Builds/Windows-HamptonRoads -Hampton` and `.tools/verify-network.ps1 -BuildDirectory Builds/Windows-HamptonRoads -Hampton -IronFire`. Private references remain excluded from Git and distributable assets.
 
 **Development build: direct TCP/IP multiplayer.** Run `Builds/Windows-TCP/Ironclads.exe` (or `Start-Ironclads.ps1`) and open **Multiplayer · direct TCP/IP**. The host picks a ship and shares its reachable IPv4 address, TCP port (7777 by default) and session code. The guest receives the other ship. Weather/time/table management belong to the host; ship moves, engine settings and cannon triggers synchronize. See [connection instructions](Documentation/MULTIPLAYER.md). Build this development version with `Ironclads.Editor.ProjectBuilder.DeliverMultiplayer`; the published v1.0.0 release remains unchanged.
 
