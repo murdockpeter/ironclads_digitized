@@ -1,5 +1,17 @@
 # Unity development and builds
 
+**Latest: 1.2.1-dev supporting Union ships.** Use `Ironclads.Editor.ProjectBuilder.DeliverUnionShips` and `Builds/Windows-HamptonRoads-Union`. The same player/network verification helpers below accept this build directory. The launcher now uses this path. See [supporting-ship notes](Hampton-Union-Ships.md); TCP protocol 4 requires matching players. Earlier delivery paths below are retained as historical workflows.
+
+**Current: Hampton Roads + Iron & Fire, 1.2.0-dev.** Build with `Ironclads.Editor.ProjectBuilder.DeliverHamptonRoads` into `Builds/Windows-HamptonRoads`. `Start-Ironclads.ps1 -IronFire` launches Hampton Roads in miniatures mode; omit `-IronFire` for hex play, or add `-Ferrol` for the earlier scenario. The game also provides scenario/ruleset selection inside the UI. The workflows below describe earlier deliveries.
+
+```powershell
+& 'C:\Program Files\Unity\Hub\Editor\6000.2.12f1\Editor\Unity.exe' -batchmode -quit -projectPath (Get-Location).Path -executeMethod Ironclads.Editor.ProjectBuilder.DeliverHamptonRoads -logFile hampton-build.log
+& .\.tools\verify-player.ps1 -BuildDirectory Builds/Windows-HamptonRoads -Hampton
+& .\.tools\verify-network.ps1 -BuildDirectory Builds/Windows-HamptonRoads -Hampton -IronFire
+```
+
+The editor review checks new batteries, turret mesh/muzzle movement, old-save defaults, terrain normals and scenario switching, and renders ship/fort/coast previews. The Hampton runtime check also exercises continuous movement, curved paths, speed orders, drift and persistence. Run player verification without `-Hampton` for the original Ferrol graphics/effects regression. Network checks without `-Hampton -IronFire` exercise Ferrol hex play; `-Hampton` alone exercises Hampton hex play. Private PDFs and source scans remain local.
+
 Current development build: `Ironclads.Editor.ProjectBuilder.DeliverMultiplayer` produces `Builds/Windows-TCP` (`1.1.0-dev`). Run `.tools/verify-network.ps1` for a real two-process loopback test and `.tools/verify-player.ps1 -BuildDirectory 'Builds\Windows-TCP'` for graphical/offline regression checks. The stable v1.0.0 tag/release is unchanged.
 
 Public 1.0.0 release build (works without private reference assets):

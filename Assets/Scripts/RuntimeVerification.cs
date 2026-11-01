@@ -111,7 +111,7 @@ namespace Ironclads
             }
             scene.scenario=JsonUtility.FromJson<Scenario>(initial);
             var exhaust=scene.GetComponent<EngineExhaust>();exhaust.Build();exhaust.Clear();
-            Check(exhaust.funnels.Length==3&&exhaust.funnels[0].transform.parent==scene.vessels[0]&&exhaust.funnels[1].transform.parent==scene.vessels[0]&&exhaust.funnels[2].transform.parent==scene.vessels[1],"Engine exhaust funnel/ship attachment incorrect.");
+            Check(exhaust.funnels.Length==4&&exhaust.funnels[3]==null&&exhaust.funnels[0].transform.parent==scene.vessels[0]&&exhaust.funnels[1].transform.parent==scene.vessels[0]&&exhaust.funnels[2].transform.parent==scene.vessels[1],"Engine exhaust funnel/ship attachment incorrect.");
             Check(EngineExhaust.EmissionRate(1,true)>EngineExhaust.EmissionRate(0,true)*10&&EngineExhaust.EmissionRate(1,false)==0,"Engine order does not control exhaust output.");
             exhaust.SetOrder(0,1);exhaust.SetOrder(1,1);scene.scenario.windFrom=270;scene.scenario.windKnots=14;
             scene.Focus(0);panel.ShowTab(6);yield return new WaitForSeconds(3);
