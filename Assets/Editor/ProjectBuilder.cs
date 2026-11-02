@@ -27,6 +27,9 @@ namespace Ironclads.Editor
         public static void DeliverMultiplayer(){Prepare();BuildWindowsTo("Builds/Windows-TCP");}
         public static void DeliverHamptonRoads(){Prepare();HamptonReview.Run();BuildWindowsTo("Builds/Windows-HamptonRoads");}
         public static void DeliverDetailAndTerrain(){Prepare();HamptonReview.Run();HamptonMetrics.Run();BuildWindowsTo("Builds/Windows-HamptonRoads-Detail");}
+        public static void DeliverFerrolPlaytest(){Prepare();BuildWindowsTo("Builds/Windows-Ferrol-Playtest");}
+        public static void DeliverNiagaraStern(){Prepare();GeometryReview.RunSternRevision();BuildWindowsTo("Builds/Windows-Niagara-Stern");}
+        public static void DeliverShipSheets(){AssetDatabase.Refresh();Prepare();BuildWindowsTo("Builds/Windows-ShipSheets");}
         public static void DeliverSuppliedShips(){Prepare();SuppliedShipReview.Run();BuildWindowsTo("Builds/Windows-SuppliedShips");}
         public static void DeliverCoastlines(){Prepare();HamptonReview.Run();HamptonMetrics.Run();BuildWindowsTo("Builds/Windows-Coastlines");}
         public static void DeliverPatrickHenry(){Prepare();HamptonReview.Run();PatrickHenryReview.Run();BuildWindowsTo("Builds/Windows-PatrickHenry");}
@@ -39,7 +42,7 @@ namespace Ironclads.Editor
         {
             Directory.CreateDirectory("Assets/Generated");Directory.CreateDirectory("Artifacts");
             PlayerSettings.companyName="Ironclads";PlayerSettings.productName="Ironclads — Ferrol";
-            PlayerSettings.bundleVersion="1.5.0-dev";
+            PlayerSettings.bundleVersion="1.5.3-dev";
             PlayerSettings.defaultScreenWidth=1600;PlayerSettings.defaultScreenHeight=1000;
             PlayerSettings.fullScreenMode=FullScreenMode.Windowed;PlayerSettings.runInBackground=true;
             PlayerSettings.resizableWindow=true;PlayerSettings.colorSpace=ColorSpace.Linear;
@@ -48,6 +51,8 @@ namespace Ironclads.Editor
             if(importer!=null){importer.maxTextureSize=8192;importer.textureCompression=TextureImporterCompression.CompressedHQ;importer.wrapModeU=TextureWrapMode.Repeat;importer.wrapModeV=TextureWrapMode.Clamp;importer.SaveAndReimport();}
             var si=(TextureImporter)AssetImporter.GetAtPath("Assets/Resources/StonewallSheet.png");
             if(si!=null){si.maxTextureSize=2048;si.textureCompression=TextureImporterCompression.Uncompressed;si.SaveAndReimport();}
+            var photo=(TextureImporter)AssetImporter.GetAtPath("Assets/Resources/StonewallPhotoSheet.jpg");
+            if(photo!=null){photo.maxTextureSize=4096;photo.textureCompression=TextureImporterCompression.Uncompressed;photo.mipmapEnabled=false;photo.SaveAndReimport();}
             var ni=(TextureImporter)AssetImporter.GetAtPath("Assets/Resources/NiagaraSheet.jpg");
             if(ni!=null){ni.maxTextureSize=4096;ni.textureCompression=TextureImporterCompression.CompressedHQ;ni.SaveAndReimport();}
             IncludeShaders();
@@ -56,6 +61,8 @@ namespace Ironclads.Editor
             foreach(var mat in materials) if(!AssetDatabase.Contains(mat))AssetDatabase.CreateAsset(mat,"Assets/Generated/"+mat.name+".mat");
             for(int i=0;i<2;i++) {
                 var ship=Shipwright.Create(i==1);string name=i==0?"USS-Niagara":"CSS-Stonewall";
+                foreach(var mat in ship.GetComponentsInChildren<Renderer>().SelectMany(r=>r.sharedMaterials).Distinct())
+                    if(mat!=null&&!AssetDatabase.Contains(mat))AssetDatabase.CreateAsset(mat,"Assets/Generated/"+mat.name+".mat");
                 foreach(var f in ship.GetComponentsInChildren<MeshFilter>()) {
                     if(!AssetDatabase.Contains(f.sharedMesh))AssetDatabase.CreateAsset(f.sharedMesh,"Assets/Generated/"+name+"-"+f.sharedMesh.name.Split(new[]{" - "},StringSplitOptions.None).Last()+".asset");
                 }
@@ -99,6 +106,12 @@ namespace Ironclads.Editor
             Check(RuleChart.Range(new Hex(-3,4),new Hex(4,-2))==7,"Shortest hex route across mixed axes");
             Check(RuleChart.Range(new Hex(2,-2),new Hex(2,-2))==0,"Same hex range zero");
             Check(new Hex(0,0).ToString()=="2119","Local chart center label");
+            Check(RuleChart.Columns(false)*RuleChart.Rows(false)==6068,"Ferrol has 82 by 74 hexes");
+            Check(RuleChart.OnBoard(new Hex(61,25))&&!RuleChart.OnBoard(new Hex(62,24))&&!RuleChart.OnBoard(new Hex(61,26)),"Expanded Ferrol placement boundaries");
+            Check(!RuleChart.OnBoard(new Hex(61,25),true)&&RuleChart.OnBoard(new Hex(20,8),true),"Hampton retains original board boundaries");
+            var opening=new Scenario();
+            Check(RuleChart.Range(RuleChart.At(opening.ships[0].Position),RuleChart.At(opening.ships[1].Position))==20,"Ferrol starts twenty hexes apart");
+            Check(Mathf.Abs(Vector3.Distance(opening.ships[0].Position,opening.ships[1].Position)-1828.8f)<.01f,"Ferrol opening range is 2000 yards");
             var noon=Navigation.SunDirection(new DateTime(2024,3,20,12,0,0,DateTimeKind.Utc),0,0);
             Check(noon.y>.998f,"Equinox Greenwich noon sun near zenith");
             Check(Navigation.SunDirection(new DateTime(2024,3,20,6,0,0,DateTimeKind.Utc),0,0).x>.99f,"Morning sun rises in east");

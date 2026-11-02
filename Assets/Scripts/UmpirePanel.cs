@@ -10,7 +10,9 @@ namespace Ironclads
         RuleChart chart;
         int tab;
         public void ShowTab(int value){tab=value;scroll=Vector2.zero;}
-        public void ShowSheet(bool niagara=false){sheet=Resources.Load<Texture2D>(niagara?"NiagaraSheet":"StonewallSheet");if(sheet==null){sheetOpen=false;scene.status="This optional user-supplied ship sheet is not bundled.";return;}sheetTitle=niagara?"USS NIAGARA / SUPPLIED 1863 CARD":"CSS STONEWALL / SUPPLIED SHIP SHEET";sheetZoom=niagara?.27f:.65f;sheetScroll=Vector2.zero;sheetOpen=true;}
+        public static Texture2D ShipSheet(bool niagara=false)=>niagara?Resources.Load<Texture2D>("NiagaraSheet"):(Resources.Load<Texture2D>("StonewallPhotoSheet")??Resources.Load<Texture2D>("StonewallSheet"));
+        float SheetFit()=>Mathf.Clamp(Mathf.Min(Mathf.Max(100,Screen.width-430)/(float)sheet.width,Mathf.Max(100,Screen.height-270)/(float)sheet.height),.15f,1.3f);
+        public void ShowSheet(bool niagara=false){sheet=ShipSheet(niagara);if(sheet==null){sheetOpen=false;scene.status="This optional user-supplied ship sheet is not bundled.";return;}sheetTitle=niagara?"USS NIAGARA / SUPPLIED 1863 CARD":"CSS STONEWALL / SUPPLIED SHIP SHEET";sheetZoom=SheetFit();sheetScroll=Vector2.zero;sheetOpen=true;}
         Vector2 scroll,sheetScroll;
         GUIStyle title,sub,body,small,button,field,section,big,toggle;
         Texture2D panelTex,buttonTex,fieldTex,white;
@@ -40,7 +42,7 @@ namespace Ironclads
                 normal={background=buttonTex,textColor=ink},hover={background=buttonTex,textColor=gold},active={background=fieldTex,textColor=teal}};
             field=new GUIStyle(GUI.skin.textField){fontSize=13,padding=new RectOffset(8,8,6,6),normal={background=fieldTex,textColor=Color.white},focused={background=fieldTex,textColor=gold}};
             toggle=new GUIStyle(GUI.skin.toggle){fontSize=12,normal={textColor=ink},onNormal={textColor=teal}};
-            sheet=Resources.Load<Texture2D>("StonewallSheet");
+            sheet=ShipSheet();
         }
         void Heading(string text)=>GUILayout.Label(text,section);
         bool Button(string text)=>GUILayout.Button(text,button);
@@ -124,9 +126,9 @@ namespace Ironclads
                 GUILayout.Label("Shift + click the sea to place the selected ship.",small);
                 GUILayout.BeginHorizontal();col=GUILayout.TextField(col,2,field);row=GUILayout.TextField(row,2,field);
                 if(Button("Place")) {
-                    if(int.TryParse(col,out int c)&&int.TryParse(row,out int r)&&c>=1&&c<=41&&r>=1&&r<=37) {
+                    if(int.TryParse(col,out int c)&&int.TryParse(row,out int r)&&c>=1&&c<=RuleChart.Columns(scene.scenario.Hampton)&&r>=1&&r<=RuleChart.Rows(scene.scenario.Hampton)) {
                         int q=c-21;chart.Place(new Hex(q,r-19-Mathf.FloorToInt(q/2f)));
-                    } else scene.status="Use a local column 01–41 and row 01–37.";
+                    } else scene.status=$"Use a local column 01-{RuleChart.Columns(scene.scenario.Hampton)} and row 01-{RuleChart.Rows(scene.scenario.Hampton)}.";
                 }GUILayout.EndHorizontal();
             } else {
                 ship.heading=Slider("Heading",ship.heading,0,359,"°");
@@ -209,7 +211,7 @@ namespace Ironclads
             Heading("USING THE MAP");
             Text("Range is the shortest hex path, excluding the firing hex and including the target hex (rules p. 18).");
             Text("Placement and facing controls carry out your orders. You decide movement allowances, turning capacity, current, collisions, line of sight, fire and damage.");
-            Text("The local 41 × 37 chart has its own IDs. It does not reproduce printed mapboards I–IV or their shoals and boundaries.");
+            Text($"The local {RuleChart.Columns(scene.scenario.Hampton)} x {RuleChart.Rows(scene.scenario.Hampton)} chart has its own IDs. It does not reproduce printed mapboards I-IV or their shoals and boundaries.");
             if(scene.scenario.Hampton){Text("Hampton Roads: reconstructed shores and forts, approximate placement. Opening ship positions and weather are adjustable presets. No depth, grounding, terrain obstruction or shore fire is adjudicated automatically.");if(Button("Coastal overview"))CoastalView();return;}
             Heading("FERROL SCENARIO 4D");
             Text("The supplied rules include the three-ship breakout on 24 March 1865. This scene is your two-ship variant. Sacramento and the original board arrangement are not included.");
@@ -355,7 +357,7 @@ namespace Ironclads
             if(Button("View Niagara's supplied 1863 card"))ShowSheet(true);
             if(Button("Open original Stonewall PDF"))OpenReference("Stonewall.pdf");
             if(Button("Open supplied rules PDF"))OpenReference("NEW_IRONCLADS_RULES.pdf");
-            if(Resources.Load<Texture2D>("StonewallSheet")==null)Text("Rulebook and ship-sheet scans are optional user-provided references and are not included in the public release.");
+            if(ShipSheet()==null)Text("Rulebook and ship-sheet scans are optional user-provided references and are not included in the public release.");
             Text("Stonewall's sheet supplies a 180° forward guide and 120° guides on each side. These are display guides; the umpire decides gun eligibility. The model's armored enclosures are fixed.");
             Heading("RECONSTRUCTION NOTES");
             Text("Procedural meshes use published dimensions, Niagara's 1863 refit photograph, and Stonewall's March 1865 Ferrol photograph. Rigging, hull lines, boats, deck fittings and exact gun mounts are approximate.");
@@ -393,6 +395,7 @@ namespace Ironclads
             GUI.DrawTexture(new Rect(x,100,w,h),panelTex);
             GUILayout.BeginArea(new Rect(x+14,112,w-28,h-24));
             GUILayout.BeginHorizontal();GUILayout.Label(sheetTitle,section);
+            if(sheet!=null&&Button("Fit sheet")){sheetZoom=SheetFit();sheetScroll=Vector2.zero;}
             GUILayout.FlexibleSpace();if(Button("Close"))sheetOpen=false;GUILayout.EndHorizontal();
             sheetZoom=GUILayout.HorizontalSlider(sheetZoom,.15f,1.3f);
             sheetScroll=GUILayout.BeginScrollView(sheetScroll);

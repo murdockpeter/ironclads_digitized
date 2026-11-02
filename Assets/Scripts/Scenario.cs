@@ -62,9 +62,11 @@ namespace Ironclads
         public bool hexMode = true;
         public float windKnots = 12, windFrom = 290, cloud = .3f, rain = 0, visibilityKm = 20, waveHeight = .8f;
         public ShipState[] ships = {
-            new ShipState("USS Niagara", -115, 20, 25),
-            new ShipState("CSS Stonewall", 120, 150, 230)
+            FerrolShip("USS Niagara",new Hex(20,-2),0),
+            FerrolShip("CSS Stonewall",new Hex(20,18),180)
         };
+        static ShipState FerrolShip(string name,Hex hex,float heading)
+        {var p=RuleChart.Center(hex);return new ShipState(name,p.x,p.z,heading);}
         public DateTime Date => DateTime.Parse(utc, System.Globalization.CultureInfo.InvariantCulture,
             System.Globalization.DateTimeStyles.AdjustToUniversal | System.Globalization.DateTimeStyles.AssumeUniversal);
         public void Advance(float seconds)

@@ -1,6 +1,8 @@
 # Niagara hull verification status
 
-**Current update:** [Pass 4](MODEL-PASS-4.md) replaces the flat stern with an approximate short rounded end and fuller quarters. The following notes retain the research history; measured Steers offsets remain unavailable.
+**Stern and paint update (1.5.2-dev):** The stern now has a raked counter above a tucked-in lower run, with gallery fittings attached to that surface, a submerged sternpost/rudder and a lower quarterdeck companion house. The near-black hull and cleaner off-white gun-deck band follow the tonal layout of the retained 1863 NH 75895 photograph; the ten-Parrott working outfit remains the selected 1865 configuration. This is a qualitative reconstruction, not recovered Steers frame offsets. See [stern revision notes](Niagara-Stern-Revision.md).
+
+**Earlier update:** [Pass 4](MODEL-PASS-4.md) replaces the flat stern with an approximate short rounded end and fuller quarters. The following notes retain the research history; measured Steers offsets remain unavailable.
 
 Reviewed 31 October 2026 in response to the user's overhead screenshot.
 

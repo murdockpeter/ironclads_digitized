@@ -1,5 +1,11 @@
 # Ironclads — Ferrol & Hampton Roads
 
+**Latest: photographed ship sheets (1.5.3-dev).** The local reference viewer uses `contextonly/ShipSheets/USS_Niagara.jpg` (the existing 1863 card) and the new `CSS_Stonewall.jpg` photograph. Open either under **Sources**; sheets fit the available space initially and have zoom, scrolling and a **Fit sheet** button. These private images remain ignored by Git. The selected 1865 Niagara working battery is retained. `Start-Ironclads.ps1 -Ferrol` uses `Builds/Windows-ShipSheets`.
+
+**Latest: Niagara stern and paint (1.5.2-dev).** `Start-Ironclads.ps1 -Ferrol` opens the latest build with a raked round counter, finer lower stern, fitted gallery and near-black/off-white paint based on the retained 1863 photograph. Keeps the expanded map and 2,000-yard opening range. [Revision and historical limits](Documentation/Niagara-Stern-Revision.md).
+
+**Latest: Ferrol playtest board (1.5.1-dev).** `Start-Ironclads.ps1 -Ferrol` opens the latest build with an 82 x 74, 100-yard hex chart and ships 20 hexes (2,000 yards) apart on reciprocal headings. This doubles both board dimensions. Use it offline for umpired orders and movement; End Turn advances time without moving ships. [Playtest setup](Documentation/Ferrol-Playtest.md).
+
 **Latest: supplied Monitor/Virginia comparison (1.5.0-dev).** `Start-Ironclads.ps1 -SuppliedModels` opens optional hybrids using the user-provided OBJ/texture pairs. Sources offers per-ship local appearance switches. Monitor reuses the supplied hull with our detailed working turret; Virginia reuses most of the supplied exterior with our ten fitted guns and a source-funnel smoke binding. Originals remain selectable. [Comparison, counts and reuse details](Documentation/Supplied-Ship-Models.md).
 
 **Latest: detailed Hampton Roads coastline (1.4.1-dev).** The local coast now uses full-resolution GSHHG shorelines and a USGS elevation grid sampled four times more closely in both directions. Continuous curved beach profiles, sand-to-meadow transitions and low outcrops replace straight independent strips. `Start-Ironclads.ps1` uses `Builds/Windows-Coastlines`; inspect the beach landmark under Scenarios. [Sources, measurements and limits](Documentation/Hampton-Coastline.md).
@@ -78,7 +84,7 @@ The globe is a separate scale from the meter-based tactical scene. Click it to r
 
 The supplied `contextonly/NEW_IRONCLADS_RULES.pdf` establishes approximately 100 yards per hex and three minutes per turn (p. 3), hexside facings (pp. 9–10), and shortest-path hex range (p. 18). The chart uses **91.44 meters between adjacent centers**, six facings and integer hex distance. Models retain their physical dimensions rather than being scaled as cardboard counters. Niagara's bowsprit extends beyond her occupied hex; the highlighted center hex determines her game location.
 
-This is a **new 41 × 37 open-sea board** with custom local IDs, not a scan of mapboards I–IV. The original mapboard artwork is absent from the supplied folder. Their numbering, coastlines, active shoals, current zones and scenario entry/exit boundaries are not reproduced. The included Ferrol setup is a two-vessel what-if; the book's Scenario 4D also uses Sacramento. See [rules mapping](Documentation/RULES-COMPATIBILITY.md).
+This is a **new 82 × 74 Ferrol open-sea board (Hampton Roads remains 41 × 37)** with custom local IDs, not a scan of mapboards I–IV. The original mapboard artwork is absent from the supplied folder. Their numbering, coastlines, active shoals, current zones and scenario entry/exit boundaries are not reproduced. The included Ferrol setup is a two-vessel what-if; the book's Scenario 4D also uses Sacramento. See [rules mapping](Documentation/RULES-COMPATIBILITY.md).
 
 ## Generated assets and verification
 

@@ -41,7 +41,7 @@ namespace Ironclads
             if(miniatures){scenario.rulesetId="iron-fire";scenario.hexMode=false;}
             selected=0;animateTime=false;GetComponent<GunneryTools>().preset=3;
             if(!miniatures)GetComponent<RuleChart>().Snap();Overview();
-            status=hampton?"Hampton Roads, 9 March 1862. Reconstructed scenery; weather and opening positions are umpire presets.":"Ferrol setup restored.";
+            status=hampton?"Hampton Roads, 9 March 1862. Reconstructed scenery; weather and opening positions are umpire presets.":"Ferrol playtest setup: 2,000 yards apart, approaching on reciprocal courses. Umpire controls movement.";
         }
         void EnsureFleet()
         {
@@ -101,6 +101,7 @@ namespace Ironclads
             if(Application.isPlaying&&Array.IndexOf(Environment.GetCommandLineArgs(),"-verify-network")>=0)gameObject.AddComponent<NetworkVerification>();
             if(Application.isPlaying&&Array.IndexOf(Environment.GetCommandLineArgs(),"-verify-hampton")>=0)gameObject.AddComponent<HamptonVerification>();
             if(Application.isPlaying&&(Array.IndexOf(Environment.GetCommandLineArgs(),"-verify-ulsan")>=0||Array.IndexOf(Environment.GetCommandLineArgs(),"-verify-ulsan-network")>=0))gameObject.AddComponent<UlsanVerification>();
+            if(!scenario.Hampton&&!scenario.DoB)Overview();
             UpdateWorld();SetCamera();
         }
         void Awake() => Initialize();
@@ -263,6 +264,7 @@ namespace Ironclads
             if(!scenario.DoB&&Array.IndexOf(args,"-iron-fire")>=0){scenario.rulesetId="iron-fire";scenario.hexMode=false;animateTime=false;GetComponent<UmpirePanel>().ShowTab(9);}
             if(Array.IndexOf(args,"-patrick-henry")>=0){if(!scenario.Hampton)StartScenario(true);GetComponent<UmpirePanel>().ShowTab(11);support.InspectPatrick();}
             if(Array.IndexOf(args,"-supplied-models")>=0){if(!scenario.Hampton)StartScenario(true);SelectSuppliedModels(true,true);GetComponent<UmpirePanel>().ShowTab(3);Focus(1);}
+            if(Array.IndexOf(args,"-niagara-stern")>=0){if(scenario.Hampton||scenario.DoB)StartScenario(false);selected=0;InspectStern();}
             int i=Array.IndexOf(args,"-capture");
             if(i>=0&&i+1<args.Length) {
                 yield return new WaitForSeconds(2);yield return new WaitForEndOfFrame();

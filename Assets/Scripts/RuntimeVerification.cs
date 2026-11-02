@@ -34,6 +34,14 @@ namespace Ironclads
             Check(scene.vessels[0].GetComponentsInChildren<MeshFilter>().Length==36,"Niagara does not have the pass-4 spatial mesh sections.");
             Check(scene.vessels[1].GetComponentsInChildren<MeshFilter>().Length==32,"Stonewall does not have the pass-4 spatial mesh sections.");
             string initial=JsonUtility.ToJson(scene.scenario);
+            Check(RuleChart.Range(RuleChart.At(scene.scenario.ships[0].Position),RuleChart.At(scene.scenario.ships[1].Position))==20,"Ferrol opening range is not 20 hexes.");
+            Check(Mathf.Abs(Vector3.Distance(scene.scenario.ships[0].Position,scene.scenario.ships[1].Position)-1828.8f)<.01f,"Ferrol opening range is not 2000 yards.");
+            var grid=scene.seaRoot.Find("100 yard hex chart — custom local coordinates");
+            Check(grid!=null&&grid.GetComponent<MeshFilter>().sharedMesh.vertexCount==82*74*12,"Expanded chart geometry has incorrect cell count.");
+            chart.Place(new Hex(61,25));Check(RuleChart.At(scene.scenario.ships[0].Position).Equals(new Hex(61,25)),"Expanded map corner cannot be occupied.");
+            chart.Move(1);Check(RuleChart.At(scene.scenario.ships[0].Position).Equals(new Hex(61,25)),"Movement escaped expanded board boundary.");chart.Undo();
+            scene.scenario=JsonUtility.FromJson<Scenario>(initial);
+
             Vector3 a=scene.scenario.ships[0].Position,b=scene.scenario.ships[1].Position;DateTime utc=scene.scenario.Date;
             chart.NextTurn();Check(scene.scenario.ships[0].Position==a&&scene.scenario.ships[1].Position==b,"End Turn moved a ship in umpire mode.");
             Check((scene.scenario.Date-utc).TotalSeconds==180&&scene.scenario.turn==2,"End Turn did not advance three minutes.");

@@ -15,7 +15,7 @@ Source: `contextonly/NEW_IRONCLADS_RULES.pdf`, inspected locally, plus `contexto
 
 The six headings are grid N, NE, SE, S, SW, NW, corresponding to true bearings 0°, 60°, 120°, 180°, 240°, 300°. These are hex-grid direction names, not the conventional eight-point compass bearings. Global +Z is north and +X is east.
 
-The chart is a flat-top hex grid. Axial `(0, 0)` is local ID **2119**. Columns are 01–41 and offset rows are 01–37. These IDs deliberately belong to a new local chart and must not be used as printed mapboard I–IV IDs. Grid scale is fixed; the camera changes scale, not the board or ship meshes.
+The chart is a flat-top hex grid. Axial `(0, 0)` is local ID **2119**. Ferrol columns are 01-82 and offset rows are 01-74; Hampton Roads retains columns 01-41 and rows 01-37. Existing hex IDs and saved positions retain their meaning. These IDs deliberately belong to a new local chart and must not be used as printed mapboard I–IV IDs. Grid scale is fixed; the camera changes scale, not the board or ship meshes.
 
 The large ship models can cross a hex border. Occupancy and range use the center marker, like a game counter, rather than mesh overlap. Moving into an occupied hex is allowed for umpire use; no collision or ramming result is inferred. Shift-click and one-hex moves are bounded to the local chart. Free placement offers a larger meter-based sea area.
 
