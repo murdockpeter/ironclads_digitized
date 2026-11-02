@@ -1,5 +1,19 @@
 # Unity development and builds
 
+**Latest: 1.5.0-dev supplied ship comparison.** Run `python Tools/prepare-supplied-ships.py` with the local user-supplied files, then build `Ironclads.Editor.ProjectBuilder.DeliverSuppliedShips` into `Builds/Windows-SuppliedShips`. Both test helpers default to that directory. [Optional asset integration](Supplied-Ship-Models.md).
+
+**Latest: 1.4.1-dev detailed coasts.** Build with `Ironclads.Editor.ProjectBuilder.DeliverCoastlines` into `Builds/Windows-Coastlines`. The launcher and test helpers use this directory. Geographic source acquisition, grid generation and license details are in [coastline notes](Hampton-Coastline.md).
+
+**Latest: 1.4.0-dev Patrick Henry.** Build with `Ironclads.Editor.ProjectBuilder.DeliverPatrickHenry` into `Builds/Windows-PatrickHenry`. The launcher and verification helpers use this directory. Verify with `-Hampton`; add `-IronFire` for the continuous-movement TCP test. [Module notes](Patrick-Henry.md).
+
+**Latest: 1.3.2-dev bow/funnel follow-up.** Build with `Ironclads.Editor.ProjectBuilder.DeliverUlsanBowFix` into `Builds/Windows-Ulsan-BowFix`. Both verification helpers now default to this directory. The editor checks closed hull/deck topology and outward stem faces, and renders low-angle Russian bow inspections.
+
+**Latest: 1.3.1-dev Ulsan paint/detail pass.** Build with `Ironclads.Editor.ProjectBuilder.DeliverUlsanDetail` into `Builds/Windows-Ulsan-Detail`. Pass that directory to the player/network verification helpers with `-Ulsan`. [Paint/detail review](Ulsan-Paint-and-Detail.md).
+
+**Latest: 1.3.0-dev Ulsan module.** Build with `Ironclads.Editor.ProjectBuilder.DeliverUlsan` into `Builds/Windows-Ulsan`. Launch `Start-Ironclads.ps1 -Ulsan`; omit the switch for Hampton Roads. Verify using `.tools/verify-player.ps1 -Ulsan` and `.tools/verify-network.ps1 -Ulsan`. Both default to the latest directory. [Module and verification details](Ulsan-Module.md). Older workflows below describe previous deliveries.
+
+**Latest: 1.2.2-dev detail/geography pass.** `Ironclads.Editor.ProjectBuilder.DeliverDetailAndTerrain` builds `Builds/Windows-HamptonRoads-Detail`, regenerates detail/terrain previews and reports measured geometry counts. Use the existing verification helpers with this directory. Geographic data are packaged locally; regeneration instructions and source limits are in [detail/geography notes](Hampton-Detail-and-Geography.md).
+
 **Latest: 1.2.1-dev supporting Union ships.** Use `Ironclads.Editor.ProjectBuilder.DeliverUnionShips` and `Builds/Windows-HamptonRoads-Union`. The same player/network verification helpers below accept this build directory. The launcher now uses this path. See [supporting-ship notes](Hampton-Union-Ships.md); TCP protocol 4 requires matching players. Earlier delivery paths below are retained as historical workflows.
 
 **Current: Hampton Roads + Iron & Fire, 1.2.0-dev.** Build with `Ironclads.Editor.ProjectBuilder.DeliverHamptonRoads` into `Builds/Windows-HamptonRoads`. `Start-Ironclads.ps1 -IronFire` launches Hampton Roads in miniatures mode; omit `-IronFire` for hex play, or add `-Ferrol` for the earlier scenario. The game also provides scenario/ruleset selection inside the UI. The workflows below describe earlier deliveries.

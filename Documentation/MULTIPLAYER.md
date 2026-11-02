@@ -1,5 +1,13 @@
 # Direct TCP/IP one-versus-one multiplayer
 
+**Current visual build: 1.4.1-dev**, `Builds/Windows-Coastlines/Ironclads.exe`, with [detailed local coasts](Hampton-Coastline.md). Protocol remains 6; use the same build for matching geography.
+
+**Latest: 1.4.0-dev / protocol 6**, `Builds/Windows-PatrickHenry/Ironclads.exe`. The Confederate (Virginia) player also commands Patrick Henry, with independently queued movement/engine commands and synchronized supporting salvos. Grounded Minnesota stays under the Monitor side. All modules remain available, including Ulsan fleet play. Both players must update to protocol 6. [Patrick Henry instructions](Patrick-Henry.md).
+
+**Current visual build: 1.3.1-dev**, `Builds/Windows-Ulsan-Detail/Ironclads.exe`, with the [cruiser paint/detail pass](Ulsan-Paint-and-Detail.md). Fleet networking remains protocol 5.
+
+**Latest: 1.3.0-dev / protocol 5**, `Builds/Windows-Ulsan/Ironclads.exe`. Ulsan adds one fleet per player: Russia commands Rossia, Gromoboi and Rurik; Japan commands Izumo, Azuma, Tokiwa and Iwate. Open **TCP fleets** to host/join. Commands for multiple ships, both turret bearings and movement time synchronize independently. Host controls the shared clock, weather and table management. Ferrol and Hampton retain their existing ship assignments. Both players need protocol 5; older protocol 3/4 builds cannot join. This latest build supports continuous DoB and Iron & Fire movement as well as hex play. [Ulsan instructions](Ulsan-Module.md). Older delivery notes below are retained for reference.
+
 **Latest: 1.2.1-dev / protocol 4**, `Builds/Windows-HamptonRoads-Union/Ironclads.exe`. The Monitor player also fires grounded Minnesota's batteries; the host sets Minnesota's availability and grounded position. Salvos and support state replicate. The wrecks of Congress and Cumberland are common scenery. Both players need this build. [Supporting ships](Hampton-Union-Ships.md).
 
 The latest player is **1.2.0-dev**, `Builds/Windows-HamptonRoads/Ironclads.exe`, built with `Ironclads.Editor.ProjectBuilder.DeliverHamptonRoads`. It supports either scenario and either tabletop ruleset. Protocol **3** requires matching builds. The host chooses the scenario/ruleset and either ship; exact miniatures positions, courses, current/ordered speeds, distance used, turn class and Monitor turret angle synchronize as well as the original hex controls. See [Hampton Roads](Hampton-Roads.md) and [Iron & Fire](Iron-and-Fire.md). The earlier development-build instructions below remain useful for the original Ferrol TCP player.

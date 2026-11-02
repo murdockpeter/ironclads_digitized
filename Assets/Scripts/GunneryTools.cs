@@ -9,9 +9,9 @@ namespace Ironclads
         public bool visible, rangeRings=true, pickedTarget;
         public Hex targetHex;
         public Vector3 freeTarget;
-        public bool minnesotaOrigin;
-        public int FiringShip=>minnesotaOrigin&&scene.scenario.Hampton?2:scene.selected;
-        public int TargetShip=>FiringShip==2?1:1-FiringShip;
+        public bool minnesotaOrigin,patrickOrigin;
+        public int FiringShip=>patrickOrigin&&scene.scenario.Hampton?3:patrickOrigin&&scene.scenario.Hampton?3:minnesotaOrigin&&scene.scenario.Hampton?2:scene.selected;
+        public int TargetShip=>FiringShip==3?0:FiringShip==3?0:FiringShip==2?1:1-FiringShip;
         public ShipState FiringState=>scene.scenario.State(FiringShip);
         public int preset;
         public float reach=6, customSweep=120, customCenter=90;
@@ -58,7 +58,8 @@ namespace Ironclads
         void Positions(LineRenderer line,Vector3[] points){line.positionCount=points.Length;line.SetPositions(points);}
         void LateUpdate()
         {
-            if(scene==null||scene.seaRoot==null)return;if(sector==null)Build();
+            if(scene==null||scene.seaRoot==null)return;
+            if(scene.scenario.DoB){if(sector!=null){foreach(var l in new[]{sector,axis,sight,targetOutline})l.gameObject.SetActive(false);foreach(var l in bands)l.gameObject.SetActive(false);}return;}if(sector==null)Build();
             if((scene.selected==0||scene.scenario.Hampton||scene.scenario.Miniatures)&&preset<3)preset=3;
             bool show=visible&&!scene.globeMode&&scene.showOverlay;
             foreach(var line in new[]{sector,axis,sight,targetOutline})line.gameObject.SetActive(show);

@@ -26,13 +26,20 @@ namespace Ironclads.Editor
         public static void DeliverRelease(){Prepare();BuildWindowsTo("Builds/Windows-"+PlayerSettings.bundleVersion);}
         public static void DeliverMultiplayer(){Prepare();BuildWindowsTo("Builds/Windows-TCP");}
         public static void DeliverHamptonRoads(){Prepare();HamptonReview.Run();BuildWindowsTo("Builds/Windows-HamptonRoads");}
+        public static void DeliverDetailAndTerrain(){Prepare();HamptonReview.Run();HamptonMetrics.Run();BuildWindowsTo("Builds/Windows-HamptonRoads-Detail");}
+        public static void DeliverSuppliedShips(){Prepare();SuppliedShipReview.Run();BuildWindowsTo("Builds/Windows-SuppliedShips");}
+        public static void DeliverCoastlines(){Prepare();HamptonReview.Run();HamptonMetrics.Run();BuildWindowsTo("Builds/Windows-Coastlines");}
+        public static void DeliverPatrickHenry(){Prepare();HamptonReview.Run();PatrickHenryReview.Run();BuildWindowsTo("Builds/Windows-PatrickHenry");}
         public static void DeliverUnionShips(){Prepare();HamptonReview.Run();BuildWindowsTo("Builds/Windows-HamptonRoads-Union");}
+        public static void DeliverUlsanBowFix(){Prepare();UlsanReview.Run();BuildWindowsTo("Builds/Windows-Ulsan-BowFix");}
+        public static void DeliverUlsanDetail(){Prepare();UlsanReview.Run();BuildWindowsTo("Builds/Windows-Ulsan-Detail");}
+        public static void DeliverUlsan(){Prepare();UlsanReview.Run();BuildWindowsTo("Builds/Windows-Ulsan");}
         [MenuItem("Ironclads/Prepare project and ship assets")]
         public static void Prepare()
         {
             Directory.CreateDirectory("Assets/Generated");Directory.CreateDirectory("Artifacts");
             PlayerSettings.companyName="Ironclads";PlayerSettings.productName="Ironclads — Ferrol";
-            PlayerSettings.bundleVersion="1.2.1-dev";
+            PlayerSettings.bundleVersion="1.5.0-dev";
             PlayerSettings.defaultScreenWidth=1600;PlayerSettings.defaultScreenHeight=1000;
             PlayerSettings.fullScreenMode=FullScreenMode.Windowed;PlayerSettings.runInBackground=true;
             PlayerSettings.resizableWindow=true;PlayerSettings.colorSpace=ColorSpace.Linear;
@@ -67,7 +74,7 @@ namespace Ironclads.Editor
             var settings=AssetDatabase.LoadAllAssetsAtPath("ProjectSettings/GraphicsSettings.asset").FirstOrDefault();
             if(settings==null)throw new Exception("Graphics settings asset missing.");
             var serialized=new SerializedObject(settings);var shaders=serialized.FindProperty("m_AlwaysIncludedShaders");
-            foreach(string name in new[]{"Ironclads/Ocean","Ironclads/Sky","Ironclads/Atmosphere","Ironclads/Weather Sprite","Ironclads/Powder Smoke","Ironclads/Chart","Standard"}) {
+            foreach(string name in new[]{"Ironclads/Ocean","Ironclads/Sky","Ironclads/Atmosphere","Ironclads/Weather Sprite","Ironclads/Powder Smoke","Ironclads/Chart","Ironclads/Coastal Ground","Ironclads/Worked Iron","Ironclads/Cruiser Finish","Ironclads/Supplied Ship","Standard"}) {
                 var shader=Shader.Find(name);if(shader==null)throw new Exception("Missing shader "+name);
                 if(ShaderUtil.ShaderHasError(shader))throw new Exception("Shader compilation failed: "+name);
                 bool found=false;for(int i=0;i<shaders.arraySize;i++)if(shaders.GetArrayElementAtIndex(i).objectReferenceValue==shader)found=true;

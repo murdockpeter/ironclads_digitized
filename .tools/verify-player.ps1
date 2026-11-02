@@ -1,4 +1,4 @@
-param([switch]$DefaultGraphics,[string]$BuildDirectory='Builds\Windows',[switch]$Hampton)
+param([switch]$DefaultGraphics,[string]$BuildDirectory='Builds\Windows-SuppliedShips',[switch]$Hampton,[switch]$Ulsan)
 $projectPath = Split-Path $PSScriptRoot -Parent
 Add-Type @'
 using System;
@@ -18,6 +18,7 @@ public static class IroncladsWindow {
 '@
 $playerArgs=@('-screen-fullscreen','0','-screen-width','1600','-screen-height','1000','-verify-runtime',('"{0}"' -f (Join-Path $projectPath 'Artifacts')),'-logFile',('"{0}"' -f (Join-Path $projectPath 'Artifacts\player.log')))
 if($Hampton){$playerArgs=@('-screen-fullscreen','0','-screen-width','1600','-screen-height','1000','-verify-hampton',('"{0}"' -f (Join-Path $projectPath 'Artifacts')),'-logFile',('"{0}"' -f (Join-Path $projectPath 'Artifacts\hampton-player.log')))}
+if($Ulsan){$playerArgs=@('-screen-fullscreen','0','-screen-width','1600','-screen-height','1000','-verify-ulsan',('"{0}"' -f (Join-Path $projectPath 'Artifacts')),'-logFile',('"{0}"' -f (Join-Path $projectPath 'Artifacts\ulsan-player.log')))}
 if(-not $DefaultGraphics){$playerArgs=@('-force-d3d11')+$playerArgs}
 $buildPath=Join-Path $projectPath $BuildDirectory
 $playerProcess=Start-Process -FilePath (Join-Path $buildPath 'Ironclads.exe') -ArgumentList $playerArgs -WorkingDirectory $buildPath -WindowStyle Hidden -PassThru
@@ -33,5 +34,5 @@ for($attempt=0;$attempt -lt 100;$attempt++) {
 }
 if(-not $playerProcess.WaitForExit(60000)){throw 'Player verification has not finished; refusing to read an older report.'}
 if($playerProcess.ExitCode -ne 0){throw "Player verification exited with code $($playerProcess.ExitCode). See Artifacts/player.log and runtime-verification.txt."}
-if($Hampton){Get-Content (Join-Path $projectPath 'Artifacts\hampton-runtime-verification.txt')}else{Get-Content (Join-Path $projectPath 'Artifacts\runtime-verification.txt')}
+if($Ulsan){Get-Content (Join-Path $projectPath 'Artifacts\ulsan-runtime-verification.txt')}elseif($Hampton){Get-Content (Join-Path $projectPath 'Artifacts\hampton-runtime-verification.txt')}else{Get-Content (Join-Path $projectPath 'Artifacts\runtime-verification.txt')}
 Get-ChildItem (Join-Path $projectPath 'Artifacts') -Filter 'Player*.png' | Select-Object Name,Length

@@ -10,7 +10,7 @@ namespace Ironclads
         public bool cannonSound=true;
         public float volume=.95f,smokeAmount=1,ripple=.32f;
         public int ShotsFired {get;private set;}
-        public readonly bool[] firing=new bool[3];
+        public readonly bool[] firing=new bool[16];
         public ParticleSystem powder,flash;
         public bool silentVerification;
         AudioClip[] reports;
@@ -38,11 +38,11 @@ namespace Ironclads
         public GunMount[] Battery(int ship,int side)
         {
             var result=new List<GunMount>();
-            if(ship<0||ship>2||(ship==2&&!scene.scenario.Hampton)||scene.Vessel(ship)==null)return result.ToArray();
+            if(ship<0||ship>=scene.scenario.ShipSlots||(ship==2&&!scene.scenario.Hampton&&!scene.scenario.DoB)||scene.Vessel(ship)==null)return result.ToArray();
             int port=0,starboard=0;
             var mounted=scene.Vessel(ship).GetComponentsInChildren<GunMount>();System.Array.Sort(mounted,(a,b)=>b.transform.localPosition.z.CompareTo(a.transform.localPosition.z));
             foreach(var mount in mounted){
-                if(ship==2){if(mount.Side==-1&&port++>=scene.scenario.minnesotaPortGuns)continue;if(mount.Side==1&&starboard++>=scene.scenario.minnesotaStarboardGuns)continue;if(mount.Side==0&&scene.scenario.minnesotaBowGuns==0)continue;}
+                if(ship==2&&scene.scenario.Hampton){if(mount.Side==-1&&port++>=scene.scenario.minnesotaPortGuns)continue;if(mount.Side==1&&starboard++>=scene.scenario.minnesotaStarboardGuns)continue;if(mount.Side==0&&scene.scenario.minnesotaBowGuns==0)continue;}
                 if(side==2||mount.Side==side)result.Add(mount);
             }
             result.Sort((a,b)=>b.transform.localPosition.z.CompareTo(a.transform.localPosition.z));return result.ToArray();
@@ -54,7 +54,7 @@ namespace Ironclads
         }
         internal bool FireLocal(int ship,int side)
         {
-            if(ship<0||ship>2||scene.globeMode||firing[ship])return false;
+            if(ship<0||ship>=firing.Length||scene.globeMode||firing[ship])return false;
             var mounts=Battery(ship,side);if(mounts.Length==0)return false;
             EnsureEffects();firing[ship]=true;StartCoroutine(Salvo(ship,mounts));return true;
         }
@@ -138,12 +138,12 @@ namespace Ironclads
         {
             Vector3 right=Vector3.Cross(Vector3.up,forward).normalized,up=Vector3.Cross(forward,right).normalized;
             for(int pulse=0;pulse<3;pulse++) {
-                int count=Mathf.RoundToInt((pulse==0?75:35)*smokeAmount*weight);
+                int count=Mathf.RoundToInt((pulse==0?75:35)*smokeAmount*weight*(scene.scenario.DoB?.45f:1));
                 for(int i=0;i<count;i++) {
                     float type=Random.value,angle=Random.value*Mathf.PI*2;Vector3 ring=(right*Mathf.Cos(angle)+up*Mathf.Sin(angle));
                     float size=type<.55f?Random.Range(.8f,1.5f):type<.87f?Random.Range(1.5f,2.3f):Random.Range(.35f,.75f);
                     float opacity=type<.55f?Random.Range(.65f,.92f):type<.87f?Random.Range(.38f,.65f):Random.Range(.18f,.38f);
-                    bool denseDark=type<.55f&&Random.value<.45f;
+                    bool denseDark=type<.55f&&Random.value<(scene.scenario.DoB?.12f:.45f);
                     float shade=denseDark?Random.Range(.28f,.52f):Random.Range(.76f,.98f),speed=Random.Range(10f,31f)*weight/(1+pulse*.25f);
                     uint seed=((uint)Random.Range(1,8388607)<<8)|(uint)Mathf.RoundToInt(shade*255);
                     var emit=new ParticleSystem.EmitParams {position=muzzle+forward*Random.Range(.05f,2f)+ring*Random.Range(.08f,.6f),velocity=forward*speed+ring*Random.Range(1.5f,6f)+Vector3.up*Random.Range(1f,3.5f),startSize=size*weight,startLifetime=type>.87f?Random.Range(20f,32f):Random.Range(29f,46f),startColor=new Color(shade,shade*.995f,shade*.965f,opacity),rotation=Random.Range(0,360),angularVelocity=Random.Range(-13f,13f),randomSeed=seed};
@@ -155,7 +155,7 @@ namespace Ironclads
         IEnumerator FlashOut(Light light){yield return new WaitForSeconds(.07f);flashes.Remove(light);if(light!=null)Destroy(light.gameObject);}
         public void Clear()
         {
-            StopAllCoroutines();firing[0]=firing[1]=firing[2]=false;if(powder!=null){powder.Clear();flash.Clear();}
+            StopAllCoroutines();System.Array.Clear(firing,0,firing.Length);if(powder!=null){powder.Clear();flash.Clear();}
             foreach(var source in voices)source.Stop();foreach(var light in flashes)if(light!=null)Destroy(light.gameObject);flashes.Clear();
         }
         void LateUpdate()

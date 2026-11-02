@@ -212,21 +212,22 @@ namespace Ironclads
             Rod(root,"Backstay",top,new Vector3(0,baseY,z-yard*1.8f),.025f,Rope,sides:4);
             RiggingFittings(root,z,baseY,height,beam);
         }
-        public enum GunType { Parrott150, Armstrong300, Armstrong70, DahlgrenXI, DahlgrenIX, Brooke7, Brooke64, DahlgrenVIII, DahlgrenX }
-        public static int SoundKind(GunType type)=>type==GunType.DahlgrenVIII||type==GunType.DahlgrenX?0:type==GunType.DahlgrenXI?1:type==GunType.DahlgrenIX?0:type==GunType.Brooke7||type==GunType.Brooke64?2:(int)type;
-        public static float Bore(GunType type)=>type==GunType.DahlgrenVIII?.2032f:type==GunType.DahlgrenX?.254f:type==GunType.DahlgrenXI?.2794f:type==GunType.DahlgrenIX?.2286f:type==GunType.Brooke7?.1778f:type==GunType.Brooke64?.16256f:type==GunType.Armstrong300?.254f:type==GunType.Armstrong70?.16256f:.2032f;
-        public static float BarrelLength(GunType type)=>type==GunType.DahlgrenVIII?3.1f:type==GunType.DahlgrenX?3.7f:type==GunType.DahlgrenXI?3.96f:type==GunType.DahlgrenIX?3.35f:type==GunType.Brooke7?3.8f:type==GunType.Brooke64?3.5f:type==GunType.Armstrong70?2.65f:4.05f;
-        public static GameObject Gun(Transform root,Vector3 p,Vector3 direction,GunType type)
+        public enum GunType { Parrott150, Armstrong300, Armstrong70, DahlgrenXI, DahlgrenIX, Brooke7, Brooke64, DahlgrenVIII, DahlgrenX, Naval8, Naval6, Naval3, Smoothbore32 }
+        public static int SoundKind(GunType type)=>type==GunType.Smoothbore32?0:type==GunType.Naval8?1:type==GunType.Naval6?0:type==GunType.Naval3?2:type==GunType.DahlgrenVIII||type==GunType.DahlgrenX?0:type==GunType.DahlgrenXI?1:type==GunType.DahlgrenIX?0:type==GunType.Brooke7||type==GunType.Brooke64?2:(int)type;
+        public static float Bore(GunType type)=>type==GunType.Smoothbore32?.163f:type==GunType.DahlgrenVIII?.2032f:type==GunType.DahlgrenX?.254f:type==GunType.DahlgrenXI?.2794f:type==GunType.DahlgrenIX?.2286f:type==GunType.Brooke7?.1778f:type==GunType.Brooke64?.16256f:type==GunType.Armstrong300?.254f:type==GunType.Armstrong70?.16256f:.2032f;
+        public static float BarrelLength(GunType type)=>type==GunType.Smoothbore32?2.74f:type==GunType.DahlgrenVIII?3.1f:type==GunType.DahlgrenX?3.7f:type==GunType.DahlgrenXI?3.96f:type==GunType.DahlgrenIX?3.35f:type==GunType.Brooke7?3.8f:type==GunType.Brooke64?3.5f:type==GunType.Armstrong70?2.65f:4.05f;
+        public static GameObject Gun(Transform root,Vector3 p,Vector3 direction,GunType type,int detail=1)
         {
             var go=new GameObject(type==GunType.Parrott150?"150-pounder Parrott rifle":type==GunType.Armstrong300?"300-pounder Armstrong rifle":"70-pounder Armstrong rifle");
             if((int)type>=3)go.name=type==GunType.DahlgrenXI?"XI-inch Dahlgren":type==GunType.DahlgrenIX?"IX-inch Dahlgren":type==GunType.Brooke7?"7-inch Brooke rifle":"6.4-inch Brooke rifle";
             if(type==GunType.DahlgrenVIII)go.name="VIII-inch shell gun";if(type==GunType.DahlgrenX)go.name="X-inch smoothbore pivot";
+            if(type==GunType.Smoothbore32)go.name="32-pounder smoothbore";
             go.transform.SetParent(root,false);go.transform.localPosition=p;go.transform.localRotation=Quaternion.LookRotation(direction,Vector3.up);
             go.AddComponent<GunMount>().type=type;
             Transform gun=go.transform;float length=BarrelLength(type),scale=type==GunType.Armstrong70?.72f:1;
             bool parrott=type==GunType.Parrott150;float radius=parrott?.33f:type==GunType.Armstrong300?.39f:.25f;
-            bool dahlgren=type==GunType.DahlgrenXI||type==GunType.DahlgrenIX||type==GunType.DahlgrenVIII||type==GunType.DahlgrenX,brooke=type==GunType.Brooke7||type==GunType.Brooke64;
-            if(dahlgren)radius=type==GunType.DahlgrenXI?.44f:.37f;
+            bool dahlgren=type==GunType.DahlgrenXI||type==GunType.DahlgrenIX||type==GunType.DahlgrenVIII||type==GunType.DahlgrenX||type==GunType.Smoothbore32,brooke=type==GunType.Brooke7||type==GunType.Brooke64;
+            if(dahlgren)radius=type==GunType.Smoothbore32?.27f:type==GunType.DahlgrenXI?.44f:.37f;
             if(brooke)radius=.32f;
             float rear=-length*.55f,muzzle=length*.45f,bore=Bore(type)*.5f;
             // A surface of revolution describes the breech, reinforce, chase, muzzle swell,
@@ -240,7 +241,7 @@ namespace Ironclads
                 new Vector2(muzzle,bore),new Vector2(muzzle-length*.33f,bore),new Vector2(muzzle-length*.33f,0)
             };
             if(dahlgren)profile=new List<Vector2>{new Vector2(rear,0),new Vector2(rear,radius*.45f),new Vector2(rear+length*.05f,radius*.85f),new Vector2(rear+length*.14f,radius),new Vector2(rear+length*.27f,radius*.98f),new Vector2(rear+length*.42f,radius*.80f),new Vector2(rear+length*.58f,radius*.58f),new Vector2(rear+length*.80f,radius*.49f),new Vector2(muzzle,radius*.55f),new Vector2(muzzle,bore),new Vector2(muzzle-length*.33f,bore),new Vector2(muzzle-length*.33f,0)};
-            Revolve(gun,"Profiled barrel with open bore",profile,36,Iron);
+            Revolve(gun,"Profiled barrel with open bore",profile,36*detail,Iron);
             Rod(gun,"Dark bore recess",new Vector3(0,0,muzzle-length*.33f+.001f),new Vector3(0,0,muzzle-length*.33f+.003f),bore*.99f,Black,sides:24);
             if(parrott)Revolve(gun,"Parrott wrought iron breech band",new List<Vector2>{new Vector2(rear+length*.065f,radius*.96f),new Vector2(rear+length*.065f,radius*1.13f),new Vector2(rear+length*.30f,radius*1.13f),new Vector2(rear+length*.30f,radius*.90f)},24,Hull);
             else if(brooke)Revolve(gun,"Brooke wrought iron reinforce band",new List<Vector2>{new Vector2(rear+length*.07f,radius),new Vector2(rear+length*.07f,radius*1.15f),new Vector2(rear+length*.34f,radius*1.15f),new Vector2(rear+length*.34f,radius*.88f)},32,Iron);
@@ -426,35 +427,38 @@ namespace Ironclads
                 for(int j=1;j<6;j++) {Vector3 r=Vector3.Lerp(p,q,j/6f);Rod(root,"Rivet",r,r+(r-pos).normalized*.04f,.055f,Iron,sides:6);}
             }
         }
-        static void Combine(Transform root)
+        static void Combine(Transform root,int longitudinalSections=2)
         {
             // Four spatial sections per material: port/starboard and fore/aft.
             // Preserve normals at the section boundary so it does not become a visible seam.
-            var groups=new Dictionary<(Material,int),MeshSection>();
+            var groups=new Dictionary<(Material,int,bool,bool),MeshSection>();
             var filters=new List<MeshFilter>();
             foreach(var f in root.GetComponentsInChildren<MeshFilter>())if(root.GetComponent<TurretAssembly>()!=null||f.GetComponentInParent<TurretAssembly>()==null)filters.Add(f);
+            float minZ=float.PositiveInfinity,maxZ=float.NegativeInfinity;
+            if(longitudinalSections!=2)foreach(var f in filters){var matrix=root.worldToLocalMatrix*f.transform.localToWorldMatrix;foreach(var p in f.sharedMesh.vertices){float z=matrix.MultiplyPoint3x4(p).z;minZ=Mathf.Min(minZ,z);maxZ=Mathf.Max(maxZ,z);}}
             foreach(var filter in filters) {
-                var material=filter.GetComponent<MeshRenderer>().sharedMaterial;
+                var renderer=filter.GetComponent<MeshRenderer>();var material=renderer.sharedMaterial;
                 Matrix4x4 matrix=root.worldToLocalMatrix*filter.transform.localToWorldMatrix,normalMatrix=matrix.inverse.transpose;
-                var source=filter.sharedMesh;var vertices=source.vertices;var normals=source.normals;var indices=source.triangles;var sourceUV=source.uv;
-                var maps=new[]{new Dictionary<int,int>(),new Dictionary<int,int>(),new Dictionary<int,int>(),new Dictionary<int,int>()};
+                var source=filter.sharedMesh;var vertices=source.vertices;var normals=source.normals;var indices=source.triangles;var sourceUV=source.uv;var sourceColors=source.colors;
+                var maps=new Dictionary<int,int>[longitudinalSections*2];for(int m=0;m<maps.Length;m++)maps[m]=new Dictionary<int,int>();
                 for(int i=0;i<indices.Length;i+=3) {
                     Vector3 a=matrix.MultiplyPoint3x4(vertices[indices[i]]),b=matrix.MultiplyPoint3x4(vertices[indices[i+1]]),c=matrix.MultiplyPoint3x4(vertices[indices[i+2]]);
-                    int section=((a.z+b.z+c.z)>=0?2:0)+((a.x+b.x+c.x)>=0?1:0);var key=(material,section);
+                    int zone=longitudinalSections==2?((a.z+b.z+c.z)>=0?1:0):Mathf.Clamp(Mathf.FloorToInt(((a.z+b.z+c.z)/3-minZ)/Mathf.Max(.01f,maxZ-minZ)*longitudinalSections),0,longitudinalSections-1);
+                    int section=zone*2+((a.x+b.x+c.x)>=0?1:0);var key=(material,section,renderer.shadowCastingMode!=ShadowCastingMode.Off,renderer.receiveShadows);
                     if(!groups.TryGetValue(key,out var group)){group=new MeshSection();groups[key]=group;}
                     for(int k=0;k<3;k++) {
                         int index=indices[i+k];if(!maps[section].TryGetValue(index,out int target)) {
                             target=group.vertices.Count;maps[section][index]=target;group.vertices.Add(matrix.MultiplyPoint3x4(vertices[index]));
                             group.normals.Add(normalMatrix.MultiplyVector(normals[index]).normalized);
-                            group.uv.Add(sourceUV.Length==vertices.Length?sourceUV[index]:Vector2.zero);
+                            group.uv.Add(sourceUV.Length==vertices.Length?sourceUV[index]:Vector2.zero);group.colors.Add(sourceColors.Length==vertices.Length?sourceColors[index]:Color.white);
                         }group.triangles.Add(target);
                     }
                 }
             }
             foreach(var group in groups) {
-                string label=(group.Key.Item2>=2?"Fore-":"Aft-")+(group.Key.Item2%2==0?"Port-":"Starboard-")+group.Key.Item1.name;
-                var mesh=Mesh(root.name+" - "+label,group.Value.vertices,group.Value.triangles,group.Value.uv);mesh.SetNormals(group.Value.normals);
-                Part(label,root,mesh,group.Key.Item1);
+                string label=(longitudinalSections==2?(group.Key.Item2>=2?"Fore-":"Aft-"):"Section-"+(group.Key.Item2/2+1)+"-")+(group.Key.Item2%2==0?"Port-":"Starboard-")+group.Key.Item1.name;
+                var mesh=Mesh(root.name+" - "+label,group.Value.vertices,group.Value.triangles,group.Value.uv);mesh.SetNormals(group.Value.normals);mesh.SetColors(group.Value.colors);
+                var combined=Part(label,root,mesh,group.Key.Item1).GetComponent<MeshRenderer>();combined.shadowCastingMode=group.Key.Item3?ShadowCastingMode.On:ShadowCastingMode.Off;combined.receiveShadows=group.Key.Item4;
             }
             // All original geometry is generated again with combine=false when individual parts are wanted.
             foreach(var f in filters) Object.DestroyImmediate(f.gameObject);
@@ -465,6 +469,7 @@ namespace Ironclads
         {
             public readonly List<Vector3> vertices=new List<Vector3>(),normals=new List<Vector3>();
             public readonly List<Vector2> uv=new List<Vector2>();
+            public readonly List<Color> colors=new List<Color>();
             public readonly List<int> triangles=new List<int>();
         }
     }

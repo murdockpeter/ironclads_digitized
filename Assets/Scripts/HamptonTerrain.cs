@@ -5,7 +5,7 @@ using UnityEngine;
 namespace Ironclads
 {
     // Hand-built geographic scenery, not bathymetry or an exact 1862 shoreline survey.
-    public class HamptonTerrain : MonoBehaviour
+    public partial class HamptonTerrain : MonoBehaviour
     {
         public const double Latitude=36.983,Longitude=-76.385;
         public Transform root;
@@ -22,9 +22,10 @@ namespace Ironclads
                 ground.SetPixel(x,y,Color.Lerp(new Color(.22f,.26f,.13f),new Color(.44f,.43f,.25f),n));
             }ground.Apply();grass.mainTexture=ground;
             stone=Shipwright.MakeMaterial("Fort masonry",new Color(.40f,.38f,.31f));roof=Shipwright.MakeMaterial("Period roof",new Color(.23f,.19f,.16f));trunk=Shipwright.Wood;leaves=Shipwright.MakeMaterial("Distant coastal woodland",new Color(.13f,.21f,.13f));
-            Shore("Hampton and Newport News",new[]{Point(37.060,-76.52),Point(37.060,-76.25),Point(37.020,-76.25),Point(37.010,-76.292),Point(37.000,-76.300),Point(36.997,-76.307),Point(37.000,-76.315),Point(37.015,-76.334),Point(37.020,-76.349),Point(37.014,-76.365),Point(37.006,-76.383),Point(36.998,-76.401),Point(36.987,-76.411),Point(36.975,-76.420),Point(36.960,-76.427),Point(36.953,-76.434),Point(36.957,-76.455),Point(36.984,-76.477),Point(37.015,-76.49)});
-            Shore("Sewells Point and Norfolk shore",new[]{Point(36.900,-76.35),Point(36.900,-76.20),Point(36.960,-76.20),Point(36.967,-76.265),Point(36.970,-76.295),Point(36.968,-76.313),Point(36.961,-76.329),Point(36.953,-76.336),Point(36.943,-76.335),Point(36.934,-76.337),Point(36.925,-76.347)});
-            Shore("Craney Island",new[]{Point(36.884,-76.395),Point(36.884,-76.358),Point(36.905,-76.358),Point(36.912,-76.365),Point(36.916,-76.375),Point(36.911,-76.385)});
+
+
+
+            BuildGeographicTerrain();
             FortMonroe(Point(37.003,-76.308));
             RipRaps(Point(36.985,-76.305));
             Battery("Sewell's Point batteries",Point(36.960,-76.329),-25);
@@ -66,13 +67,19 @@ namespace Ironclads
             var unique=new HashSet<(int,int,int)>();var faces=new List<int>();
             for(int i=0;i<t.Count;i+=3){int a=t[i],b=t[i+1],c=t[i+2];int min=Mathf.Min(a,Mathf.Min(b,c)),max=Mathf.Max(a,Mathf.Max(b,c));
                 if(!unique.Add((min,a+b+c-min-max,max)))continue;
-                if(Vector3.Cross(v[b]-v[a],v[c]-v[a]).y<0){int swap=b;b=c;c=swap;}faces.AddRange(new[]{a,b,c});
+                float area=Vector3.Cross(v[b]-v[a],v[c]-v[a]).y;
+                // Clipping a detailed shoreline against a ground cell can leave tiny
+                // collinear slivers after millimeter quantization. Omit those faces.
+                if(Mathf.Abs(area)<.0001f)continue;
+                if(area<0){int swap=b;b=c;c=swap;}faces.AddRange(new[]{a,b,c});
             }
+            var compact=new List<Vector3>();var remap=new Dictionary<int,int>();
+            for(int i=0;i<faces.Count;i++){int original=faces[i];if(!remap.TryGetValue(original,out int mapped)){mapped=compact.Count;remap[original]=mapped;compact.Add(v[original]);}faces[i]=mapped;}v=compact;
             var go=new GameObject(name);go.transform.SetParent(parent,false);var uv=new List<Vector2>();foreach(var p in v)uv.Add(new Vector2(p.x/140,p.z/140));
             go.AddComponent<MeshFilter>().sharedMesh=Shipwright.Mesh(name,v,faces,uv);go.AddComponent<MeshRenderer>().sharedMaterial=material;
         }
         void Tree(Vector3 p,float h){Shipwright.Rod(root,"Woodland trunk",p,p+Vector3.up*h,.3f,trunk,sides:4);for(int i=0;i<2;i++){var crown=GameObject.CreatePrimitive(PrimitiveType.Sphere);crown.name="Coastal woodland crown";crown.transform.SetParent(root,false);crown.transform.localPosition=p+new Vector3((i-.5f)*h*.25f,h*.75f+i,0);crown.transform.localScale=new Vector3(h*.7f,h*.8f,h*.65f);crown.GetComponent<Renderer>().sharedMaterial=leaves;DestroyImmediate(crown.GetComponent<Collider>());}}
-        Transform Group(string name,Vector3 p,float heading=0){var go=new GameObject(name);go.transform.SetParent(root,false);go.transform.localPosition=p;go.transform.localRotation=Quaternion.Euler(0,heading,0);landmarks.Add((name,p));return go.transform;}
+        Transform Group(string name,Vector3 p,float heading=0){var go=new GameObject(name);go.transform.SetParent(root,false);p.y=HeightAt(p)-2.4f;go.transform.localPosition=p;go.transform.localRotation=Quaternion.Euler(0,heading,0);landmarks.Add((name,p));return go.transform;}
         void FortMonroe(Vector3 p)
         {
             var fort=Group("Fort Monroe",p,20);
