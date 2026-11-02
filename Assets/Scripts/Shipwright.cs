@@ -83,7 +83,7 @@ namespace Ironclads
         static readonly float[] NiagaraGunStations={-26,-13,0,13,26};
         static bool InGunPort(float z)
         {foreach(float center in NiagaraGunStations)if(Mathf.Abs(z-center)<.90f-.0001f)return true;return false;}
-        static Vector3 HullPoint(float z,int rib,float length,float beam,float deck,float draft)
+        static Vector3 HullPoint(float z,int rib,float length,float beam,float deck,float draft,bool niagaraStern=false)
         {
             float f=z/length+.5f,top=DeckHeight(z,length,deck);
             // A nonzero end depth creates a proper stem instead of pinching the keel up to the deck.
@@ -91,10 +91,10 @@ namespace Ironclads
             int k=rib<=12?rib:24-rib;
             float drop=k==0?0:k==1?.35f:k==2?1.65f:1.65f+(depth-1.65f)*Mathf.Sin((k-2)/10f*Mathf.PI*.5f);
             float x=HullHalfWidth(z,length,beam)*Mathf.Sqrt(Mathf.Max(0,1-drop*drop/(depth*depth)));
-            return new Vector3((rib<=12?-1:1)*x,top-drop,z);
+            return new Vector3((rib<=12?-1:1)*x,top-drop,niagaraStern?NiagaraRakedZ(z,top-drop):z);
         }
         static bool InPort(float z,float[] stations){foreach(float center in stations)if(Mathf.Abs(z-center)<.90f-.0001f)return true;return false;}
-        static void HullForm(Transform root, float length, float beam, float deck, float draft, Material material,float[] gunStations=null)
+        static void HullForm(Transform root, float length, float beam, float deck, float draft, Material material,float[] gunStations=null,bool niagaraStern=false)
         {
             var v=new List<Vector3>(); var t=new List<int>(); var dv=new List<Vector3>(); var dt=new List<int>();
             const int stations=512,ribs=24;bool ports=length>80;
@@ -106,7 +106,7 @@ namespace Ironclads
             for(int j=0;j<zValues.Count;j++) {
                 float z=zValues[j],half=HullHalfWidth(z,length,beam),top=DeckHeight(z,length,deck);
                 for(int k=0;k<=ribs;k++) {
-                    v.Add(HullPoint(z,k,length,beam,deck,draft));
+                    v.Add(HullPoint(z,k,length,beam,deck,draft,niagaraStern));
                     bool opening=ports&&j<zValues.Count-1&&InPort((z+zValues[j+1])*.5f,batteryStations)&&(k==1||k==22);
                     if(j<zValues.Count-1&&k<ribs&&!opening){int i=j*(ribs+1)+k;t.AddRange(new[]{i,i+1,i+ribs+1,i+1,i+ribs+2,i+ribs+1});}
                 }
@@ -148,7 +148,7 @@ namespace Ironclads
             // Stem and keel visibly join the closed shell; curved headrails support the bowsprit.
             for(int end=-1;end<=1;end+=2) {
                 float z=end*length*.5f;Vector3 top=new Vector3(0,DeckHeight(z,length,deck),z);
-                Rod(root,end>0?"Reinforced stem":"Stern post",top+Vector3.down*(deck+draft)*.65f,top+Vector3.up*.45f,.09f,material,sides:12);
+                if(end>0||!niagaraStern)Rod(root,end>0?"Reinforced stem":"Stern post",top+Vector3.down*(deck+draft)*.65f,top+Vector3.up*.45f,.09f,material,sides:12);
                 if(end<0)continue;
                 for(int side=-1;side<=1;side+=2) {
                     float startWidth=HullHalfWidth(end*length*.42f,length,beam)*.95f;
@@ -331,7 +331,7 @@ namespace Ironclads
             Materials();
             var go=new GameObject(stonewall ? "CSS Stonewall" : "USS Niagara"); var root=go.transform;
             float length=stonewall?52.3756f:100.228f,beam=stonewall?9.9568f:16.764f,deck=stonewall?1.85f:4.3f;
-            if(stonewall)StonewallHull(root);else HullForm(root,length,beam,deck,7.4422f,Hull);
+            if(stonewall)StonewallHull(root);else HullForm(root,length,beam,deck,7.4422f,Hull,niagaraStern:true);
             if(stonewall) {
                 // Sloping battery armor extends down into the hull; base footprints are verified against it.
                 StonewallBattery(root,false);
@@ -348,14 +348,7 @@ namespace Ironclads
                 Rod(root,"Bowsprit",new Vector3(0,deck+2.0f,21),new Vector3(0,deck+4.8f,33),.18f,Wood,.08f);
             } else {
                 // Post-1862/63 silhouette: three masts, two funnels, white gun-deck stripe.
-                for(int side=-1;side<=1;side+=2)for(int j=5;j<124;j++) {
-                    float z=(j/128f-.5f)*length,z2=((j+1)/128f-.5f)*length;
-                    // Keep white paint outside the shell and out of the actual open ports.
-                    if(InGunPort(z)||InGunPort(z2)||InGunPort((z+z2)*.5f))continue;
-                    Vector3 a=new Vector3(side*(HullHalfWidth(z,length,beam)+.045f),DeckHeight(z,length,deck)-1,z);
-                    Vector3 b=new Vector3(side*(HullHalfWidth(z2,length,beam)+.045f),DeckHeight(z2,length,deck)-1,z2);
-                    Quad(root,"Painted gun deck band",a+Vector3.up*.30f,b+Vector3.up*.30f,b-Vector3.up*.30f,a-Vector3.up*.30f,White);
-                }
+                NiagaraPaintBand(root);
                 for(int side=-1;side<=1;side+=2) for(int j=0;j<5;j++) {
                     float z=NiagaraGunStations[j],w=HullHalfWidth(z,length,beam);
                     Gun(root,new Vector3(side*(w-1.0f),DeckHeight(z,length,deck)-.85f,z),Vector3.right*side,GunType.Parrott150);
@@ -366,7 +359,8 @@ namespace Ironclads
                     Rod(root,"Funnel",new Vector3(0,deck,z),new Vector3(0,deck+10,z),1.0f,Iron,sides:16);
                     Rod(root,"Funnel cap",new Vector3(0,deck+9.75f,z),new Vector3(0,deck+10.15f,z),1.14f,Black,sides:16);
                 }
-                Box(root,"Quarterdeck house",new Vector3(0,deck+1,-38),new Vector3(5.4f,2.0f,7),Hull);
+                Box(root,"Quarterdeck house",new Vector3(0,deck+.65f,-38),new Vector3(4.6f,1.3f,6),Hull);
+                Box(root,"Quarterdeck house roof",new Vector3(0,deck+1.34f,-38),new Vector3(4.85f,.12f,6.2f),Hull);
                 NiagaraRoundStern(root,length,beam,deck);
                 Rod(root,"Bowsprit",new Vector3(0,deck+1,43),new Vector3(0,deck+7,66),.4f,Wood,.11f);
                 for(int side=-1;side<=1;side+=2) Rod(root,"Bobstay",new Vector3(side*2,1,46),new Vector3(0,deck+7,66),.055f,Rope);
@@ -374,6 +368,7 @@ namespace Ironclads
             Fittings(root,deck,length,beam);
             DeckDetails(root,stonewall);
             FinalPassDetails(root,stonewall);
+            if(!stonewall)ApplyNiagaraFinish(root);
             if(combine) Combine(root);
             return go;
         }

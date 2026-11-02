@@ -1,6 +1,6 @@
 param([switch]$Ferrol,[switch]$IronFire,[switch]$Ulsan,[switch]$PatrickHenry,[switch]$SuppliedModels)
-$ironcladsPlayer = Join-Path $PSScriptRoot 'Builds\Windows-SuppliedShips\Ironclads.exe'
-if (-not (Test-Path -LiteralPath $ironcladsPlayer)) { throw 'Builds\Windows-SuppliedShips\Ironclads.exe is missing. Build with Ironclads.Editor.ProjectBuilder.DeliverSuppliedShips.' }
+$ironcladsPlayer = Join-Path $PSScriptRoot 'Builds\Windows-ShipSheets\Ironclads.exe'
+if (-not (Test-Path -LiteralPath $ironcladsPlayer)) { throw 'Builds\Windows-ShipSheets\Ironclads.exe is missing. Build with Ironclads.Editor.ProjectBuilder.DeliverShipSheets.' }
 $ironcladsArguments = @('-screen-fullscreen','0','-screen-width','1600','-screen-height','1000')
 if($Ulsan){$ironcladsArguments+='-ulsan'}elseif($SuppliedModels){$ironcladsArguments+='-hampton-roads';$ironcladsArguments+='-supplied-models'}elseif($PatrickHenry){$ironcladsArguments+='-hampton-roads';$ironcladsArguments+='-patrick-henry'}elseif(-not $Ferrol){$ironcladsArguments+='-hampton-roads'}
 if($IronFire -and -not $Ulsan){$ironcladsArguments+='-iron-fire'}

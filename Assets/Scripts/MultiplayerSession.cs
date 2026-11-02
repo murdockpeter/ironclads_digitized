@@ -164,7 +164,7 @@ namespace Ironclads
                 else if(packet.type!="pong")throw new Exception();
             }
         }
-        public static bool ValidShip(TablePacket packet)=>ValidCourse(packet)&&packet.ship>=0&&packet.ship<(packet.rulesetId=="dob"?7:packet.scenarioId=="hampton-roads"?4:2)&&(packet.rulesetId=="dob"||packet.ship!=2)&&(packet.rulesetId=="dob"||packet.rulesetId=="iron-fire"||RuleChart.OnBoard(new Hex(packet.q,packet.r)))&&packet.facing>=0&&packet.facing<6&&float.IsFinite(packet.turret)&&packet.turret>=0&&packet.turret<360&&float.IsFinite(packet.load)&&packet.load>=0&&packet.load<=1;
+        public static bool ValidShip(TablePacket packet)=>ValidCourse(packet)&&packet.ship>=0&&packet.ship<(packet.rulesetId=="dob"?7:packet.scenarioId=="hampton-roads"?4:2)&&(packet.rulesetId=="dob"||packet.ship!=2)&&(packet.rulesetId=="dob"||packet.rulesetId=="iron-fire"||RuleChart.OnBoard(new Hex(packet.q,packet.r),packet.scenarioId=="hampton-roads"))&&packet.facing>=0&&packet.facing<6&&float.IsFinite(packet.turret)&&packet.turret>=0&&packet.turret<360&&float.IsFinite(packet.load)&&packet.load>=0&&packet.load<=1;
         static bool ValidCourse(TablePacket p)
         {
             if(p.rulesetId!="iron-fire"&&p.rulesetId!="dob")return true;
@@ -189,7 +189,7 @@ namespace Ironclads
         {
             if(packet.state==null||packet.state.Length>32000)throw new Exception();
             var state=Scenario.Parse(packet.state);if((!state.hexMode&&!state.Miniatures&&!state.DoB)||state.umpireNotes.Length>4000||state.turn<1||state.turn>1000000)throw new Exception();
-            foreach(var ship in state.MovingShips)if(!state.Miniatures&&!state.DoB&&!RuleChart.OnBoard(RuleChart.At(ship.Position)))throw new Exception();
+            foreach(var ship in state.MovingShips)if(!state.Miniatures&&!state.DoB&&!RuleChart.OnBoard(RuleChart.At(ship.Position),state.Hampton))throw new Exception();
             if(state.scenarioId!=scene.scenario.scenarioId||state.rulesetId!=scene.scenario.rulesetId)pending.Clear();
             foreach(var pair in pending.ToArray()){
                 var command=pair.Value;

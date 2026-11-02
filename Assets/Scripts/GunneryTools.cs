@@ -68,7 +68,7 @@ namespace Ironclads
             // Alt-click measures; Shift-click remains placement only.
             if(Input.GetKey(KeyCode.LeftAlt)&&!Input.GetKey(KeyCode.LeftShift)&&Input.GetMouseButtonDown(0)&&Input.mousePosition.x>330&&Input.mousePosition.y>55&&Input.mousePosition.y<Screen.height-100) {
                 var plane=new Plane(Vector3.up,Vector3.zero);var ray=scene.view.ScreenPointToRay(Input.mousePosition);
-                if(plane.Raycast(ray,out float distance)){var point=ray.GetPoint(distance);var h=RuleChart.At(point);if(scene.scenario.Miniatures?CourseMovement.Inside(point):RuleChart.OnBoard(h)){targetHex=h;freeTarget=point;pickedTarget=true;}}
+                if(plane.Raycast(ray,out float distance)){var point=ray.GetPoint(distance);var h=RuleChart.At(point);if(scene.scenario.Miniatures?CourseMovement.Inside(point):RuleChart.OnBoard(h,scene.scenario.Hampton)){targetHex=h;freeTarget=point;pickedTarget=true;}}
             }
             Vector3 origin=Origin+Vector3.up*.38f,target=TargetPoint+Vector3.up*.38f;
             var points=new Vector3[99];points[0]=origin;points[98]=origin;

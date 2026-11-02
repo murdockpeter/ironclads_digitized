@@ -119,7 +119,7 @@ NavMeshSettings:
     debug:
       m_Flags: 0
   m_NavMeshData: {fileID: 0}
---- !u!1 &1856786774
+--- !u!1 &126613687
 GameObject:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -127,8 +127,8 @@ GameObject:
   m_PrefabAsset: {fileID: 0}
   serializedVersion: 6
   m_Component:
-  - component: {fileID: 1856786776}
-  - component: {fileID: 1856786775}
+  - component: {fileID: 126613689}
+  - component: {fileID: 126613688}
   m_Layer: 0
   m_Name: "Ironclads \u2014 scene controller"
   m_TagString: Untagged
@@ -136,13 +136,13 @@ GameObject:
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!114 &1856786775
+--- !u!114 &126613688
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1856786774}
+  m_GameObject: {fileID: 126613687}
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 3af9005141bf1934a95bdcfa68f7a414, type: 3}
@@ -205,9 +205,9 @@ MonoBehaviour:
     waveHeight: 0.8
     ships:
     - name: USS Niagara
-      east: -115
-      north: 20
-      heading: 25
+      east: 1583.7874
+      north: 731.52
+      heading: 0
       speed: 0
       turretHeading: 0
       aftTurretHeading: 180
@@ -220,9 +220,9 @@ MonoBehaviour:
       engineLoad: 0.55
       boilersLit: 1
     - name: CSS Stonewall
-      east: 120
-      north: 150
-      heading: 230
+      east: 1583.7874
+      north: 2560.32
+      heading: 180
       speed: 0
       turretHeading: 0
       aftTurretHeading: 180
@@ -265,13 +265,13 @@ MonoBehaviour:
   terrain: {fileID: 0}
   support: {fileID: 0}
   dawn: {fileID: 0}
---- !u!4 &1856786776
+--- !u!4 &126613689
 Transform:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1856786774}
+  m_GameObject: {fileID: 126613687}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
@@ -284,4 +284,4 @@ Transform:
 SceneRoots:
   m_ObjectHideFlags: 0
   m_Roots:
-  - {fileID: 1856786776}
+  - {fileID: 126613689}

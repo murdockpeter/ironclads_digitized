@@ -37,7 +37,28 @@ namespace Ironclads
         }
         public static int Range(Hex a,Hex b)=>Mathf.Max(Mathf.Abs(a.q-b.q),Mathf.Abs(a.r-b.r),Mathf.Abs((a.q+a.r)-(b.q+b.r)));
         public static int Facing(float heading)=>((Mathf.RoundToInt(heading/60)%6)+6)%6;
-        public static bool OnBoard(Hex h){int row=h.r+Mathf.FloorToInt(h.q/2f);return h.q>=-20&&h.q<=20&&row>=-18&&row<=18;}
+        // Extend east and north to preserve existing four-digit hex IDs and saved positions.
+        public static int Columns(bool hampton)=>hampton?41:82;
+        public static int Rows(bool hampton)=>hampton?37:74;
+        public static bool OnBoard(Hex h,bool hampton=false){int row=h.r+Mathf.FloorToInt(h.q/2f);return h.q>=-20&&h.q<Columns(hampton)-20&&row>=-18&&row<Rows(hampton)-18;}
+        bool gridHampton;
+        void RebuildGrid()
+        {
+            gridHampton=scene.scenario.Hampton;
+            var verts=new List<Vector3>();var indices=new List<int>();
+            for(int q=-20;q<Columns(gridHampton)-20;q++)for(int row=-18;row<Rows(gridHampton)-18;row++) {
+                Hex h=new Hex(q,row-Mathf.FloorToInt(q/2f));Vector3 center=Center(h);
+                for(int i=0;i<6;i++) {
+                    float a=i*Mathf.PI/3,b=(i+1)*Mathf.PI/3;
+                    int k=verts.Count;verts.Add(center+new Vector3(Mathf.Cos(a)*Radius,.13f,Mathf.Sin(a)*Radius));
+                    verts.Add(center+new Vector3(Mathf.Cos(b)*Radius,.13f,Mathf.Sin(b)*Radius));indices.Add(k);indices.Add(k+1);
+                }
+            }
+            var mesh=new Mesh {name="100 yard hexagons",indexFormat=UnityEngine.Rendering.IndexFormat.UInt32};
+            mesh.SetVertices(verts);mesh.SetIndices(indices.ToArray(),MeshTopology.Lines,0);mesh.RecalculateBounds();
+            var filter=grid.GetComponent<MeshFilter>();var previous=filter.sharedMesh;filter.sharedMesh=mesh;
+            if(previous!=null){if(Application.isPlaying)Destroy(previous);else DestroyImmediate(previous);}
+        }
         GameObject grid;LineRenderer rangeLine;LineRenderer[] rings=new LineRenderer[2],headings=new LineRenderer[2];LineRenderer[] arcs;
         readonly Stack<string> undo=new Stack<string>();
         GUIStyle label;Material chartMat;
@@ -49,18 +70,8 @@ namespace Ironclads
             if(grid!=null)return;
             chartMat=new Material(Shader.Find("Ironclads/Chart"));chartMat.SetColor("_Color",new Color(.35f,.74f,.75f,.22f));
             grid=new GameObject("100 yard hex chart — custom local coordinates");grid.transform.SetParent(scene.seaRoot,false);
-            var verts=new List<Vector3>();var indices=new List<int>();
-            for(int q=-20;q<=20;q++)for(int row=-18;row<=18;row++) {
-                Hex h=new Hex(q,row-Mathf.FloorToInt(q/2f));Vector3 center=Center(h);
-                for(int i=0;i<6;i++) {
-                    float a=i*Mathf.PI/3,b=(i+1)*Mathf.PI/3;
-                    int k=verts.Count;verts.Add(center+new Vector3(Mathf.Cos(a)*Radius,.13f,Mathf.Sin(a)*Radius));
-                    verts.Add(center+new Vector3(Mathf.Cos(b)*Radius,.13f,Mathf.Sin(b)*Radius));indices.Add(k);indices.Add(k+1);
-                }
-            }
-            var mesh=new Mesh {name="100 yard hexagons",indexFormat=UnityEngine.Rendering.IndexFormat.UInt32};
-            mesh.SetVertices(verts);mesh.SetIndices(indices.ToArray(),MeshTopology.Lines,0);mesh.RecalculateBounds();
-            grid.AddComponent<MeshFilter>().sharedMesh=mesh;grid.AddComponent<MeshRenderer>().sharedMaterial=chartMat;
+            grid.AddComponent<MeshFilter>();grid.AddComponent<MeshRenderer>().sharedMaterial=chartMat;
+            RebuildGrid();
             var highlight=new Material(chartMat);highlight.SetColor("_Color",new Color(.98f,.68f,.28f,.8f));
             rangeLine=WorldBuilder.Line(scene.seaRoot,"Range between occupied hex centers",new Vector3[2],highlight,.65f);
             for(int n=0;n<2;n++) {
@@ -73,7 +84,7 @@ namespace Ironclads
         void LateUpdate()=>Refresh();
         public void Refresh()
         {
-            if(scene==null||scene.seaRoot==null)return;if(grid==null)Build();
+            if(scene==null||scene.seaRoot==null)return;if(grid==null)Build();if(gridHampton!=scene.scenario.Hampton)RebuildGrid();
             if(scene.scenario.DoB){grid.SetActive(false);rangeLine.gameObject.SetActive(false);foreach(var line in rings)line.gameObject.SetActive(false);foreach(var line in headings)line.gameObject.SetActive(false);foreach(var line in arcs)line.gameObject.SetActive(false);scene.view.orthographic=false;return;}
             Shader.SetGlobalFloat("_ChartWaveHeight",scene.scenario.waveHeight);
             grid.SetActive(showGrid&&!scene.scenario.Miniatures&&!scene.globeMode&&scene.showOverlay);
@@ -110,7 +121,7 @@ namespace Ironclads
         public void Place(Hex h)
         {
             if(scene.network!=null&&!scene.network.CanControl(scene.selected)){scene.status="You can place only your assigned ship.";return;}
-            if(!OnBoard(h)){scene.status="Outside the local 41 × 37 hex board.";return;}
+            if(!OnBoard(h,scene.scenario.Hampton)){scene.status=$"Outside the local {Columns(scene.scenario.Hampton)} x {Rows(scene.scenario.Hampton)} hex board.";return;}
             Remember();var s=scene.scenario.ships[scene.selected];Vector3 p=Center(h);s.east=p.x;s.north=p.z;
             scene.status=$"Placed {s.name} in local hex {h}.";
             scene.network?.SubmitShip(scene.selected);
@@ -142,8 +153,13 @@ namespace Ironclads
             if(label==null)label=new GUIStyle(GUI.skin.label){fontSize=10,alignment=TextAnchor.MiddleCenter,normal={textColor=new Color(.67f,.85f,.83f,.65f)}};
             Hex near=At(scene.target);int radius=Mathf.Clamp(Mathf.CeilToInt(scene.distance/HexMeters),4,25);
             for(int q=near.q-radius;q<=near.q+radius;q++)for(int r=near.r-radius;r<=near.r+radius;r++) {
-                Hex h=new Hex(q,r);if(!OnBoard(h))continue;
+                Hex h=new Hex(q,r);if(!OnBoard(h,scene.scenario.Hampton))continue;
                 Vector3 p=scene.view.WorldToScreenPoint(Center(h));
+                // Suppress labels whose projected neighbors would overlap at fleet-view scale.
+                Vector3 north=scene.view.WorldToScreenPoint(Center(h+Directions[0]));
+                Vector3 diagonal=scene.view.WorldToScreenPoint(Center(h+Directions[1]));
+                if(Vector2.Distance(new Vector2(p.x,p.y),new Vector2(north.x,north.y))<30||
+                   Vector2.Distance(new Vector2(p.x,p.y),new Vector2(diagonal.x,diagonal.y))<30)continue;
                 if(p.z>0&&p.x>350&&p.x<Screen.width-20&&p.y>60&&p.y<Screen.height-100)
                     GUI.Label(new Rect(p.x-24,Screen.height-p.y-7,48,14),h.ToString(),label);
             }

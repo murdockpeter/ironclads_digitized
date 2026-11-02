@@ -9,7 +9,7 @@ namespace Ironclads
         public bool Place(Vector3 point)
         {
             if(!Own||!CourseMovement.Inside(point))return false;
-            if(!scene.scenario.Miniatures){var hex=RuleChart.At(point);if(!RuleChart.OnBoard(hex))return false;point=RuleChart.Center(hex);}
+            if(!scene.scenario.Miniatures){var hex=RuleChart.At(point);if(!RuleChart.OnBoard(hex,scene.scenario.Hampton))return false;point=RuleChart.Center(hex);}
             GetComponent<RuleChart>().Remember();var ship=scene.scenario.patrickHenry;ship.east=point.x;ship.north=point.z;scene.network?.SubmitShip(3);return true;
         }
         public bool HexMove(int sign)
