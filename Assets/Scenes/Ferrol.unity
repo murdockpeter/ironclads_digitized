@@ -119,7 +119,7 @@ NavMeshSettings:
     debug:
       m_Flags: 0
   m_NavMeshData: {fileID: 0}
---- !u!1 &1649023147
+--- !u!1 &1856786774
 GameObject:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -127,8 +127,8 @@ GameObject:
   m_PrefabAsset: {fileID: 0}
   serializedVersion: 6
   m_Component:
-  - component: {fileID: 1649023149}
-  - component: {fileID: 1649023148}
+  - component: {fileID: 1856786776}
+  - component: {fileID: 1856786775}
   m_Layer: 0
   m_Name: "Ironclads \u2014 scene controller"
   m_TagString: Untagged
@@ -136,13 +136,13 @@ GameObject:
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!114 &1649023148
+--- !u!114 &1856786775
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1649023147}
+  m_GameObject: {fileID: 1856786774}
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 3af9005141bf1934a95bdcfa68f7a414, type: 3}
@@ -152,6 +152,8 @@ MonoBehaviour:
     version: 1
     scenarioId: ferrol
     rulesetId: ironclads
+    dobTurnSeconds: 180
+    dobVisibilityPercent: 90
     supportVersion: 1
     minnesota:
       name: USS Minnesota
@@ -160,12 +162,31 @@ MonoBehaviour:
       heading: 90
       speed: 0
       turretHeading: 0
+      aftTurretHeading: 180
+      dobMovedSeconds: 0
       orderedSpeed: 0
       movementUsed: 0
       turnClass: 3
       astern: 0
       orderedAstern: 0
       engineLoad: 0.15
+      boilersLit: 1
+    patrickVersion: 1
+    patrickHenry:
+      name: CSS Patrick Henry
+      east: 430
+      north: 520
+      heading: 240
+      speed: 0
+      turretHeading: 0
+      aftTurretHeading: 180
+      dobMovedSeconds: 0
+      orderedSpeed: 0
+      movementUsed: 0
+      turnClass: 3
+      astern: 0
+      orderedAstern: 0
+      engineLoad: 0.55
       boilersLit: 1
     minnesotaPortGuns: 11
     minnesotaStarboardGuns: 21
@@ -189,6 +210,8 @@ MonoBehaviour:
       heading: 25
       speed: 0
       turretHeading: 0
+      aftTurretHeading: 180
+      dobMovedSeconds: 0
       orderedSpeed: 0
       movementUsed: 0
       turnClass: 3
@@ -202,6 +225,8 @@ MonoBehaviour:
       heading: 230
       speed: 0
       turretHeading: 0
+      aftTurretHeading: 180
+      dobMovedSeconds: 0
       orderedSpeed: 0
       movementUsed: 0
       turnClass: 3
@@ -235,15 +260,18 @@ MonoBehaviour:
   globeDistance: 325
   status: Scenario ready. You have the conn.
   rain: {fileID: 0}
+  suppliedMonitor: 0
+  suppliedVirginia: 0
   terrain: {fileID: 0}
   support: {fileID: 0}
---- !u!4 &1649023149
+  dawn: {fileID: 0}
+--- !u!4 &1856786776
 Transform:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1649023147}
+  m_GameObject: {fileID: 1856786774}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
@@ -256,4 +284,4 @@ Transform:
 SceneRoots:
   m_ObjectHideFlags: 0
   m_Roots:
-  - {fileID: 1649023149}
+  - {fileID: 1856786776}

@@ -54,6 +54,7 @@ namespace Ironclads
         void OnGUI()
         {
             if(scene==null||scene.view==null)return;if(title==null)Styles();if(chart==null)chart=GetComponent<RuleChart>();
+            if(scene.scenario.DoB){if(scene.dawn==null||scene.vessels.Length!=7)scene.UpdateWorld();DawnGUI();return;}
             if(shownScenario!=scene.scenario.scenarioId){shownScenario=scene.scenario.scenarioId;SyncScenarioFields();}
             if(!scene.showOverlay){GUI.Label(new Rect(20,20,300,30),"H  •  Show umpire controls",body);return;}
             GUI.DrawTexture(new Rect(0,0,330,Screen.height),panelTex);
@@ -68,12 +69,13 @@ namespace Ironclads
             GUILayout.EndHorizontal();
             if(Button("Scenarios / shores & forts"))ShowTab(8);
             if(scene.scenario.Hampton&&Button("Union ships / Minnesota & wrecks"))ShowTab(10);
+            if(scene.scenario.Hampton&&Button("Confederate support / Patrick Henry"))ShowTab(11);
             if(scene.scenario.Miniatures&&Button("Course & speed / movement tools"))ShowTab(9);
             if(Button("Gunnery tools / bearings & arcs"))ShowTab(4);
             if(Button("Fire batteries / smoke & sound"))ShowTab(5);
             if(Button(scene.network!=null&&scene.network.Active?"Multiplayer · "+(scene.network.IsHost?"HOST":"GUEST"):"Multiplayer · direct TCP/IP"))ShowTab(7);
             scroll=GUILayout.BeginScrollView(scroll,false,false,GUILayout.ExpandHeight(true));
-            switch(tab){case 0:Vessels();break;case 1:GUI.enabled=ManageTable;Weather();GUI.enabled=true;break;case 2:Chart();break;case 3:Sources();break;case 4:Gunnery();break;case 5:FireBatteries();break;case 6:Engines();break;case 7:Multiplayer();break;case 8:Scenarios();break;case 9:MovementPanel();break;case 10:UnionSupport();break;}
+            switch(tab){case 0:Vessels();break;case 1:GUI.enabled=ManageTable;Weather();GUI.enabled=true;break;case 2:Chart();break;case 3:Sources();break;case 4:Gunnery();break;case 5:FireBatteries();break;case 6:Engines();break;case 7:Multiplayer();break;case 8:Scenarios();break;case 9:MovementPanel();break;case 10:UnionSupport();break;case 11:PatrickHenryPanel();break;}
             GUILayout.Space(18);GUILayout.EndScrollView();
             GUILayout.Label("RMB orbit  ·  Wheel zoom  ·  MMB pan\n1 / 2 focus  ·  Tab globe  ·  H hide UI  ·  v"+Application.version,small);
             GUILayout.EndArea();
@@ -308,8 +310,8 @@ namespace Ironclads
             Heading("UMPIRE'S GUNNERY TABLE");
             guns.visible=GUILayout.Toggle(guns.visible,"Show gunnery overlay",toggle);
             GUILayout.BeginHorizontal();
-            if(Button(scene.scenario.ShortName(0))){scene.selected=0;guns.minnesotaOrigin=false;guns.preset=3;}
-            if(Button(scene.scenario.ShortName(1))){scene.selected=1;guns.minnesotaOrigin=false;guns.preset=scene.scenario.Hampton?3:0;}
+            if(Button(scene.scenario.ShortName(0))){scene.selected=0;guns.minnesotaOrigin=false;guns.patrickOrigin=false;guns.preset=3;}
+            if(Button(scene.scenario.ShortName(1))){scene.selected=1;guns.minnesotaOrigin=false;guns.patrickOrigin=false;guns.preset=scene.scenario.Hampton?3:0;}
             GUILayout.EndHorizontal();
             Text("Firing ship: "+guns.FiringState.name);
             if(!scene.scenario.Miniatures&&!scene.scenario.Hampton&&scene.selected==1)for(int i=0;i<3;i++)if(Button((guns.preset==i?"• ":"")+GunneryTools.Presets[i])){guns.preset=i;guns.visible=true;chart.showArcs=false;}

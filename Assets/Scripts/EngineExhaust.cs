@@ -5,28 +5,29 @@ namespace Ironclads
     public class EngineExhaust : MonoBehaviour
     {
         public MaritimeScene scene;
-        public readonly ParticleSystem[] funnels=new ParticleSystem[4];
-        public readonly int[] emitted=new int[4];
-        readonly float[] accumulation=new float[4];
+        public readonly ParticleSystem[] funnels=new ParticleSystem[5];
+        public readonly int[] emitted=new int[5];
+        readonly float[] accumulation=new float[5];
         readonly ParticleSystem.Particle[] particles=new ParticleSystem.Particle[2600];
-        static readonly int[] Ships={0,0,1,2};
+        static readonly int[] Ships={0,0,1,2,3};
         bool globeCleared;
         public static float EmissionRate(float load,bool lit)=>lit?3+37*Mathf.Clamp01(load)*Mathf.Clamp01(load):0;
         void Start()=>Build();
         public void ResetFunnels()
         {
             Clear();foreach(var ps in funnels)if(ps!=null){ps.gameObject.SetActive(false);if(Application.isPlaying)Destroy(ps.gameObject);else DestroyImmediate(ps.gameObject);}
-            for(int i=0;i<4;i++)funnels[i]=null;
+            for(int i=0;i<5;i++)funnels[i]=null;
         }
         public void Build()
         {
-            if(funnels[0]!=null)return;
+            if(scene.scenario.DoB||funnels[0]!=null)return;
             var material=new Material(Shader.Find("Ironclads/Powder Smoke"));material.mainTexture=BatteryEffects.SmokeTexture(true);
             Vector3[] outlets={new Vector3(0,14.5f,7),new Vector3(0,14.5f,-9),new Vector3(0,12.05f,0)};
-            if(scene.scenario.Hampton)outlets=new[]{new Vector3(-.95f,.86f,-13),new Vector3(.95f,.86f,-13),new Vector3(0,11.9f,-1),new Vector3(0,14,12)};
-            for(int i=0;i<4;i++) {
-                if(i==3&&!scene.scenario.Hampton)continue;
-                var go=new GameObject((i==3?"Minnesota":scene.scenario.ShortName(Ships[i]))+" coal exhaust "+i);go.transform.SetParent(scene.Vessel(Ships[i]),false);go.transform.localPosition=outlets[i];
+            if(scene.scenario.Hampton)outlets=new[]{new Vector3(-.95f,.86f,-13),new Vector3(.95f,.86f,-13),new Vector3(0,11.9f,-1),new Vector3(0,14,12),new Vector3(0,13.8f,5)};
+            if(scene.scenario.Hampton){var m=scene.vessels[0].GetComponent<SuppliedShipBinding>();var v=scene.vessels[1].GetComponent<SuppliedShipBinding>();if(m!=null){outlets[0]=m.outlets[0];outlets[1]=m.outlets[1];}if(v!=null)outlets[2]=v.outlets[0];}
+            for(int i=0;i<5;i++) {
+                if(i>=3&&!scene.scenario.Hampton)continue;
+                var go=new GameObject((i==3?"Minnesota":i==4?"Patrick Henry":scene.scenario.ShortName(Ships[i]))+" coal exhaust "+i);go.transform.SetParent(scene.Vessel(Ships[i]),false);go.transform.localPosition=outlets[i];
                 var ps=go.AddComponent<ParticleSystem>();ps.Stop(true,ParticleSystemStopBehavior.StopEmittingAndClear);funnels[i]=ps;
                 var main=ps.main;main.loop=true;main.playOnAwake=false;main.maxParticles=2600;main.simulationSpace=ParticleSystemSimulationSpace.World;main.startSpeed=0;main.startSize=1;main.startLifetime=45;main.cullingMode=ParticleSystemCullingMode.AlwaysSimulate;
                 var emission=ps.emission;emission.enabled=false;var shape=ps.shape;shape.enabled=false;
@@ -38,7 +39,7 @@ namespace Ironclads
         }
         public void Clear()
         {
-            foreach(var ps in funnels)if(ps!=null)ps.Clear();for(int i=0;i<4;i++)accumulation[i]=0;
+            foreach(var ps in funnels)if(ps!=null)ps.Clear();for(int i=0;i<5;i++)accumulation[i]=0;
         }
         public void SetOrder(int ship,float load,bool lit=true)
         {
@@ -49,10 +50,10 @@ namespace Ironclads
         }
         void LateUpdate()
         {
-            if(scene==null||!Application.isPlaying)return;Build();
+            if(scene==null||!Application.isPlaying||scene.scenario.DoB)return;Build();
             if(scene.globeMode){if(!globeCleared)Clear();globeCleared=true;return;}globeCleared=false;
             float dt=Mathf.Min(Time.deltaTime,.1f);Vector3 wind=BatteryEffects.Wind(scene.scenario.windFrom,scene.scenario.windKnots);
-            for(int funnel=0;funnel<4;funnel++) {
+            for(int funnel=0;funnel<5;funnel++) {
                 var ps=funnels[funnel];if(ps==null)continue;var state=scene.scenario.State(Ships[funnel]);float load=state.engineLoad;
                 if(!ps.isPlaying)ps.Play();
                 float stoke=1+.22f*Mathf.Sin(Time.time*.83f+funnel*2.3f)+.1f*Mathf.Sin(Time.time*2.1f+funnel);

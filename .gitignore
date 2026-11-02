@@ -27,3 +27,5 @@
 *.pfx
 *.keystore
 .DS_Store
+/Assets/Resources/SuppliedShips/
+/Assets/Resources/SuppliedShips.meta

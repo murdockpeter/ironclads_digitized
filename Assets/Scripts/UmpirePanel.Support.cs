@@ -28,7 +28,7 @@ namespace Ironclads
             Text("Nominal outfit from the supplied card: 28 nine-inch, 14 eight-inch, one ten-inch. The default leaves 11 of 21 port guns available, approximating the Iron & Fire scenario's 50% port-battery loss. Select any availability you adjudicate; disabled guns remain visible on the model.");
             Vector3 delta=scene.scenario.ships[1].Position-ship.Position;
             Text($"Minnesota → Virginia: {delta.magnitude/.9144f:0} yd / {delta.magnitude/RuleChart.HexMeters:0.00} tabletop inches\nBearing {GunneryTools.Bearing(delta):0.0}° true; from bow {Mathf.DeltaAngle(ship.heading,GunneryTools.Bearing(delta)):+0.0;-0.0;0}°");
-            if(Button("Measure from Minnesota / custom gun guide")){var guns=GetComponent<GunneryTools>();guns.minnesotaOrigin=true;guns.preset=3;guns.visible=true;ShowTab(4);}
+            if(Button("Measure from Minnesota / custom gun guide")){var guns=GetComponent<GunneryTools>();guns.minnesotaOrigin=true;guns.patrickOrigin=false;guns.preset=3;guns.visible=true;ShowTab(4);}
             Heading("GROUNDED POSITION · UMPIRE SETUP");GUI.enabled=ManageTable;
             GUILayout.BeginHorizontal();minnesotaEast=GUILayout.TextField(minnesotaEast,field);minnesotaNorth=GUILayout.TextField(minnesotaNorth,field);GUILayout.EndHorizontal();
             if(Button("Set east / north meters")){

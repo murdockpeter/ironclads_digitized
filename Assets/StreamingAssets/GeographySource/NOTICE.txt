@@ -1,0 +1,6 @@
+Derived shoreline data: GSHHG 2.3.7, Paul Wessel and Walter H. F. Smith, LGPL-3.0-or-later.
+Source: https://github.com/GenericMappingTools/gshhg-gmt/releases/tag/2.3.7
+Original clipped source is Hampton-GSHHG-source.geojson. Modifications: local crop, <=15m corner rounding, resampling, and a 55m clipped ground mesh.
+Processing code: Tools/build-hampton-coastline.py and Tools/triangulate-hampton-coastline.cjs in the project source.
+Elevation: USGS 3DEP public-domain bare-earth DEM, sampled to 377x269, modern geography rather than an 1862 survey.
+Beach profiles, rocks, foliage and local fort platforms are procedural visual reconstruction.
