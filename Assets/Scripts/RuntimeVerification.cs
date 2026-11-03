@@ -34,6 +34,14 @@ namespace Ironclads
             Check(scene.vessels[0].GetComponentsInChildren<MeshFilter>().Length==36,"Niagara does not have the pass-4 spatial mesh sections.");
             Check(scene.vessels[1].GetComponentsInChildren<MeshFilter>().Length==32,"Stonewall does not have the pass-4 spatial mesh sections.");
             string initial=JsonUtility.ToJson(scene.scenario);
+            bool originalSea=scene.soundEnabled;float originalSeaVolume=scene.seaVolume;
+            bool originalCannons=scene.GetComponent<BatteryEffects>().cannonSound;
+            scene.SetSeaAudio(false,.5f);scene.UpdateWorld();
+            Check(scene.GetComponent<AudioSource>().volume==0&&scene.GetComponent<BatteryEffects>().cannonSound==originalCannons,"Sea mute affected cannon preference or failed to silence ambience.");
+            scene.SetSeaAudio(true,.5f);scene.UpdateWorld();
+            Check(Mathf.Abs(scene.GetComponent<AudioSource>().volume-(.28f+scene.scenario.windKnots*.007f)*.5f)<.001f,"Sea volume control failed.");
+            Check(PlayerPrefs.GetInt("SeaAudio.Enabled")==1&&Mathf.Abs(PlayerPrefs.GetFloat("SeaAudio.Volume")-.5f)<.001f,"Sea audio preferences were not saved.");
+            scene.SetSeaAudio(originalSea,originalSeaVolume);
             Check(RuleChart.Range(RuleChart.At(scene.scenario.ships[0].Position),RuleChart.At(scene.scenario.ships[1].Position))==20,"Ferrol opening range is not 20 hexes.");
             Check(Mathf.Abs(Vector3.Distance(scene.scenario.ships[0].Position,scene.scenario.ships[1].Position)-1828.8f)<.01f,"Ferrol opening range is not 2000 yards.");
             var grid=scene.seaRoot.Find("100 yard hex chart — custom local coordinates");

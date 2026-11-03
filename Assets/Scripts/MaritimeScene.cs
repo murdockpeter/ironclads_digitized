@@ -14,6 +14,7 @@ namespace Ironclads
         public Material oceanMaterial, skyMaterial;
         public Light sun;
         public bool globeMode, animateTime, showOverlay = true, soundEnabled = true;
+        public float seaVolume=1;
         public int selected;
         public MultiplayerSession network;
         public Vector3 target = new Vector3(0,6,50);
@@ -23,6 +24,12 @@ namespace Ironclads
         public float SunAltitude {get; private set;}
         public ParticleSystem rain;
         AudioSource ambience;
+        public void SetSeaAudio(bool enabled,float volume)
+        {
+            soundEnabled=enabled;seaVolume=Mathf.Clamp01(volume);UpdateSeaAudio();
+            if(Application.isPlaying){PlayerPrefs.SetInt("SeaAudio.Enabled",enabled?1:0);PlayerPrefs.SetFloat("SeaAudio.Volume",seaVolume);PlayerPrefs.Save();}
+        }
+        void UpdateSeaAudio(){if(ambience!=null)ambience.volume=soundEnabled&&!globeMode?Mathf.Clamp01(.28f+scenario.windKnots*.007f)*seaVolume:0;}
         GameObject nearOcean;
         bool initialized;
         string fleetId;
@@ -88,6 +95,8 @@ namespace Ironclads
             view.gameObject.AddComponent<SeaAudioOutput>();
             view.depthTextureMode|=DepthTextureMode.Depth;
             ambience=gameObject.AddComponent<AudioSource>();ambience.loop=true;ambience.spatialBlend=0;
+            if(Application.isPlaying){soundEnabled=PlayerPrefs.GetInt("SeaAudio.Enabled",1)!=0;seaVolume=Mathf.Clamp01(PlayerPrefs.GetFloat("SeaAudio.Volume",1));}
+            UpdateSeaAudio();
             if(Application.isPlaying) {ambience.clip=SeaAudio();ambience.Play();}
             gameObject.AddComponent<UmpirePanel>().scene=this;
             gameObject.AddComponent<RuleChart>().scene=this;
@@ -161,7 +170,7 @@ namespace Ironclads
             rain.transform.position=view.transform.position+Vector3.up*48;
             rain.transform.rotation=Quaternion.Euler(90,0,0);
             var velocity=rain.velocityOverLifetime;velocity.x=wind.x*scenario.windKnots*.25f;velocity.z=wind.z*scenario.windKnots*.25f;
-            ambience.volume=soundEnabled&&!globeMode?.28f+scenario.windKnots*.007f:0;
+            UpdateSeaAudio();
         }
         public float WaveAt(Vector3 p,float t)
         {

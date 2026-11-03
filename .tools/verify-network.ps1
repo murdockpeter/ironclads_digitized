@@ -1,4 +1,4 @@
-param([string]$BuildDirectory='Builds\Windows-ShipSheets',[switch]$Hampton,[switch]$IronFire,[switch]$Ulsan)
+param([string]$BuildDirectory='Builds\Windows-SeaAudio',[switch]$Hampton,[switch]$IronFire,[switch]$Ulsan)
 $networkProject = Split-Path $PSScriptRoot -Parent
 $networkPlayer = Join-Path (Join-Path $networkProject $BuildDirectory) 'Ironclads.exe'
 $networkOutput = Join-Path $networkProject ('Artifacts\Network\'+[Guid]::NewGuid().ToString('N'))

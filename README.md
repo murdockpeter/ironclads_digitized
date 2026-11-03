@@ -1,5 +1,7 @@
 # Ironclads — Ferrol & Hampton Roads
 
+**Latest: sea audio controls (1.5.4-dev).** Use the always-visible **Sea sounds ON/OFF** button to mute ocean and wind ambience independently of cannon reports. Weather also offers a sea-volume slider. Both preferences are local and remembered between launches. `Start-Ironclads.ps1 -Ferrol` opens the latest `Builds/Windows-SeaAudio` player.
+
 **Latest: photographed ship sheets (1.5.3-dev).** The local reference viewer uses `contextonly/ShipSheets/USS_Niagara.jpg` (the existing 1863 card) and the new `CSS_Stonewall.jpg` photograph. Open either under **Sources**; sheets fit the available space initially and have zoom, scrolling and a **Fit sheet** button. These private images remain ignored by Git. The selected 1865 Niagara working battery is retained. `Start-Ironclads.ps1 -Ferrol` uses `Builds/Windows-ShipSheets`.
 
 **Latest: Niagara stern and paint (1.5.2-dev).** `Start-Ironclads.ps1 -Ferrol` opens the latest build with a raked round counter, finer lower stern, fitted gallery and near-black/off-white paint based on the retained 1863 photograph. Keeps the expanded map and 2,000-yard opening range. [Revision and historical limits](Documentation/Niagara-Stern-Revision.md).

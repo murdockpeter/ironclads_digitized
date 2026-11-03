@@ -69,6 +69,7 @@ namespace Ironclads
             string[] tabs={"Ships","Weather","Chart","Sources"};
             for(int i=0;i<tabs.Length;i++){GUI.color=i==tab?gold:Color.white;if(GUILayout.Button(tabs[i],button))tab=i;}GUI.color=Color.white;
             GUILayout.EndHorizontal();
+            if(Button(scene.soundEnabled?"Sea sounds: ON / click to mute":"Sea sounds: OFF / click to enable"))scene.SetSeaAudio(!scene.soundEnabled,scene.seaVolume);
             if(Button("Scenarios / shores & forts"))ShowTab(8);
             if(scene.scenario.Hampton&&Button("Union ships / Minnesota & wrecks"))ShowTab(10);
             if(scene.scenario.Hampton&&Button("Confederate support / Patrick Henry"))ShowTab(11);
@@ -175,7 +176,13 @@ namespace Ironclads
             s.cloud=Slider("Cloud cover",s.cloud*100,0,100," %")/100;
             s.rain=Slider("Rain",s.rain*100,0,100," %")/100;
             s.visibilityKm=Slider("Visual visibility",s.visibilityKm,.5f,40," km");
-            scene.soundEnabled=GUILayout.Toggle(scene.soundEnabled,"Ocean & wind ambience",toggle);
+            bool weatherPermission=GUI.enabled;GUI.enabled=true;
+            Heading("SEA SOUNDS");
+            bool seaEnabled=GUILayout.Toggle(scene.soundEnabled,"Ocean & wind ambience",toggle);
+            float seaLevel=Slider("Sea volume",scene.seaVolume*100,0,100," %")/100;
+            if(seaEnabled!=scene.soundEnabled||Mathf.Abs(seaLevel-scene.seaVolume)>.0001f)scene.SetSeaAudio(seaEnabled,seaLevel);
+            GUILayout.Label("Local sound preference. Cannon reports have separate controls under Fire batteries.",small);
+            GUI.enabled=weatherPermission;
             GUILayout.Label("Weather is set by the umpire. Wave scale and fog are visual approximations; game visibility is a separate ruling.",small);
             Heading("SUN & SCENARIO TIME");
             date=GUILayout.TextField(date,field);

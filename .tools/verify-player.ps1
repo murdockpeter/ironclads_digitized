@@ -1,4 +1,4 @@
-param([switch]$DefaultGraphics,[string]$BuildDirectory='Builds\Windows-ShipSheets',[switch]$Hampton,[switch]$Ulsan)
+param([switch]$DefaultGraphics,[string]$BuildDirectory='Builds\Windows-SeaAudio',[switch]$Hampton,[switch]$Ulsan)
 $projectPath = Split-Path $PSScriptRoot -Parent
 Add-Type @'
 using System;
