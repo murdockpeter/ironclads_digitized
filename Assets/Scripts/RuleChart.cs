@@ -59,7 +59,7 @@ namespace Ironclads
             var filter=grid.GetComponent<MeshFilter>();var previous=filter.sharedMesh;filter.sharedMesh=mesh;
             if(previous!=null){if(Application.isPlaying)Destroy(previous);else DestroyImmediate(previous);}
         }
-        GameObject grid;LineRenderer rangeLine;LineRenderer[] rings=new LineRenderer[2],headings=new LineRenderer[2];LineRenderer[] arcs;
+        GameObject grid;LineRenderer rangeLine;LineRenderer[] rings=new LineRenderer[6],headings=new LineRenderer[6];LineRenderer[] arcs;
         readonly Stack<string> undo=new Stack<string>();
         GUIStyle label;Material chartMat;
         public void Remember(){undo.Push(JsonUtility.ToJson(scene.scenario));if(undo.Count>100)undo.Clear();}
@@ -74,7 +74,7 @@ namespace Ironclads
             RebuildGrid();
             var highlight=new Material(chartMat);highlight.SetColor("_Color",new Color(.98f,.68f,.28f,.8f));
             rangeLine=WorldBuilder.Line(scene.seaRoot,"Range between occupied hex centers",new Vector3[2],highlight,.65f);
-            for(int n=0;n<2;n++) {
+            for(int n=0;n<6;n++) {
                 rings[n]=WorldBuilder.Line(scene.seaRoot,"Occupied hex",new Vector3[7],highlight,.6f);
                 headings[n]=WorldBuilder.Line(scene.seaRoot,"Bow direction arrow",new Vector3[5],highlight,.65f);
             }
@@ -90,7 +90,8 @@ namespace Ironclads
             grid.SetActive(showGrid&&!scene.scenario.Miniatures&&!scene.globeMode&&scene.showOverlay);
             rangeLine.gameObject.SetActive(showRange&&!scene.globeMode&&scene.showOverlay);
             var s=scene.scenario;
-            for(int i=0;i<2;i++) {
+            for(int i=0;i<6;i++) {
+                if(i>=s.ships.Length){rings[i].gameObject.SetActive(false);headings[i].gameObject.SetActive(false);continue;}
                 Vector3 center=(s.Miniatures?s.ships[i].Position:Center(At(s.ships[i].Position)))+Vector3.up*.2f;
                 rings[i].gameObject.SetActive(showGrid&&!s.Miniatures&&!scene.globeMode&&scene.showOverlay);
                 headings[i].gameObject.SetActive((s.Miniatures?showRange:showGrid)&&!scene.globeMode&&scene.showOverlay);
@@ -99,10 +100,11 @@ namespace Ironclads
                 Quaternion rotation=Quaternion.Euler(0,s.ships[i].heading,0);Vector3 forward=rotation*Vector3.forward,right=rotation*Vector3.right,tip=center+forward*Radius*.8f;
                 headings[i].SetPositions(new[]{center,tip,tip-forward*7+right*4,tip,tip-forward*7-right*4});
             }
-            rangeLine.SetPosition(0,(s.Miniatures?s.ships[0].Position:Center(At(s.ships[0].Position)))+Vector3.up*.25f);
-            rangeLine.SetPosition(1,(s.Miniatures?s.ships[1].Position:Center(At(s.ships[1].Position)))+Vector3.up*.25f);
+            int from=s.James?scene.selected:0,to=s.James?scene.GetComponent<GunneryTools>().TargetShip:1;
+            rangeLine.SetPosition(0,(s.Miniatures?s.ships[from].Position:Center(At(s.ships[from].Position)))+Vector3.up*.25f);
+            rangeLine.SetPosition(1,(s.Miniatures?s.ships[to].Position:Center(At(s.ships[to].Position)))+Vector3.up*.25f);
             for(int i=0;i<3;i++) {
-                arcs[i].gameObject.SetActive(showArcs&&!scene.globeMode&&scene.selected==1&&!scene.scenario.Hampton&&scene.showOverlay);
+                arcs[i].gameObject.SetActive(showArcs&&!scene.globeMode&&scene.selected==1&&!scene.scenario.Hampton&&!s.James&&scene.showOverlay);
                 Vector3 origin=s.ships[1].Position+Vector3.up*.2f;
                 float start=s.ships[1].heading+(i==0?-90:i==1?-150:30),sweep=i==0?180:120;
                 var pts=new Vector3[33];pts[0]=origin;pts[32]=origin;

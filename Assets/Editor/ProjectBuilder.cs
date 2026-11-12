@@ -30,6 +30,7 @@ namespace Ironclads.Editor
         public static void DeliverFerrolPlaytest(){Prepare();BuildWindowsTo("Builds/Windows-Ferrol-Playtest");}
         public static void DeliverNiagaraStern(){Prepare();GeometryReview.RunSternRevision();BuildWindowsTo("Builds/Windows-Niagara-Stern");}
         public static void DeliverShipSheets(){AssetDatabase.Refresh();Prepare();BuildWindowsTo("Builds/Windows-ShipSheets");}
+        public static void DeliverJames(){if(File.Exists("contextonly/ShipSheets/Virginia2.pdf")){Directory.CreateDirectory("Assets/StreamingAssets/References");File.Copy("contextonly/ShipSheets/Virginia2.pdf","Assets/StreamingAssets/References/Virginia2.pdf",true);AssetDatabase.Refresh();}Prepare();JamesReview.Run();BuildWindowsTo("Builds/Windows-James1865");}
         public static void DeliverSeaAudio(){Prepare();BuildWindowsTo("Builds/Windows-SeaAudio");}
         public static void DeliverSuppliedShips(){Prepare();SuppliedShipReview.Run();BuildWindowsTo("Builds/Windows-SuppliedShips");}
         public static void DeliverCoastlines(){Prepare();HamptonReview.Run();HamptonMetrics.Run();BuildWindowsTo("Builds/Windows-Coastlines");}
@@ -43,7 +44,7 @@ namespace Ironclads.Editor
         {
             Directory.CreateDirectory("Assets/Generated");Directory.CreateDirectory("Artifacts");
             PlayerSettings.companyName="Ironclads";PlayerSettings.productName="Ironclads — Ferrol";
-            PlayerSettings.bundleVersion="1.5.4-dev";
+            PlayerSettings.bundleVersion="1.6.0-dev";
             PlayerSettings.defaultScreenWidth=1600;PlayerSettings.defaultScreenHeight=1000;
             PlayerSettings.fullScreenMode=FullScreenMode.Windowed;PlayerSettings.runInBackground=true;
             PlayerSettings.resizableWindow=true;PlayerSettings.colorSpace=ColorSpace.Linear;

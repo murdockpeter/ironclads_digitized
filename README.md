@@ -1,5 +1,7 @@
 # Ironclads — Ferrol & Hampton Roads
 
+**Latest: Stonewall at the Gates (1.6.0-dev).** `Start-Ironclads.ps1 -James1865` opens a new local Yaquinto Ironclads scenario: Onondaga, Mahopac and Sangamon versus Stonewall, Virginia II and Fredericksburg. Includes five new modeled ships, six-ship hex orders, turret training, arbitrary targeting, working batteries, smoke, coastal scenery and save/load. [Alternate-history briefing, ship outfits, objectives and sources](Documentation/Stonewall-at-the-Gates.md).
+
 **Latest: sea audio controls (1.5.4-dev).** Use the always-visible **Sea sounds ON/OFF** button to mute ocean and wind ambience independently of cannon reports. Weather also offers a sea-volume slider. Both preferences are local and remembered between launches. `Start-Ironclads.ps1 -Ferrol` opens the latest `Builds/Windows-SeaAudio` player.
 
 **Latest: photographed ship sheets (1.5.3-dev).** The local reference viewer uses `contextonly/ShipSheets/USS_Niagara.jpg` (the existing 1863 card) and the new `CSS_Stonewall.jpg` photograph. Open either under **Sources**; sheets fit the available space initially and have zoom, scrolling and a **Fit sheet** button. These private images remain ignored by Git. The selected 1865 Niagara working battery is retained. `Start-Ironclads.ps1 -Ferrol` uses `Builds/Windows-ShipSheets`.

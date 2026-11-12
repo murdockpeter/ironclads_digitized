@@ -56,6 +56,7 @@ namespace Ironclads
         void OnGUI()
         {
             if(scene==null||scene.view==null)return;if(title==null)Styles();if(chart==null)chart=GetComponent<RuleChart>();
+            if(scene.scenario.James){JamesGUI();return;}
             if(scene.scenario.DoB){if(scene.dawn==null||scene.vessels.Length!=7)scene.UpdateWorld();DawnGUI();return;}
             if(shownScenario!=scene.scenario.scenarioId){shownScenario=scene.scenario.scenarioId;SyncScenarioFields();}
             if(!scene.showOverlay){GUI.Label(new Rect(20,20,300,30),"H  •  Show umpire controls",body);return;}
@@ -390,8 +391,8 @@ namespace Ironclads
         }
         void ShipLabels()
         {
-            for(int i=0;i<2;i++) {
-                var s=scene.scenario.ships[i];Vector3 p=scene.view.WorldToScreenPoint(s.Position+Vector3.up*(scene.scenario.Hampton?(i==0?7:17):(i==0?58:34)));
+            for(int i=0;i<scene.scenario.ships.Length;i++) {
+                var s=scene.scenario.ships[i];Vector3 p=scene.view.WorldToScreenPoint(s.Position+Vector3.up*(scene.scenario.James?15:scene.scenario.Hampton?(i==0?7:17):(i==0?58:34)));
                 if(p.z<0||p.x<360||p.x>Screen.width-60)continue;
                 GUI.Label(new Rect(p.x-70,Screen.height-p.y-10,180,21),s.name,body);
             }

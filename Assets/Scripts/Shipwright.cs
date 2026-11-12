@@ -212,23 +212,24 @@ namespace Ironclads
             Rod(root,"Backstay",top,new Vector3(0,baseY,z-yard*1.8f),.025f,Rope,sides:4);
             RiggingFittings(root,z,baseY,height,beam);
         }
-        public enum GunType { Parrott150, Armstrong300, Armstrong70, DahlgrenXI, DahlgrenIX, Brooke7, Brooke64, DahlgrenVIII, DahlgrenX, Naval8, Naval6, Naval3, Smoothbore32 }
-        public static int SoundKind(GunType type)=>type==GunType.Smoothbore32?0:type==GunType.Naval8?1:type==GunType.Naval6?0:type==GunType.Naval3?2:type==GunType.DahlgrenVIII||type==GunType.DahlgrenX?0:type==GunType.DahlgrenXI?1:type==GunType.DahlgrenIX?0:type==GunType.Brooke7||type==GunType.Brooke64?2:(int)type;
-        public static float Bore(GunType type)=>type==GunType.Smoothbore32?.163f:type==GunType.DahlgrenVIII?.2032f:type==GunType.DahlgrenX?.254f:type==GunType.DahlgrenXI?.2794f:type==GunType.DahlgrenIX?.2286f:type==GunType.Brooke7?.1778f:type==GunType.Brooke64?.16256f:type==GunType.Armstrong300?.254f:type==GunType.Armstrong70?.16256f:.2032f;
-        public static float BarrelLength(GunType type)=>type==GunType.Smoothbore32?2.74f:type==GunType.DahlgrenVIII?3.1f:type==GunType.DahlgrenX?3.7f:type==GunType.DahlgrenXI?3.96f:type==GunType.DahlgrenIX?3.35f:type==GunType.Brooke7?3.8f:type==GunType.Brooke64?3.5f:type==GunType.Armstrong70?2.65f:4.05f;
+        public enum GunType { Parrott150, Armstrong300, Armstrong70, DahlgrenXI, DahlgrenIX, Brooke7, Brooke64, DahlgrenVIII, DahlgrenX, Naval8, Naval6, Naval3, Smoothbore32, DahlgrenXV, Brooke8, BrookeXI }
+        public static int SoundKind(GunType type)=>type==GunType.DahlgrenXV||type==GunType.BrookeXI?1:type==GunType.Brooke8?2:type==GunType.Smoothbore32?0:type==GunType.Naval8?1:type==GunType.Naval6?0:type==GunType.Naval3?2:type==GunType.DahlgrenVIII||type==GunType.DahlgrenX?0:type==GunType.DahlgrenXI?1:type==GunType.DahlgrenIX?0:type==GunType.Brooke7||type==GunType.Brooke64?2:(int)type;
+        public static float Bore(GunType type)=>type==GunType.DahlgrenXV?.381f:type==GunType.Brooke8?.2032f:type==GunType.BrookeXI?.2794f:type==GunType.Smoothbore32?.163f:type==GunType.DahlgrenVIII?.2032f:type==GunType.DahlgrenX?.254f:type==GunType.DahlgrenXI?.2794f:type==GunType.DahlgrenIX?.2286f:type==GunType.Brooke7?.1778f:type==GunType.Brooke64?.16256f:type==GunType.Armstrong300?.254f:type==GunType.Armstrong70?.16256f:.2032f;
+        public static float BarrelLength(GunType type)=>type==GunType.DahlgrenXV?4.57f:type==GunType.BrookeXI?3.96f:type==GunType.Brooke8?4.05f:type==GunType.Smoothbore32?2.74f:type==GunType.DahlgrenVIII?3.1f:type==GunType.DahlgrenX?3.7f:type==GunType.DahlgrenXI?3.96f:type==GunType.DahlgrenIX?3.35f:type==GunType.Brooke7?3.8f:type==GunType.Brooke64?3.5f:type==GunType.Armstrong70?2.65f:4.05f;
         public static GameObject Gun(Transform root,Vector3 p,Vector3 direction,GunType type,int detail=1)
         {
             var go=new GameObject(type==GunType.Parrott150?"150-pounder Parrott rifle":type==GunType.Armstrong300?"300-pounder Armstrong rifle":"70-pounder Armstrong rifle");
             if((int)type>=3)go.name=type==GunType.DahlgrenXI?"XI-inch Dahlgren":type==GunType.DahlgrenIX?"IX-inch Dahlgren":type==GunType.Brooke7?"7-inch Brooke rifle":"6.4-inch Brooke rifle";
             if(type==GunType.DahlgrenVIII)go.name="VIII-inch shell gun";if(type==GunType.DahlgrenX)go.name="X-inch smoothbore pivot";
             if(type==GunType.Smoothbore32)go.name="32-pounder smoothbore";
+            if(type==GunType.DahlgrenXV)go.name="XV-inch Dahlgren";if(type==GunType.Brooke8)go.name="8-inch Brooke rifle";if(type==GunType.BrookeXI)go.name="XI-inch Brooke smoothbore";
             go.transform.SetParent(root,false);go.transform.localPosition=p;go.transform.localRotation=Quaternion.LookRotation(direction,Vector3.up);
             go.AddComponent<GunMount>().type=type;
             Transform gun=go.transform;float length=BarrelLength(type),scale=type==GunType.Armstrong70?.72f:1;
             bool parrott=type==GunType.Parrott150;float radius=parrott?.33f:type==GunType.Armstrong300?.39f:.25f;
-            bool dahlgren=type==GunType.DahlgrenXI||type==GunType.DahlgrenIX||type==GunType.DahlgrenVIII||type==GunType.DahlgrenX||type==GunType.Smoothbore32,brooke=type==GunType.Brooke7||type==GunType.Brooke64;
-            if(dahlgren)radius=type==GunType.Smoothbore32?.27f:type==GunType.DahlgrenXI?.44f:.37f;
-            if(brooke)radius=.32f;
+            bool dahlgren=type==GunType.DahlgrenXV||type==GunType.DahlgrenXI||type==GunType.DahlgrenIX||type==GunType.DahlgrenVIII||type==GunType.DahlgrenX||type==GunType.Smoothbore32,brooke=type==GunType.Brooke8||type==GunType.BrookeXI||type==GunType.Brooke7||type==GunType.Brooke64;
+            if(dahlgren)radius=type==GunType.DahlgrenXV?.56f:type==GunType.Smoothbore32?.27f:type==GunType.DahlgrenXI?.44f:.37f;
+            if(brooke)radius=type==GunType.BrookeXI?.52f:type==GunType.Brooke8?.42f:.32f;
             float rear=-length*.55f,muzzle=length*.45f,bore=Bore(type)*.5f;
             // A surface of revolution describes the breech, reinforce, chase, muzzle swell,
             // annular muzzle face, actual bore wall and recessed closed bore bottom.

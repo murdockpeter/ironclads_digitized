@@ -46,6 +46,7 @@ namespace Ironclads
         public static string NewCode()=>Guid.NewGuid().ToString("N").Substring(0,12).ToUpperInvariant();
         public bool Host(int port,int ship,string code,bool loopbackOnly=false)
         {
+            if(scene.scenario.James){ConnectionStatus="James 1865 is a local umpire module.";return false;}
             Stop();
             if(ship<0||ship>1||port<0||port>65535||(port==0&&!loopbackOnly)||string.IsNullOrWhiteSpace(code)||code.Length<6||code.Length>64){ConnectionStatus="Choose a valid port and a session code of 6–64 characters.";return false;}
             try {
@@ -188,7 +189,7 @@ namespace Ironclads
         void ApplyState(TablePacket packet)
         {
             if(packet.state==null||packet.state.Length>32000)throw new Exception();
-            var state=Scenario.Parse(packet.state);if((!state.hexMode&&!state.Miniatures&&!state.DoB)||state.umpireNotes.Length>4000||state.turn<1||state.turn>1000000)throw new Exception();
+            var state=Scenario.Parse(packet.state);if(state.James)throw new Exception();if((!state.hexMode&&!state.Miniatures&&!state.DoB)||state.umpireNotes.Length>4000||state.turn<1||state.turn>1000000)throw new Exception();
             foreach(var ship in state.MovingShips)if(!state.Miniatures&&!state.DoB&&!RuleChart.OnBoard(RuleChart.At(ship.Position),state.Hampton))throw new Exception();
             if(state.scenarioId!=scene.scenario.scenarioId||state.rulesetId!=scene.scenario.rulesetId)pending.Clear();
             foreach(var pair in pending.ToArray()){

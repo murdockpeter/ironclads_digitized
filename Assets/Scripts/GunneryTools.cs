@@ -11,7 +11,8 @@ namespace Ironclads
         public Vector3 freeTarget;
         public bool minnesotaOrigin,patrickOrigin;
         public int FiringShip=>patrickOrigin&&scene.scenario.Hampton?3:patrickOrigin&&scene.scenario.Hampton?3:minnesotaOrigin&&scene.scenario.Hampton?2:scene.selected;
-        public int TargetShip=>FiringShip==3?0:FiringShip==3?0:FiringShip==2?1:1-FiringShip;
+        public int fleetTarget=3;
+        public int TargetShip=>scene.scenario.James?Mathf.Clamp(fleetTarget,0,5):FiringShip==3?0:FiringShip==3?0:FiringShip==2?1:1-FiringShip;
         public ShipState FiringState=>scene.scenario.State(FiringShip);
         public int preset;
         public float reach=6, customSweep=120, customCenter=90;
