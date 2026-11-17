@@ -20,6 +20,7 @@ namespace Ironclads
             GUILayout.Label("ULSAN",title);GUILayout.Label("DAWN OF THE BATTLESHIP · 14 AUG 1904",sub);
             GUILayout.BeginHorizontal();if(Button("Fleet view"))scene.Overview();if(Button(scene.globeMode?"Return to sea":"World globe"))scene.ToggleGlobe();GUILayout.EndHorizontal();
             dawnTab=GUILayout.SelectionGrid(dawnTab,new[]{"Ships / move","Gunnery","Weather","Notes / save","TCP fleets","Modules"},3,button);
+            if(scene.network.Active&&Button("Lobby / requests ("+scene.network.Lobby.requests.Length+")"))ShowDawnTab(4);
             scroll=GUILayout.BeginScrollView(scroll);
             if(dawnTab<3){int selected=GUILayout.SelectionGrid(scene.selected,DawnNames,2,button);if(selected!=scene.selected){scene.selected=selected;naval.target=selected<3?3:0;}
                 Text(s.ships[scene.selected].name+" · "+(scene.selected<3?"Russian":"Japanese")+" armored cruiser");
@@ -66,6 +67,7 @@ namespace Ironclads
             Text($"{ship.name} → {scene.scenario.ships[table.target].name}\n{delta.magnitude/.9144f:0} yards / {delta.magnitude/914.4f:0.00} kyd\n{delta.magnitude/1852:0.000} nautical miles\n{delta.magnitude/(250*.9144f):0.00} tabletop inches at 250 yd/in\nBearing {GunneryTools.Bearing(delta):0.0}° true · relative {Mathf.DeltaAngle(ship.heading,GunneryTools.Bearing(delta)):+0.0;-0.0;0}°");
             table.measure=GUILayout.Toggle(table.measure,"Show range / bearing line",toggle);table.arcVisible=GUILayout.Toggle(table.arcVisible,"Show custom gun-angle aid",toggle);
             table.arcCenter=Slider("Sector center from bow",table.arcCenter,-180,180,"°");table.arcWidth=Slider("Sector width",table.arcWidth,1,360,"°");table.arcKyd=Slider("Sector reach",table.arcKyd,1,25," kyd");
+            BroadsideMeasurement();
             Heading("VISUAL BATTERY SALVOS");GUI.enabled=table.Own(scene.selected)&&!scene.globeMode&&!effects.firing[scene.selected];
             if(UlsanScenario.Ships[scene.selected].twinTurrets){float f=Slider("Forward turret bearing from bow",ship.turretHeading,0,359,"°"),a=Slider("After turret bearing from bow",ship.aftTurretHeading,0,359,"°");if(f!=ship.turretHeading||a!=ship.aftTurretHeading){ship.turretHeading=f;ship.aftTurretHeading=a;scene.network?.SubmitShip(scene.selected);}if(Button("Fire forward twin 8-inch turret")){scene.UpdateWorld();effects.Fire(scene.selected,0);}if(Button("Fire after twin 8-inch turret")){scene.UpdateWorld();effects.Fire(scene.selected,3);}}
             if(scene.selected<2){if(Button("Fire bow six-inch pivot"))effects.Fire(scene.selected,0);if(Button("Fire stern six-inch pivot"))effects.Fire(scene.selected,3);}
@@ -85,13 +87,7 @@ namespace Ironclads
             Heading("UMPIRE LOG");GUI.enabled=ManageTable;scene.scenario.umpireNotes=GUILayout.TextArea(scene.scenario.umpireNotes,4000,field,GUILayout.Height(180));if(Button("Undo last table action"))chart.Undo();GUI.enabled=true;SaveLoad();
             Text("No detection, ammunition, damage or victory rules are executed. Use your owned books and ship records. Saves include the fleet, orders, clocks, turret bearings and engine settings.");
         }
-        void DawnNetwork()
-        {
-            var net=scene.network;Heading("ONE VS ONE · FLEET COMMAND");Text(net.ConnectionStatus);
-            if(net.Active){Text("Your command: "+(net.LocalShip==0?"Russian fleet":"Japanese fleet"));if(net.IsHost)Text($"Host IPv4: {net.HostAddresses}\nTCP {net.Port}\nCode {net.SessionCode}");if(Button("Disconnect / stop hosting"))net.Stop();}
-            else{hostShip=GUILayout.SelectionGrid(hostShip,new[]{"Host Russian fleet","Host Japanese fleet"},1,button);networkPort=GUILayout.TextField(networkPort,5,field);networkCode=GUILayout.TextField(networkCode,64,field);if(Button("New session code"))networkCode=MultiplayerSession.NewCode();if(Button("Host Ulsan table")){if(int.TryParse(networkPort,out int port))net.Host(port,hostShip,networkCode);}Heading("JOIN");networkAddress=GUILayout.TextField(networkAddress,45,field);if(Button("Join host IP / port / code")){if(int.TryParse(networkPort,out int port))net.Join(networkAddress,port,networkCode);}}
-            Text("Each player commands every ship in their fleet. The host controls the shared clock, weather, notes and loading. Both players need this build. Direct IPv4 requires LAN/VPN reachability or router forwarding; no lobby/relay service is used.");
-        }
+        void DawnNetwork()=>MultiplayerLobby();
         void DawnModules()
         {
             Heading("SCENARIO MODULES");GUI.enabled=ManageTable;if(Button("Reset Ulsan · printed seven-cruiser setup"))scene.StartUlsan();if(Button("Hampton Roads")){scene.StartScenario(true);ShowTab(8);}if(Button("Ferrol")){scene.StartScenario(false);ShowTab(8);}GUI.enabled=true;

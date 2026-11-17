@@ -16,6 +16,8 @@ namespace Ironclads.Editor
     {
         const string ScenePath="Assets/Scenes/Ferrol.unity";
         public static void Deliver(){Prepare();BuildWindows();}
+        public static void DeliverLobby(){Prepare();BuildWindowsTo("Builds/Windows-Multiplayer");}
+        public static void DeliverBroadside(){Prepare();BuildWindowsTo("Builds/Windows-Broadside");}
         public static void DeliverPass2(){Prepare();GeometryReview.Run();BuildWindows();}
         public static void DeliverPass3(){Prepare();GeometryReview.RunPass3();BuildWindows();}
         public static void DeliverBowRevision(){Prepare();GeometryReview.RunBowRevision();BuildWindowsTo("Builds/Windows-BowRevision");}
@@ -44,7 +46,7 @@ namespace Ironclads.Editor
         {
             Directory.CreateDirectory("Assets/Generated");Directory.CreateDirectory("Artifacts");
             PlayerSettings.companyName="Ironclads";PlayerSettings.productName="Ironclads — Ferrol";
-            PlayerSettings.bundleVersion="1.6.0-dev";
+            PlayerSettings.bundleVersion="1.7.0-dev";
             PlayerSettings.defaultScreenWidth=1600;PlayerSettings.defaultScreenHeight=1000;
             PlayerSettings.fullScreenMode=FullScreenMode.Windowed;PlayerSettings.runInBackground=true;
             PlayerSettings.resizableWindow=true;PlayerSettings.colorSpace=ColorSpace.Linear;

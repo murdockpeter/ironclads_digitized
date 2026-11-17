@@ -1,5 +1,9 @@
 # Ironclads — Ferrol & Hampton Roads
 
+**Latest: multiplayer lobby (1.7.0-dev / protocol 7).** `Start-Ironclads.ps1 -James1865` opens `Builds/Windows-Multiplayer` with six human ship commanders and an optional separate host/umpire. Includes an in-app direct TCP lobby, captain names and preferred sides, multiple ships per player, ready/start, host-approved control requests during play, reassignment and authenticated reconnect. All modules use the new lobby; every participant needs the matching build. [Connection and control instructions](Documentation/MULTIPLAYER.md).
+
+**Latest: offset broadside measuring arcs.** Gunnery now offers port, starboard or both nested arcs from a movable pivot across the ship: Confederate 16?/40? and wooden / Union casemate 20?/50?, plus custom angles. The pivot offset and length are adjustable. `Start-Ironclads.ps1 -Ferrol` (or `-James1865`) opens `Builds/Windows-Broadside`. [Measuring controls and calibration](Documentation/GUNNERY-TOOLS.md).
+
 **Latest: Stonewall at the Gates (1.6.0-dev).** `Start-Ironclads.ps1 -James1865` opens a new local Yaquinto Ironclads scenario: Onondaga, Mahopac and Sangamon versus Stonewall, Virginia II and Fredericksburg. Includes five new modeled ships, six-ship hex orders, turret training, arbitrary targeting, working batteries, smoke, coastal scenery and save/load. [Alternate-history briefing, ship outfits, objectives and sources](Documentation/Stonewall-at-the-Gates.md).
 
 **Latest: sea audio controls (1.5.4-dev).** Use the always-visible **Sea sounds ON/OFF** button to mute ocean and wind ambience independently of cannon reports. Weather also offers a sea-volume slider. Both preferences are local and remembered between launches. `Start-Ironclads.ps1 -Ferrol` opens the latest `Builds/Windows-SeaAudio` player.

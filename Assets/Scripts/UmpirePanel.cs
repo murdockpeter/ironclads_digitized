@@ -226,35 +226,7 @@ namespace Ironclads
             GUI.enabled=ManageTable;if(Button("Use 4D wind / visibility as visual preset")){scene.scenario.windFrom=0;scene.scenario.visibilityKm=30*RuleChart.HexMeters/1000;scene.status="Wind FROM north; visual fog visibility set to 30 hexes (2.7432 km). Umpire decides actual sighting.";}GUI.enabled=true;
             if(Button("Take screenshot  ·  F12"))scene.Screenshot();
         }
-        void Multiplayer()
-        {
-            var session=scene.network;
-            Heading("ONE VS ONE · DIRECT TCP/IP");Text(session.ConnectionStatus);
-            if(session.Active) {
-                if(session.IsHost)Text($"Host IPv4: {session.HostAddresses}\nTCP port {session.Port}\nSession code: {session.SessionCode}");
-                if(session.LocalShip>=0)Text("Your ship: "+scene.scenario.ships[session.LocalShip].name);
-                if(session.LocalShip>=0&&Button("Inspect my ship")){chart.topDown=false;scene.Focus(session.LocalShip);}
-                if(Button(session.IsHost?"Stop hosting / return offline":"Disconnect / return offline"))session.Stop();
-                Text("Each player places, turns and fires their assigned ship. The host controls weather, time, shared notes, loading/resetting the table and undo. Views and measuring guides remain local.");
-            } else {
-                Heading("HOST A TABLE");
-                hostShip=GUILayout.SelectionGrid(hostShip,new[]{"Host: "+scene.scenario.ShortName(0),"Host: "+scene.scenario.ShortName(1)},1,button);
-                GUILayout.Label("TCP port",small);networkPort=GUILayout.TextField(networkPort,5,field);
-                GUILayout.Label("Session code (share with opponent)",small);networkCode=GUILayout.TextField(networkCode,64,field);
-                if(Button("New random session code"))networkCode=MultiplayerSession.NewCode();
-                if(Button("Host this table")) {
-                    if(int.TryParse(networkPort,out int port)&&port>=1&&port<=65535)session.Host(port,hostShip,networkCode);else scene.status="Enter a TCP port from 1 to 65535.";
-                }
-                Heading("JOIN A HOST");GUILayout.Label("Host IPv4 address",small);networkAddress=GUILayout.TextField(networkAddress,45,field);
-                if(Button("Join using IP / port / code above")) {
-                    if(int.TryParse(networkPort,out int port))session.Join(networkAddress.Trim(),port,networkCode);else scene.status="Enter the host's TCP port.";
-                }
-            }
-            Heading("CONNECTING THE TWO COMPUTERS");
-            Text("Use the host's LAN IPv4 address, TCP port (default 7777) and session code. Internet hosting requires a reachable/forwarded TCP port, or a VPN linking the computers. No lobby, relay or automatic port forwarding is used.");
-            Text("Direct TCP is unencrypted. Use a trusted LAN or VPN. Allow the host player through its firewall when hosting. 127.0.0.1 is only for testing two players on the same computer.");
-            Text("Multiplayer uses manual hex placement. Joining replaces your local table with the host's table. Disconnect retains the latest table and restores offline umpire control. Cannon triggers synchronize; smoke and sound are rendered locally.");
-        }
+        void Multiplayer()=>MultiplayerLobby();
         void Engines()
         {
             var exhaust=GetComponent<EngineExhaust>();
@@ -324,6 +296,7 @@ namespace Ironclads
             if(Button(scene.scenario.ShortName(1))){scene.selected=1;guns.minnesotaOrigin=false;guns.patrickOrigin=false;guns.preset=scene.scenario.Hampton?3:0;}
             GUILayout.EndHorizontal();
             Text("Firing ship: "+guns.FiringState.name);
+            BroadsideMeasurement();
             if(!scene.scenario.Miniatures&&!scene.scenario.Hampton&&scene.selected==1)for(int i=0;i<3;i++)if(Button((guns.preset==i?"• ":"")+GunneryTools.Presets[i])){guns.preset=i;guns.visible=true;chart.showArcs=false;}
             if(Button("Custom angle guide")){guns.preset=3;guns.visible=true;chart.showArcs=false;}
             if(guns.preset==3) {
@@ -386,7 +359,7 @@ namespace Ironclads
             bool previousEnabled=GUI.enabled;GUI.enabled=true;
             GUILayout.BeginHorizontal();
             if(Button("Save table"))try{scene.scenario.Save();scene.status="Saved: "+Scenario.SavePath;}catch(Exception e){Error(e);}
-            GUI.enabled=ManageTable;if(Button("Load table"))try{var loaded=Scenario.Load();chart.Remember();scene.scenario=loaded;if(scene.network!=null&&scene.network.Active&&!scene.scenario.Miniatures){scene.scenario.hexMode=true;chart.Snap();}date=loaded.utc;lat=loaded.latitude.ToString(CultureInfo.InvariantCulture);lon=loaded.longitude.ToString(CultureInfo.InvariantCulture);scene.Overview();scene.status="Saved table loaded.";}catch(Exception e){Error(e);}
+            GUI.enabled=ManageTable;if(Button("Load table"))try{var loaded=Scenario.Load();chart.Remember();scene.scenario=loaded;if(scene.network!=null&&scene.network.Active&&!scene.scenario.Miniatures&&!scene.scenario.DoB){scene.scenario.hexMode=true;chart.Snap();}date=loaded.utc;lat=loaded.latitude.ToString(CultureInfo.InvariantCulture);lon=loaded.longitude.ToString(CultureInfo.InvariantCulture);scene.Overview();scene.status="Saved table loaded.";}catch(Exception e){Error(e);}
             GUILayout.EndHorizontal();GUI.enabled=previousEnabled;
         }
         void ShipLabels()

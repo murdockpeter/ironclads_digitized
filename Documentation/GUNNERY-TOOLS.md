@@ -1,5 +1,13 @@
 # Gunnery measuring tools
 
+The **Offset broadside measurement** control adds the offset-pivot template shown in the user's IMG_1604 sketch. Open Gunnery (or Gunnery / fire in the James scenario), enable **Show inner / outer measuring arcs**, and select **Port**, **Starboard**, or **Both**. It follows the measuring ship as it moves and turns. The two full-width angle presets use the supplied follow-up notes: Confederate ironclads **16? inner / 40? outer**; wooden broadsides and Union casemate ironclads **20? inner / 50? outer**. Amber marks the inner arc and blue the outer. Custom angles are also available.
+
+Both arcs share a virtual pivot across the ship on the opposite side from the checked broadside. **Pivot across ship** adjusts that distance from zero to 300 yards; the initial 100 yards is an approximation from the sketch, not a verified template dimension. **Length from pivot** controls the displayed extent, in units of 100 yards. Port and starboard reflect the same geometry. Hex scenarios anchor the measuring ship at its occupied hex center; continuous scenarios use its actual center. An overhead button makes the angles easier to read.
+
+The readout measures the target angle off broadside from the virtual pivot. The current gunnery target is compared with the inner and outer sectors; the readout also flags angle rays crossing a target hex. In Ferrol, Hampton and James, Alt-click selects a target hex even with the older gunnery overlay off. In Ulsan, use the selected gunnery target. Sector readouts include the displayed length limit and the checked side of the ship. This is a measuring aid: it does not assign gun eligibility or resolve combat. Preferences are local to the running session and do not change the scenario.
+
+Build with `Ironclads.Editor.ProjectBuilder.DeliverBroadside`; `Start-Ironclads.ps1 -Ferrol` opens the new player in Ferrol, or use `-James1865` for the six-ship table.
+
 Use **Gunnery tools / bearings & arcs** in the sidebar. Enable the overlay, choose the firing ship and a guide. Stonewall has the supplied sheet's forward 180-degree and port/starboard 120-degree presets. The custom tool has adjustable center and sweep, including quick 90/120/180/240-degree widths. It does not imply that a particular ship carries such a mount.
 
 Measure to the other ship, or Alt-click a local board hex. Shift-click retains placement. Select Overhead gunnery view for a north-up chart. Orange lines show arc limits and center; mint lines mark the sighting ruler and target hex. Radius and 100-yard radial bands are adjustable. Curved bands measure straight distances, while the displayed hex range uses the shortest hex path (rules p. 18). Origins are occupied hex centers, not individual physical gun locations.

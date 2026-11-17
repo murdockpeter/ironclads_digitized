@@ -50,7 +50,7 @@ namespace Ironclads
             if(!miniatures)GetComponent<RuleChart>().Snap();Overview();
             status=hampton?"Hampton Roads, 9 March 1862. Reconstructed scenery; weather and opening positions are umpire presets.":"Ferrol playtest setup: 2,000 yards apart, approaching on reciprocal courses. Umpire controls movement.";
         }
-        public void StartJames(){if(network!=null&&network.Active){status="Disconnect TCP before opening the local six-ship umpire table.";return;}GetComponent<RuleChart>()?.Remember();scenario=JamesScenario.Create();selected=0;animateTime=false;var guns=GetComponent<GunneryTools>();guns.preset=3;guns.pickedTarget=false;guns.fleetTarget=3;guns.reach=12;GetComponent<RuleChart>().Snap();Overview();status="Stonewall at the Gates - 28 March 1865 alternate history. Six ironclads, local umpire control.";}
+        public void StartJames(){if(network!=null&&!network.CanManage){status="The host chooses the scenario.";return;}GetComponent<RuleChart>()?.Remember();scenario=JamesScenario.Create();selected=0;animateTime=false;var guns=GetComponent<GunneryTools>();guns.preset=3;guns.pickedTarget=false;guns.fleetTarget=3;guns.reach=12;GetComponent<RuleChart>().Snap();Overview();status="Stonewall at the Gates - 28 March 1865 alternate history. Six ironclads.";}
         void EnsureFleet()
         {
             string appearance=scenario.scenarioId+(scenario.Hampton?(suppliedMonitor?"-M":"")+(suppliedVirginia?"-V":""):"");
@@ -102,16 +102,17 @@ namespace Ironclads
             gameObject.AddComponent<UmpirePanel>().scene=this;
             gameObject.AddComponent<RuleChart>().scene=this;
             gameObject.AddComponent<GunneryTools>().scene=this;
+            gameObject.AddComponent<BroadsideOverlay>().scene=this;
             gameObject.AddComponent<CourseMovement>().scene=this;
             gameObject.AddComponent<PatrickHenryControl>().scene=this;
             gameObject.AddComponent<BatteryEffects>().scene=this;
             gameObject.AddComponent<EngineExhaust>().scene=this;
             network=gameObject.AddComponent<MultiplayerSession>();network.scene=this;
+            if(Application.isPlaying&&Array.IndexOf(Environment.GetCommandLineArgs(),"-verify-lobby")>=0)gameObject.AddComponent<LobbyVerification>();
             if(Application.isPlaying&&Array.IndexOf(Environment.GetCommandLineArgs(),"-verify-runtime")>=0)gameObject.AddComponent<RuntimeVerification>();
-            if(Application.isPlaying&&Array.IndexOf(Environment.GetCommandLineArgs(),"-verify-network")>=0)gameObject.AddComponent<NetworkVerification>();
             if(Application.isPlaying&&Array.IndexOf(Environment.GetCommandLineArgs(),"-verify-james")>=0)gameObject.AddComponent<JamesVerification>();
             if(Application.isPlaying&&Array.IndexOf(Environment.GetCommandLineArgs(),"-verify-hampton")>=0)gameObject.AddComponent<HamptonVerification>();
-            if(Application.isPlaying&&(Array.IndexOf(Environment.GetCommandLineArgs(),"-verify-ulsan")>=0||Array.IndexOf(Environment.GetCommandLineArgs(),"-verify-ulsan-network")>=0))gameObject.AddComponent<UlsanVerification>();
+            if(Application.isPlaying&&Array.IndexOf(Environment.GetCommandLineArgs(),"-verify-ulsan")>=0)gameObject.AddComponent<UlsanVerification>();
             if(!scenario.Hampton&&!scenario.DoB)Overview();
             UpdateWorld();SetCamera();
         }

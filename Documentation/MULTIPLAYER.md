@@ -1,51 +1,53 @@
-# Direct TCP/IP one-versus-one multiplayer
+# Multiplayer lobby and ship command (protocol 7)
 
-**Current visual build: 1.4.1-dev**, `Builds/Windows-Coastlines/Ironclads.exe`, with [detailed local coasts](Hampton-Coastline.md). Protocol remains 6; use the same build for matching geography.
+Version **1.7.0-dev**, `Builds/Windows-Multiplayer/Ironclads.exe`. All participants must use this build; protocol 6 players cannot join. Supports Ferrol, Hampton Roads, Iron & Fire, Ulsan and the six-ironclad **Stonewall at the Gates** scenario. This delivery also retains the broadside measuring tools.
 
-**Latest: 1.4.0-dev / protocol 6**, `Builds/Windows-PatrickHenry/Ironclads.exe`. The Confederate (Virginia) player also commands Patrick Henry, with independently queued movement/engine commands and synchronized supporting salvos. Grounded Minnesota stays under the Monitor side. All modules remain available, including Ulsan fleet play. Both players must update to protocol 6. [Patrick Henry instructions](Patrick-Henry.md).
+## Connect and start
 
-**Current visual build: 1.3.1-dev**, `Builds/Windows-Ulsan-Detail/Ironclads.exe`, with the [cruiser paint/detail pass](Ulsan-Paint-and-Detail.md). Fleet networking remains protocol 5.
+1. Run `Start-Ironclads.ps1 -James1865` for the six-ship scenario. Open **Multiplayer**. Other modules provide the same lobby under their multiplayer/TCP tab.
+2. Enter your captain name. The host selects **Host as separate umpire**, or selects an initial ship, chooses a TCP port (default 7777) and session code, then clicks **Open lobby**.
+3. Guests enter the host IPv4 address, port and code and click **Join**. Joining replaces their local table with the host's current table. There can be six guests plus the host: six human commanders and an optional separate umpire, or a playing host with fewer guests.
+4. Choose a preferred side and request a ship. The host approves requests or assigns ships directly using **Assign ships to** and the ship's **Assign** button. One captain can command several ships. Unassigned participants can observe.
+5. After assignments, every connected participant marks ready. The host clicks **Start match**. Assignment changes in the lobby clear readiness. The host can pause orders and return to the lobby.
 
-**Latest: 1.3.0-dev / protocol 5**, `Builds/Windows-Ulsan/Ironclads.exe`. Ulsan adds one fleet per player: Russia commands Rossia, Gromoboi and Rurik; Japan commands Izumo, Azuma, Tokiwa and Iwate. Open **TCP fleets** to host/join. Commands for multiple ships, both turret bearings and movement time synchronize independently. Host controls the shared clock, weather and table management. Ferrol and Hampton retain their existing ship assignments. Both players need protocol 5; older protocol 3/4 builds cannot join. This latest build supports continuous DoB and Iron & Fire movement as well as hex play. [Ulsan instructions](Ulsan-Module.md). Older delivery notes below are retained for reference.
+Players can inspect and measure every ship. Movement, turret training, engine orders and firing require assignment and a running match. Host authority covers weather, clock, shared notes, scenario selection, loading, resets and undo. These remain an umpired tabletop game: movement legality, combat results and victory are manual.
 
-**Latest: 1.2.1-dev / protocol 4**, `Builds/Windows-HamptonRoads-Union/Ironclads.exe`. The Monitor player also fires grounded Minnesota's batteries; the host sets Minnesota's availability and grounded position. Salvos and support state replicate. The wrecks of Congress and Cumberland are common scenery. Both players need this build. [Supporting ships](Hampton-Union-Ships.md).
+## During a match
 
-The latest player is **1.2.0-dev**, `Builds/Windows-HamptonRoads/Ironclads.exe`, built with `Ironclads.Editor.ProjectBuilder.DeliverHamptonRoads`. It supports either scenario and either tabletop ruleset. Protocol **3** requires matching builds. The host chooses the scenario/ruleset and either ship; exact miniatures positions, courses, current/ordered speeds, distance used, turn class and Monitor turret angle synchronize as well as the original hex controls. See [Hampton Roads](Hampton-Roads.md) and [Iron & Fire](Iron-and-Fire.md). The earlier development-build instructions below remain useful for the original Ferrol TCP player.
+Open the lobby while playing and click **Request control** on any ship. The host sees the requesting captain and current commander, with **Approve / Decline**. Preferred sides do not restrict requests; cross-side requests are identified for the host. No request grants control automatically.
 
-The development player is `Builds/Windows-TCP/Ironclads.exe`, version `1.1.0-dev`. This does not modify the published v1.0.0 release. It uses built-in .NET TCP sockets with no Unity lobby/relay account, added networking package, automatic router configuration, or external service.
+Approval replaces the current commander and announces the new assignment to everyone. Each ship has exactly one commander. A captain may own multiple ships. The host may take a ship, assign it to another connected captain, or release it. Orders carry an assignment epoch and table generation; late orders from previous assignments are rejected by the host. Requests and membership are live session data, not part of saved table files.
 
-## Connect
+## Addresses and forwarding
 
-1. Both players run the same development build and open **Multiplayer · direct TCP/IP**.
-2. The host chooses Niagara or Stonewall, a TCP port (default **7777**) and a session code, then clicks **Host this table**. The host's active IPv4 addresses are displayed; choose the address reachable from the guest.
-3. The guest enters the host's IPv4 address, matching port, and session code, then clicks Join. Joining replaces the guest's local table with the host's current table. Each player can inspect either ship; **Inspect my ship** focuses the assigned one.
-4. The host may need to allow the game through the operating-system firewall. On the same LAN use the host's LAN address. Across the internet the host needs a reachable public IPv4 address and TCP forwarding to the hosting computer, or a VPN connecting both computers. Carrier-grade NAT and some network policies prevent direct inbound hosting. There is no automatic NAT traversal.
+On the same LAN, share the host's LAN IPv4 address. Across the internet, share the host's public IPv4 address and forward the chosen **TCP** port to the host computer. Allow the host executable through the operating-system firewall. Guests initiate outbound connections and ordinarily need no forwarding. The app displays local adapter addresses, not an automatically discovered public IP.
 
-`127.0.0.1` works only when running both players on the same computer. Direct TCP is unencrypted; the session code gates joining, but does not encrypt the connection. Use a trusted LAN/VPN. The game does not change firewall or router rules on your behalf.
+Carrier-grade NAT, double NAT and restrictive networks may prevent direct hosting. A shared VPN is an alternative. `127.0.0.1` only connects processes on the same computer. The lobby runs inside the host application; there is no public server directory, relay, automatic NAT traversal or automatic router/firewall configuration. Direct TCP is unencrypted; use a trusted network or VPN when appropriate. The session code gates admission and does not encrypt traffic.
 
-## Roles and shared state
+## Disconnects and reconnects
 
-The host keeps the authoritative table. Each player places/turns its own ship by hex, changes its engine/boiler settings, and requests its batteries to fire. Both see shared positions, headings, engine smoke settings, location, weather, date/time, turn and umpire notes. Only the host changes weather, table location/time, shared notes, global undo, reset or load. Either player can save a local copy/export positions. Multiplayer forces manual hex mode and disables continuous visual movement. It does not enforce movement allowances, gun eligibility, hits, damage or victory.
+Disconnected captains remain on the roster and their ships remain reserved on the host's table. The host can immediately reassign those ships, or remove the captain to release ships and free a roster slot. Other clients remain connected.
 
-Cameras, globe/sea view, chart/arc guide visibility and local sound/smoke preferences are local. Salvo triggers synchronize; atmospheric particles and audio are rendered on each machine, not simulated in deterministic lockstep. A player looking at the globe does not see the local sea's effects; old salvos are not replayed on returning or joining.
+A captain can reconnect from the same running app using the same host address, port and code. A private, random session token restores their identity and any ships still reserved for them; a matching display name alone does not recover ownership. The token is retained only in app memory. After restarting the app, reconnect as a new participant and have the host approve your ships again. There is no automatic reconnect or host migration. Host shutdown returns guests to the retained table with offline umpire control.
 
-Snapshots send at up to 10 Hz when state changes and at least once per second while idle. Guest ship edits are coalesced to 10 Hz and acknowledged; pending local edits remain visible until confirmed, avoiding stale snapshot snapback. A pending move is flushed before a firing request. TCP provides ordered reliable frames; no interpolation or lag compensation for tactical combat is needed because board placement and combat remain manual.
-
-## Disconnect and reconnect
-
-Disconnect retains the last table and returns that instance to full offline umpire control. If a guest leaves, the host keeps listening for one opponent. Rejoining with the correct code receives the current host table and the same complementary ship assignment. Extra simultaneous connections are closed. There is no host migration, automatic reconnect or discovery lobby. A host shutdown ends the session; the remaining player can continue the retained table offline or host a new session.
-
-## Protocol and validation
-
-The protocol uses versioned JSON inside a 4-byte big-endian length-prefixed TCP frame, maximum 65,536 bytes. Only the main Unity thread parses/applies commands and modifies scene state; background reader/writer threads perform socket I/O. Bounded input/output queues, a connection timeout, heartbeat timeout and message rate limit prevent unbounded queuing. The server validates guest ownership, sequence, board coordinates, six-way facing, engine-load bounds and battery selection. Guest-authored full-world state is rejected. These controls are not an anti-cheat or encrypted transport guarantee against an untrusted host.
+Changing scenario or tabletop ruleset returns everyone to the lobby, clears assignments and readiness, and requires a fresh match start. Cameras, measuring guides, sound preferences and rendered smoke remain local. Old salvos are not replayed to late joiners.
 
 ## Build and verify
 
-Use Unity 6000.2.12f1 with `Ironclads.Editor.ProjectBuilder.DeliverMultiplayer` to build `Builds/Windows-TCP`.
+Build using Unity 6000.2.12f1:
 
 ```powershell
-& .\.tools\verify-network.ps1
-& .\.tools\verify-player.ps1 -BuildDirectory 'Builds\Windows-TCP'
+& 'C:\Program Files\Unity\Hub\Editor\6000.2.12f1\Editor\Unity.exe' -batchmode -quit -projectPath (Get-Location).Path -executeMethod Ironclads.Editor.ProjectBuilder.DeliverLobby -logFile Artifacts/lobby-build.log
+& .\.tools\verify-lobby.ps1
+& .\.tools\verify-lobby.ps1 -Mode ferrol -Guests 2
+& .\.tools\verify-lobby.ps1 -Mode hampton -Guests 2
+& .\.tools\verify-lobby.ps1 -Mode ironfire -Guests 2
+& .\.tools\verify-lobby.ps1 -Mode ulsan -Guests 6
+& .\.tools\verify-player.ps1 -BuildDirectory Builds/Windows-Multiplayer -James
 ```
 
-The network helper runs two separate headless standalone game processes over a loopback-only ephemeral TCP port. It checks framing with fragmented/oversized frames, wrong codes, ship assignment/ownership, weather/turn replication, moves/headings/engine orders, pending edit acknowledgements, both players' salvos, forged opponent edits and world snapshots, third-player rejection, reconnect and offline recovery. It does not open a public listener or modify firewall rules. Results go to unique directories under `Artifacts/Network`. The ordinary player verification separately exercises graphics, offline controls and effects and captures the Multiplayer panel. LAN/internet reachability still depends on the players' networks and has not been established by loopback testing.
+The lobby helper starts a host and up to six independent headless players on a loopback-only ephemeral TCP port. Reports go to a unique `Artifacts/Lobby` directory. It exercises real lobby requests, host approvals/declines, readiness/start, simultaneous ship orders, turrets, engines, salvos, control transfers, old-owner command rejection, authenticated reconnect and host shutdown recovery. Six-guest runs also check rejection of an extra participant. Loopback validation does not establish public internet reachability.
+
+Frames remain length-prefixed JSON, maximum 65,536 bytes. Each connection has its own acknowledgement, handshake/heartbeat deadlines and message-rate limit. Socket threads perform byte I/O; Unity's main thread applies validated commands. The host rejects guest-authored table snapshots. Snapshots are coalesced to at most 10 Hz in normal updates, with idle heartbeats and immediate state publication for lobby changes and firing.
+
+Local validation on 13 November 2026 passed: Unity Windows build; seven-process James 1865 lobby/match; three-process Ferrol, Hampton Roads, Iron & Fire and Ulsan networking; and graphical James, Ulsan and Ferrol/offline regression checks. Validation also covers guest-authored world snapshot rejection, assignment epochs after returning a ship to its previous commander, table replacement generations, and live scenario changes. The lobby screenshot is `Artifacts/James1865/James-multiplayer-lobby.png`. Public internet reachability remains dependent on the host network and was not tested by the loopback suite.

@@ -25,6 +25,7 @@
 /.tools/*
 !/.tools/verify-player.ps1
 !/.tools/verify-network.ps1
+!/.tools/verify-lobby.ps1
 *.user
 *.pfx
 *.keystore

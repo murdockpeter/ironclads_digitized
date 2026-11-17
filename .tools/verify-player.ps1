@@ -1,4 +1,4 @@
-param([switch]$DefaultGraphics,[string]$BuildDirectory='Builds\Windows-James1865',[switch]$Hampton,[switch]$Ulsan,[switch]$James)
+param([switch]$DefaultGraphics,[string]$BuildDirectory='Builds\Windows-Multiplayer',[switch]$Hampton,[switch]$Ulsan,[switch]$James)
 $projectPath = Split-Path $PSScriptRoot -Parent
 Add-Type @'
 using System;

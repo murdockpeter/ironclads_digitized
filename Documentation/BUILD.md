@@ -1,5 +1,7 @@
 # Unity development and builds
 
+**Latest: 1.7.0-dev multiplayer lobby.** Build `Ironclads.Editor.ProjectBuilder.DeliverLobby` into `Builds/Windows-Multiplayer`. Run `.tools/verify-lobby.ps1` for seven-process, six-commander validation; use `-Mode ferrol|hampton|ironfire -Guests 2` for earlier modes, or `-Mode ulsan -Guests 6`. The launcher uses this build. [Multiplayer instructions and validation](MULTIPLAYER.md).
+
 **Latest: 1.5.0-dev supplied ship comparison.** Run `python Tools/prepare-supplied-ships.py` with the local user-supplied files, then build `Ironclads.Editor.ProjectBuilder.DeliverSuppliedShips` into `Builds/Windows-SuppliedShips`. Both test helpers default to that directory. [Optional asset integration](Supplied-Ship-Models.md).
 
 **Latest: 1.4.1-dev detailed coasts.** Build with `Ironclads.Editor.ProjectBuilder.DeliverCoastlines` into `Builds/Windows-Coastlines`. The launcher and test helpers use this directory. Geographic source acquisition, grid generation and license details are in [coastline notes](Hampton-Coastline.md).

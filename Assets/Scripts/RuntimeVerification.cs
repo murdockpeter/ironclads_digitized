@@ -74,6 +74,24 @@ namespace Ironclads
             string beforeGunnery=JsonUtility.ToJson(scene.scenario);guns.pickedTarget=true;guns.targetHex=new Hex(0,3);guns.preset=3;guns.customCenter=0;guns.customSweep=90;
             yield return new WaitForSeconds(.2f);Check(JsonUtility.ToJson(scene.scenario)==beforeGunnery,"Gunnery guide modified scenario state.");
             yield return Capture(Path.Combine(output,"Player-gunnery-custom.png"));
+            var broadside=scene.GetComponent<BroadsideOverlay>();
+            foreach(float heading in new[]{0f,60f,275f,359f})foreach(int sign in new[]{-1,1})foreach(var widths in new[]{new Vector2(16,40),new Vector2(20,50)}){
+                Vector3 center=new Vector3(100,0,-50),apex=BroadsideOverlay.Apex(center,heading,sign,RuleChart.HexMeters);
+                float bearing=heading+sign*90;
+                Check(Vector3.Distance(apex,center-BroadsideOverlay.Direction(bearing)*RuleChart.HexMeters)<.001f,"Broadside pivot must lie opposite the checked side.");
+                Vector3 inner=apex+BroadsideOverlay.Direction(bearing+widths.x/2)*400;
+                Vector3 outer=apex+BroadsideOverlay.Direction(bearing+(widths.x+widths.y)/4)*400;
+                Check(BroadsideOverlay.Contains(center,heading,sign,RuleChart.HexMeters,widths.x,1000,inner),"Inclusive inner broadside boundary / rotation.");
+                Check(!BroadsideOverlay.Contains(center,heading,sign,RuleChart.HexMeters,widths.x,1000,outer)&&BroadsideOverlay.Contains(center,heading,sign,RuleChart.HexMeters,widths.y,1000,outer),"Nested broadside inner/outer distinction.");
+                Check(!BroadsideOverlay.Contains(center,heading,-sign,RuleChart.HexMeters,widths.y,1000,outer),"Broadside port/starboard reflection.");
+                Check(!BroadsideOverlay.Contains(center,heading,sign,RuleChart.HexMeters,widths.y,300,outer),"Broadside length limit.");
+            }
+            broadside.visible=true;broadside.side=2;guns.visible=false;broadside.FrameView();
+            yield return new WaitForSeconds(.2f);yield return Capture(Path.Combine(output,"Player-broadside-confederate.png"));
+            broadside.template=1;broadside.innerWidth=20;broadside.outerWidth=50;broadside.offset=1.5f;
+            yield return new WaitForSeconds(.2f);yield return Capture(Path.Combine(output,"Player-broadside-wide.png"));
+            Check(JsonUtility.ToJson(scene.scenario)==beforeGunnery,"Broadside measuring preferences modified the scenario.");
+            broadside.visible=false;
             guns.visible=false;guns.pickedTarget=false;chart.showRange=true;
             chart.topDown=false;scene.Focus(0);panel.ShowTab(0);yield return new WaitForSeconds(.2f);
             yield return Capture(Path.Combine(output,"Player-Niagara.png"));

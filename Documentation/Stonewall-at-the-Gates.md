@@ -1,6 +1,6 @@
 # Stonewall at the Gates - Yaquinto Ironclads module
 
-A six-ironclad alternate-history encounter in Hampton Roads, 28 March 1865, 14:00 UTC. Local umpire play; version 1.6.0-dev. This is an additional module: Ferrol, the 1862 Hampton Roads duel and Ulsan remain available.
+A six-ironclad alternate-history encounter in Hampton Roads, 28 March 1865, 14:00 UTC. Local umpire play or six human commanders over direct TCP; version 1.7.0-dev. This is an additional module: Ferrol, the 1862 Hampton Roads duel and Ulsan remain available.
 
 ## The divergence
 
@@ -42,11 +42,11 @@ Mahopac uses the Canonicus-class overall raft dimensions (235 feet by 43 feet 8 
 .\Start-Ironclads.ps1 -James1865
 ```
 
-Executable: `Builds/Windows-James1865/Ironclads.exe -james-1865`.
+Executable: `Builds/Windows-Multiplayer/Ironclads.exe -james-1865`.
 
 From another module, choose Scenarios and then **Stonewall at the Gates / 3 vs 3 (1865)**. Starting a scenario replaces the current table, so use Save table first if needed. All six hulls can be selected and inspected. Shift-click sea or enter a column/row to place the selected ship. Ahead/astern and port/starboard controls operate on that ship. End Turn changes time and retains all six positions. Undo and CSV logging cover the entire table. Save/load includes all six ships, weather, notes, heading and both Onondaga turret angles.
 
-Gunnery permits any selected ship to measure any target ship or an Alt-clicked hex. Custom arc guides remain measuring aids; match them to the printed firing template. Fire buttons emit only the selected battery. The local sea-sound preference and separate cannon-volume controls are retained. For Discord, one umpire operates this local table and players submit orders externally. Direct TCP for this new module is not enabled; the existing modules' network protocol is unchanged.
+Gunnery permits any selected ship to measure any target ship or an Alt-clicked hex. Custom arc guides remain measuring aids; match them to the printed firing template. Fire buttons emit only the selected battery. The local sea-sound preference and separate cannon-volume controls are retained. For network play, open **Multiplayer**, host or join the internal TCP lobby, request ships, and have the host approve assignments. Each participant marks ready before the host starts the match. The lobby remains available for host-approved control transfers during play. One captain can command several ships; a separate host can act as umpire. All participants need protocol 7. See [multiplayer instructions](MULTIPLAYER.md).
 
 ## Sources and research limits
 
