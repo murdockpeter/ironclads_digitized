@@ -99,6 +99,7 @@ namespace Ironclads
             if(Application.isPlaying){soundEnabled=PlayerPrefs.GetInt("SeaAudio.Enabled",1)!=0;seaVolume=Mathf.Clamp01(PlayerPrefs.GetFloat("SeaAudio.Volume",1));}
             UpdateSeaAudio();
             if(Application.isPlaying) {ambience.clip=SeaAudio();ambience.Play();}
+            if(Application.isPlaying)gameObject.AddComponent<ReleaseChecker>();
             gameObject.AddComponent<UmpirePanel>().scene=this;
             gameObject.AddComponent<RuleChart>().scene=this;
             gameObject.AddComponent<GunneryTools>().scene=this;

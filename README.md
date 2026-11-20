@@ -1,5 +1,9 @@
 # Ironclads — Ferrol & Hampton Roads
 
+**Stable release: v1.7.0 ? enhanced multiplayer.** [Download the Windows x64 ZIP](https://github.com/murdockpeter/ironclads_digitized/releases/latest), extract everything and run `Ironclads.exe`. Includes all scenario modules and the protocol 7 lobby. The app checks for newer stable GitHub releases at startup; every scenario has **Check for updates** and a startup-check preference. Downloads and installation are manual. [Release notes](Documentation/RELEASE-1.7.0.md).
+
+The entries below record earlier development deliveries.
+
 **Latest: multiplayer lobby (1.7.0-dev / protocol 7).** `Start-Ironclads.ps1 -James1865` opens `Builds/Windows-Multiplayer` with six human ship commanders and an optional separate host/umpire. Includes an in-app direct TCP lobby, captain names and preferred sides, multiple ships per player, ready/start, host-approved control requests during play, reassignment and authenticated reconnect. All modules use the new lobby; every participant needs the matching build. [Connection and control instructions](Documentation/MULTIPLAYER.md).
 
 **Latest: offset broadside measuring arcs.** Gunnery now offers port, starboard or both nested arcs from a movable pivot across the ship: Confederate 16?/40? and wooden / Union casemate 20?/50?, plus custom angles. The pivot offset and length are adjustable. `Start-Ironclads.ps1 -Ferrol` (or `-James1865`) opens `Builds/Windows-Broadside`. [Measuring controls and calibration](Documentation/GUNNERY-TOOLS.md).

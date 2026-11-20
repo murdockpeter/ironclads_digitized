@@ -26,6 +26,7 @@ namespace Ironclads
                 Text(s.ships[scene.selected].name+" · "+(scene.selected<3?"Russian":"Japanese")+" armored cruiser");
                 if(Button("Inspect selected cruiser"))scene.Focus(scene.selected);}
             switch(dawnTab){case 0:DawnMovement();break;case 1:DawnGunnery();break;case 2:GUI.enabled=ManageTable;DawnWeather();GUI.enabled=true;break;case 3:DawnNotes();break;case 4:DawnNetwork();break;case 5:DawnModules();break;}
+            ReleaseControls();
             GUILayout.Space(12);GUILayout.EndScrollView();naval.lowLightAid=GUILayout.Toggle(naval.lowLightAid,"Low-light viewing aid · local",toggle);GUILayout.Label("RMB orbit · Wheel zoom · MMB/WASD pan\nShift + click: exact placement · H hide UI\nv"+Application.version,small);GUILayout.EndArea();
             float x=352,w=Screen.width-x-22;GUI.DrawTexture(new Rect(x,18,w,74),panelTex);GUI.Label(new Rect(x+14,26,w-28,20),"ULSAN · OPEN SEA · RUSSIAN AND JAPANESE CRUISER DIVISIONS",sub);
             GUI.Label(new Rect(x+14,49,w-28,30),s.ships[scene.selected].name+"  /  "+(scene.selected<3?"VLADIVOSTOK SQUADRON":"SECOND DIVISION"),big);

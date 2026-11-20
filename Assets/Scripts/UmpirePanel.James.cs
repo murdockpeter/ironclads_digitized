@@ -57,6 +57,7 @@ namespace Ironclads
                 case 4:Scenarios();break;
                 case 5:MultiplayerLobby();break;
             }
+            ReleaseControls();
             GUILayout.Space(15);GUILayout.EndScrollView();GUILayout.Label("RMB orbit / wheel zoom / MMB pan / H hide UI\nv"+Application.version,small);GUILayout.EndArea();
             float x=352,w=Screen.width-x-22;GUI.DrawTexture(new Rect(x,18,w,74),panelTex);GUI.Label(new Rect(x+15,25,w-30,20),"HAMPTON ROADS / ALTERNATE HISTORY / YAQUINTO IRONCLADS",sub);GUI.Label(new Rect(x+15,48,w-30,34),"Stonewall at the Gates / 3 vs 3",big);
             GUI.DrawTexture(new Rect(342,Screen.height-45,Screen.width-354,33),panelTex);GUI.Label(new Rect(354,Screen.height-40,Screen.width-380,26),$"TURN {s.turn:00} / {s.Date:dd MMM yyyy HH:mm} UTC / "+scene.status,small);if(!scene.globeMode)ShipLabels();

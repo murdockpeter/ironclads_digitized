@@ -46,7 +46,7 @@ namespace Ironclads.Editor
         {
             Directory.CreateDirectory("Assets/Generated");Directory.CreateDirectory("Artifacts");
             PlayerSettings.companyName="Ironclads";PlayerSettings.productName="Ironclads — Ferrol";
-            PlayerSettings.bundleVersion="1.7.0-dev";
+            PlayerSettings.bundleVersion="1.7.0";
             PlayerSettings.defaultScreenWidth=1600;PlayerSettings.defaultScreenHeight=1000;
             PlayerSettings.fullScreenMode=FullScreenMode.Windowed;PlayerSettings.runInBackground=true;
             PlayerSettings.resizableWindow=true;PlayerSettings.colorSpace=ColorSpace.Linear;
@@ -133,6 +133,9 @@ namespace Ironclads.Editor
             Check(Mathf.Abs(ship.east-926)<.1f&&Mathf.Abs(ship.north)<.01f,"Knot-to-meter motion faces east correctly");
             var copy=JsonUtility.FromJson<Scenario>(JsonUtility.ToJson(scenario));
             Check(copy.ships.Length==2&&copy.utc==scenario.utc&&copy.hexMode,"Scenario JSON preserves table state");
+            Check(ReleaseChecker.IsNewer("v1.10.0","1.7.0"),"Release versions compare numerically");
+            Check(!ReleaseChecker.IsNewer("v1.7.0","1.7.0")&&!ReleaseChecker.IsNewer("v1.0.0","1.7.0"),"Same/older releases do not prompt");
+            Check(!ReleaseChecker.IsNewer("invalid","1.7.0"),"Invalid release versions are ignored");
             Check(Resources.Load<Texture2D>("EarthMarch")!=null,"NASA globe texture included");
             Debug.Log("Optional private ship-sheet textures: Stonewall="+(Resources.Load<Texture2D>("StonewallSheet")!=null)+", Niagara="+(Resources.Load<Texture2D>("NiagaraSheet")!=null));
             foreach(string name in new[]{"USS-Niagara","CSS-Stonewall"}) {

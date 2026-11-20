@@ -80,6 +80,7 @@ namespace Ironclads
             if(Button(scene.network!=null&&scene.network.Active?"Multiplayer · "+(scene.network.IsHost?"HOST":"GUEST"):"Multiplayer · direct TCP/IP"))ShowTab(7);
             scroll=GUILayout.BeginScrollView(scroll,false,false,GUILayout.ExpandHeight(true));
             switch(tab){case 0:Vessels();break;case 1:GUI.enabled=ManageTable;Weather();GUI.enabled=true;break;case 2:Chart();break;case 3:Sources();break;case 4:Gunnery();break;case 5:FireBatteries();break;case 6:Engines();break;case 7:Multiplayer();break;case 8:Scenarios();break;case 9:MovementPanel();break;case 10:UnionSupport();break;case 11:PatrickHenryPanel();break;}
+            ReleaseControls();
             GUILayout.Space(18);GUILayout.EndScrollView();
             GUILayout.Label("RMB orbit  ·  Wheel zoom  ·  MMB pan\n1 / 2 focus  ·  Tab globe  ·  H hide UI  ·  v"+Application.version,small);
             GUILayout.EndArea();
