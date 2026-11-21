@@ -6,9 +6,9 @@ namespace Ironclads.Editor
     public static class PowderSmokeReview
     {
         static void Check(bool condition,string message){if(!condition)throw new Exception("Powder smoke: "+message);Debug.Log("POWDER PASS: "+message);}
-        static Vector3 Track(Vector3 wind,float duration,float step)
+        static Vector3 Track(Vector3 wind,float duration,float step,float speed=40)
         {
-            Vector3 p=Vector3.up*3,v=Vector3.right*40;
+            Vector3 p=Vector3.up*3,v=Vector3.right*speed;
             for(float t=0;t<duration-step*.5f;t+=step){v=BatteryEffects.TransportVelocity(v,wind,t,step,17,t,p);p+=v*step;}
             return p;
         }
@@ -16,6 +16,8 @@ namespace Ironclads.Editor
         {
             Vector3 burst=Track(Vector3.zero,1,1f/60),calm=Track(Vector3.zero,120,1f/60),wind=Vector3.forward*5;
             Check(burst.x>30,"muzzle jet retains outward throw during first second");
+            Vector3 sailingJet=Track(Vector3.zero,5,1f/60,14);
+            Check(sailingJet.x>15&&sailingJet.x<35,"sailing long-gun jet settles within a ship-sized distance in calm air");
             Check(calm.y>8&&calm.y<45,"calm cloud rises slowly over two minutes");
             Vector3 fine=Track(wind,60,1f/60),coarse=Track(wind,60,1f/30);
             Check(fine.z>240&&fine.z<360,"aged smoke travels with ambient wind");

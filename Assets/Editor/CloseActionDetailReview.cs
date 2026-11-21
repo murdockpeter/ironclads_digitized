@@ -22,7 +22,7 @@ namespace Ironclads.Editor
                 var filters=root.GetComponentsInChildren<MeshFilter>(true);long vertices=filters.Sum(f=>(long)f.sharedMesh.vertexCount);int oldVertices=spec.side==0?(spec.rate==50?216935:275561):spec.rate==120?388639:spec.rate==80?290623:275449,oldMeshes=spec.side==0?285:281;float vertexRatio=vertices/(float)oldVertices,meshRatio=filters.Length/(float)oldMeshes;
                 counts.AppendLine($"{name},{oldVertices},{vertices},{vertexRatio:F3},{oldMeshes},{filters.Length},{meshRatio:F3},{root.GetComponentsInChildren<GunMount>(true).Length}");
                 File.WriteAllText(output+"/comparison.csv",counts.ToString());
-                Check(vertexRatio>=2&&vertexRatio<=2.8f,name+" doubled vertices / ratio "+vertexRatio);Check(meshRatio>=2&&meshRatio<=2.8f,name+" doubled mesh detail / ratio "+meshRatio);
+                Check(vertexRatio>=2&&vertexRatio<=3.0f,name+" doubled vertices / ratio "+vertexRatio);Check(meshRatio>=2&&meshRatio<=2.8f,name+" doubled mesh detail / ratio "+meshRatio);
                 foreach(int end in new[]{-1,1})foreach(bool lower in new[]{true,false}){
                     var ray=new Ray(new Vector3(.037f,lower?-.5f:spec.Deck*.5f,end*spec.Length*.6f),Vector3.back*end);
                     Check(HullHit(root,ray,spec.Length*.22f,lower),name+(end<0?" stern":" bow")+(lower?" underbody":" topside")+" closed");

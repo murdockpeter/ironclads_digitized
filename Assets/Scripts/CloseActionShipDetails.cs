@@ -10,12 +10,6 @@ namespace Ironclads
         {
             float length=spec.Length,beam=spec.Beam,deck=spec.Deck;
             for(int side=-1;side<=1;side+=2){
-                for(int rail=0;rail<3;rail++)for(int i=0;i<24;i++){
-                    float f=i/24f,g=(i+1)/24f;
-                    Vector3 a=new Vector3(side*beam*.32f*(1-f),deck+.3f+rail*.25f+f,Mathf.Lerp(length*.34f,length*.57f,f));
-                    Vector3 b=new Vector3(side*beam*.32f*(1-g),deck+.3f+rail*.25f+g,Mathf.Lerp(length*.34f,length*.57f,g));
-                    SailingRod(root,"Swept beakhead rail",a,b,.055f,caOak,sides:6);
-                }
                 for(int strake=0;strake<3;strake++)for(int i=0;i<112;i++){
                     float z=Mathf.Lerp(-length*.49f,length*.49f,i/112f),nz=Mathf.Lerp(-length*.49f,length*.49f,(i+1)/112f),y=deck*(.18f+strake*.3f);
                     Vector3 a=SailingPlankPoint(side,z,y,length,beam,deck);

@@ -1,8 +1,8 @@
 # Close Action: ship models and canvas
 
-This revision repairs the open hull ends, reshapes the afterbody, increases geometric detail, expands the library to ten prototypes, and makes canvas fullness respond to the table's wind. Launch using `./Start-Ironclads.ps1 -CloseAction`; the launcher prefers `Builds/Windows-CloseAction-Smoke`.
+This revision repairs the open hull ends, reshapes the afterbody, increases geometric detail, expands the library to ten prototypes, and makes canvas fullness respond to the table's wind. Launch using `./Start-Ironclads.ps1 -CloseAction`; the launcher prefers `Builds/Windows-CloseAction-HeadFraming`.
 
-The current 1.8.2-dev build adds [full hull contouring and weather controls](Close-Action-Hull-Contours.md). Counts below reflect that build.
+The current 1.8.13-dev build includes separately assembled bow framing and rounded bow cheeks, a shorter head projection, smooth planking and slimmer upper bows, open beakhead framing, closed lower hulls and [full hull contouring and weather controls](Close-Action-Hull-Contours.md). Counts below reflect that build.
 
 ## Ten prototypes
 
@@ -39,7 +39,23 @@ The principal correction is structural: the hull narrows toward the sternpost be
 
 The research images are retained only in ignored local research artifacts. The models and new documentation contain original geometry and prose, not redistributed museum image assets.
 
+## Closed interiors and decorated bows
+
+The 1.8.9-dev revision follows the upward sweep in the supplied Victory bow photographs. A solid knee of the head now runs from near the waterline into a steep crown behind the figurehead. Painted trailboards, their gold borders and the headrails follow that curve instead of a straight ramp. The figurehead is mounted higher and farther forward, with its height limited to clear the unchanged, straight bowsprit. Bobstays pass outboard of the new structure. The sweep is applied to all ten class/family prototypes as a representative reconstruction; the photographs do not establish exact profiles for every ship.
+
+The 1.8.8-dev revision adds an inward-facing wooden lower-hull surface, solid gun decks with undersides and closed edges, the weather-deck ceiling, transverse beams and support pillars. These surfaces close the empty views below and above the guns while retaining the modeled gunport openings. Views directly through an opposing open port can still admit daylight; the hull bottom itself is now visible from inside.
+
+The bows gain curved supporting head timbers, gold-painted rail moldings, painted trailboards with spiral carving, shields, laurels and representative figureheads. The Culloden-family example uses a lion motif; other models use a helmeted figure and heraldic/trophy decoration, with national colors and rating-scaled proportions. These are original representative designs, not claims about the precise figurehead of every named ship.
+
+References include the [Black Seas miniatures gallery](https://www.black-seas.com/), [Warlord's French first-rate](https://www.warlordgames.com/black-seas-french-navy-1st-rate/), the [Captain bow/headrail design dated January 1798](https://www.rmg.co.uk/collections/objects/rmgc-object-1165205), the [possible Hercule bow and figurehead drawing](https://www.rmg.co.uk/collections/objects/rmgc-object-1165232), and the supplied [Black Seas rigging guide](https://www.warlordgames.com/robbies-guide-to-rigging-black-seas-ships/). Research photographs remain local reference artifacts; the player contains original mesh geometry.
+
 ## Wind-driven canvas
+
+The 1.8.7-dev headsail revision replaces the oversized forward triangles with a fore staysail, fore-topmast staysail and jib. Each has its own straight stay, a separate hoist and tack, a staggered clew, and its own canvas surface and gust phase. Their individual areas are bounded relative to hull length; the jib's head is set lower along its stay rather than extending a broad triangle all the way to the masthead. Plain sail shows the inner staysail, medium/full sail show all three, and furled sail hides them. Rigging loss continues to limit the effective sail setting.
+
+This representative arrangement follows the three forward staysails identified in [David Steel's 1794 Elements and Practice of Rigging and Seamanship](https://whalesite.org/anthology/1794_Steel_Elements_and_Practice.htm). Proportions are original visual reconstructions for the ten class/family models, rather than surveyed sail inventories for each ship. The emulator's existing movement and sail-setting rules remain unchanged.
+
+In 1.8.6-dev, the pressure response uses a square-root wind-speed curve and a larger base belly. This makes all four wind strengths fuller, with the largest proportional improvement in light wind. Gusts, traveling folds, wind incidence and fixed attachment edges remain active; calm pressure remains zero. Renderer bounds include the increased displacement. Four standalone captures compare WS 1–4, alongside bow and bowsprit views of every prototype.
 
 Square sails use a finer cloth grid; jibs and spanker use subdivided triangular surfaces. Their attachment edges remain fixed. Wind pressure depends on wind speed in knots converted to meters per second and the angle between the wind and the sail's surface normal. A near-parallel wind fills a sail less than a wind striking its face. The sign of that pressure controls which side bulges.
 
@@ -53,7 +69,7 @@ FS/MS/PS and remaining rigging still determine which sails are set. Wind animati
 
 The comparison baseline is the original five-model delivery: British 74 275,561 vertices/285 meshes; British 50 216,935/285; French 74 275,449/281; French 80 290,623/281; French 120 388,639/281. Each new model is compared with its nationality/rating baseline. The build checks that both counts exceed twice that baseline while retaining its nominal gun count.
 
-The completed pass measures **2.29–2.54 times the vertices** and **2.17–2.20 times the meshes** per prototype. The full [before/after count report](CloseAction-Geometry-Comparison.csv) records all ten models.
+The completed pass measures **2.484?2.835 times the vertices** and **2.656?2.694 times the meshes** per prototype. The full [before/after count report](CloseAction-Geometry-Comparison.csv) records all ten models.
 
 Added detail includes laid deck planks and caulk gaps, finer cannon barrels and rigging, iron carriage straps and bolts, elevation quoins, belaying pins, coiled lines, timber knees, curved beakhead rails and continuous molded wales. More spatial mesh sections retain that detail across the hull, spars and fittings; shared prefab meshes and materials remain reusable across ships of the same prototype.
 

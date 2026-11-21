@@ -18,6 +18,9 @@ namespace Ironclads.Editor
                 Check(upper<mid*.91f&&upper>mid*.70f,profile.key+" rounded sections and tumblehome");
                 Check(lines.HalfBreadth(profile.length*.425f,0)<mid*.5f,profile.key+" fine bow waterline");
                 Check(lines.HalfBreadth(-profile.length*.40f,0)<mid*.65f,profile.key+" fine after run");
+                float bow=profile.length*.5f,waterRake=lines.BowRake(bow,0),keelRake=lines.BowRake(bow,-lines.KeelDepth(bow));
+                Check(waterRake>profile.length*.02f&&keelRake>waterRake*2.5f&&lines.BowRake(bow,lines.DeckHeight(bow))<.001f,profile.key+" swept stem and rounded forefoot");
+                Check(lines.HalfBreadth(profile.length*.4875f,lines.DeckHeight(bow))>lines.HalfBreadth(profile.length*.475f,lines.DeckHeight(bow))*.6f,profile.key+" rounded upper-bow entrance");
                 for(int station=0;station<=40;station++){
                     float f=station/40f,z=(f-.5f)*profile.length;
                     foreach(float y in new[]{-lines.KeelDepth(z),-lines.KeelDepth(z)*.65f,0,profile.deck*.5f,lines.DeckHeight(z)}){

@@ -8,12 +8,13 @@ namespace Ironclads
         static Vector3 SailingShellPoint(int side,float z,float worldHeight,float length,float beam,float deck)
         {
             var lines=CloseActionHullLines.Get(length,beam);
-            return new Vector3(side*lines.HalfBreadth(z,worldHeight),worldHeight,SailingAfterZ(z,worldHeight,length,deck)-lines.BowRake(z,worldHeight));
+            return new Vector3(side*lines.HalfBreadth(z,worldHeight)*(1-.18f*Mathf.SmoothStep(0,1,Mathf.InverseLerp(length*.39f,length*.5f,z))*Mathf.Clamp01(worldHeight/deck)),worldHeight,SailingAfterZ(z,worldHeight,length,deck)-lines.BowRake(z,worldHeight));
         }
         static Vector3 SailingDeckPoint(CloseActionSpec spec,float across,float z,float lift=0)
         {
             var lines=CloseActionHullLines.Get(spec.Length,spec.Beam);float y=lines.DeckHeight(z);
             var point=SailingShellPoint(1,z,y,spec.Length,spec.Beam,spec.Deck);
+            if(lift!=0&&z>spec.Length*.28f){var raised=SailingShellPoint(1,z,y+lift,spec.Length,spec.Beam,spec.Deck);point.x=raised.x;point.z=raised.z;}
             point.x*=across*.995f;point.y+=.15f*(1-across*across)+lift;return point;
         }
         static Vector3 SailingSideNormal(int side,float z,float height,CloseActionSpec spec)
@@ -50,6 +51,9 @@ namespace Ironclads
             int center=vertices.Count;vertices.Add(SailingShellPoint(0,-length*.5f,0,length,beam,deck));
             for(int j=0;j<around;j++)triangles.AddRange(new[]{center,j,j+1});
             Part("Station-lofted coppered underbody",root,Mesh("Body-plan sections and rising floors",vertices,triangles),caCopper);
+            var inward=new List<int>(triangles.Count);
+            for(int i=0;i<triangles.Count;i+=3)inward.AddRange(new[]{triangles[i],triangles[i+2],triangles[i+1]});
+            Part("Inward-facing wooden hull bottom",root,Mesh("Closed inner bilge",vertices,inward),caOak);
             var zStations=new SortedSet<float>();var heights=new SortedSet<float>();int[] ports=SailingPorts(spec.rate);
             for(int n=0;n<=160;n++)zStations.Add(Mathf.Lerp(-length*.5f,length*.5f,n/160f));
             for(int n=0;n<=24;n++)heights.Add((deck+.3f)*n/24);
@@ -66,7 +70,7 @@ namespace Ironclads
                     for(int gun=0;gun<ports[tier];gun++)if(Mathf.Abs(z-Mathf.Lerp(-length*.37f,length*.37f,gun/(float)(ports[tier]-1)))<.61999f)hole=true;
                 }
                 if(hole)continue;
-                Quad(root,"Contoured topside planking",SailingPlankPoint(side,zs[station],ys[row],length,beam,deck),SailingPlankPoint(side,zs[station+1],ys[row],length,beam,deck),SailingPlankPoint(side,zs[station+1],ys[row+1],length,beam,deck),SailingPlankPoint(side,zs[station],ys[row+1],length,beam,deck),paint?caYellow:Hull);
+                SailingSkinQuad(root,spec,side,zs[station],zs[station+1],ys[row],ys[row+1],paint?caYellow:Hull);
             }
             for(int row=0;row<ys.Count-1;row++)Quad(root,"Closed lofted stern counter",SailingPlankPoint(-1,-length*.5f,ys[row],length,beam,deck),SailingPlankPoint(1,-length*.5f,ys[row],length,beam,deck),SailingPlankPoint(1,-length*.5f,ys[row+1],length,beam,deck),SailingPlankPoint(-1,-length*.5f,ys[row+1],length,beam,deck),caOak);
             for(int segment=0;segment<20;segment++){
@@ -83,6 +87,21 @@ namespace Ironclads
                 SailingRod(root,"Keel following rising floors",SailingShellPoint(0,z0,-lines.KeelDepth(z0),length,beam,deck),SailingShellPoint(0,z1,-lines.KeelDepth(z1),length,beam,deck),.16f,caOak,sides:8);
             }
             Box(root,"Rudder",new Vector3(0,-2.2f,-length*.449f),new Vector3(.28f,4.3f,1.5f),caOak);
+        }
+        // Continuous surface normals across independent planks and paint bands. Gunport
+        // reveals and deck breaks retain their separate, sharp timber edges.
+        static void SailingSkinQuad(Transform root,CloseActionSpec spec,int side,float z0,float z1,float y0,float y1,Material material)
+        {
+            var vertices=new List<Vector3>();var normals=new List<Vector3>();
+            float[] zs={z0,z1,z1,z0},ys={y0,y0,y1,y1};
+            for(int face=0;face<2;face++)for(int corner=0;corner<4;corner++){
+                float z=zs[corner],y=ys[corner],za=Mathf.Max(-spec.Length*.5f,z-.015f),zb=Mathf.Min(spec.Length*.5f,z+.015f);
+                Vector3 Point(float station,float height)=>SailingPlankPoint(side,station,height,spec.Length,spec.Beam,spec.Deck);
+                Vector3 along=Point(zb,y)-Point(za,y),up=Point(z,y+.015f)-Point(z,y-.015f);
+                vertices.Add(Point(z,y));normals.Add(Vector3.Cross(along,up).normalized*(face==0?1:-1));
+            }
+            var mesh=Mesh("Smooth contoured topside planking",vertices,new List<int>{0,1,2,0,2,3,4,6,5,4,7,6});mesh.SetNormals(normals);
+            Part("Contoured topside planking",root,mesh,material);
         }
         static void SailingDeck(Transform root,CloseActionSpec spec,float from,float to,float lift,int stations,int planks)
         {
@@ -102,6 +121,10 @@ namespace Ironclads
                 Quad(root,"Raised deck side closure",SailingDeckPoint(spec,side,a),SailingDeckPoint(spec,side,b),q,p,caOak);
             }
             float inner=forward?from:to;
+            if(forward)for(int part=0;part<16;part++){
+                float a=Mathf.Lerp(-1,1,part/16f),b=Mathf.Lerp(-1,1,(part+1)/16f);Vector3 p=SailingDeckPoint(spec,a,to),q=SailingDeckPoint(spec,b,to);
+                Quad(root,"Closed forecastle head bulkhead",p,q,SailingDeckPoint(spec,b,to,lift),SailingDeckPoint(spec,a,to,lift),caOak);
+            }
             for(int part=0;part<16;part++){
                 float a=Mathf.Lerp(-1,1,part/16f),b=Mathf.Lerp(-1,1,(part+1)/16f);Vector3 p=SailingDeckPoint(spec,a,inner),q=SailingDeckPoint(spec,b,inner);
                 Quad(root,"Curved deck break bulkhead",p,q,q+Vector3.up*lift,p+Vector3.up*lift,caOak);

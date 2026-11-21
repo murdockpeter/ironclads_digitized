@@ -74,12 +74,13 @@ namespace Ironclads
                 SailingRod(fittings,"Cathead",new Vector3(side*beam*.35f,deck+.5f,length*.32f),anchor+Vector3.up*1.2f,.18f,caOak,sides:10);
                 var boat=new GameObject("Nested open waist boat").transform;boat.SetParent(fittings,false);boat.localPosition=new Vector3(side*2,deck+1,-1);boat.localScale=new Vector3(.8f,.8f,1.1f);HullFormSmall(boat);
             }
-            var sprite=new Vector3(0,deck+1,length*.43f);SailingRod(fittings,"Bowsprit",sprite,sprite+new Vector3(0,5,length*.29f),.42f,Wood,.12f,sides:14);
-            SailingRod(fittings,"Jibboom",sprite+new Vector3(0,5,length*.26f),sprite+new Vector3(0,6.2f,length*.42f),.13f,Wood,.045f,sides:10);
-            SailingRod(fittings,"Dolphin striker",sprite+new Vector3(0,3,length*.18f),sprite+new Vector3(0,-1,length*.18f),.09f,Wood,sides:8);
             SailingSeatFittings(fittings,spec);
             SailingWorkingDetails(root,spec);
             Combine(root,15);
+            SailingInterior(root,spec);
+            var bow=new GameObject("Attached bow assembly").transform;bow.SetParent(root,false);
+            SailingBowsprit(bow,spec);
+            SailingBowOrnaments(bow,spec);
             for(int i=0;i<3;i++)SailingMast(root,spec,i);
             SailingFlags(root,spec);
             go.AddComponent<CloseActionVisual>();
@@ -124,8 +125,10 @@ namespace Ironclads
                 }
                 SailingRod(mast,"Topmast backstay",new Vector3(side*.18f,deck+height*.8f,z),new Vector3(side*spec.Beam*.47f,deck,z-spec.Length*.16f),.023f,Rope,sides:5);
             }
-            SailingRod(mast,"Forward mast stay",new Vector3(0,deck+height*.49f,z),new Vector3(0,deck+1,index==0?spec.Length*.69f:z+spec.Length*.29f),.04f,Rope,sides:6);
-            SailingRod(mast,"Topmast stay",new Vector3(0,deck+height*.8f,z),new Vector3(0,deck+height*.29f,z+spec.Length*.29f),.026f,Rope,sides:6);
+            if(index!=0){
+                SailingRod(mast,"Forward mast stay",new Vector3(0,deck+height*.49f,z),new Vector3(0,deck+1,z+spec.Length*.29f),.04f,Rope,sides:6);
+                SailingRod(mast,"Topmast stay",new Vector3(0,deck+height*.8f,z),new Vector3(0,deck+height*.29f,z+spec.Length*.29f),.026f,Rope,sides:6);
+            }
             Combine(mast,12);
             for(int level=0;level<4;level++){
                 float at=deck+height*(.29f+level*.19f),width=spec.Beam*(1.28f-level*.24f)*(index==2?.78f:1),drop=height*(level==0?.21f:.155f);
@@ -146,7 +149,7 @@ namespace Ironclads
                 var cloth=Part("Panelled square sail",yard,Mesh("Fine cloth panels",v,t,uv),caCloth);var canvas=cloth.AddComponent<CloseActionCanvas>();canvas.minimumSail=level==1?1:level==0||level==2?2:3;canvas.width=width;canvas.drop=drop;canvas.square=true;canvas.surfaceU=new Vector3(width,0,0);canvas.surfaceV=new Vector3(0,-drop,0);
             }
             // Fore staysails / jibs and mizzen spanker are separate cloth surfaces.
-            if(index==0){SailingTriangle(mast,new Vector3(0,deck+height*.66f,z),new Vector3(0,deck+5,spec.Length*.79f),new Vector3(0,deck+5,spec.Length*.49f),2,"Outer jib");SailingTriangle(mast,new Vector3(0,deck+height*.51f,z),new Vector3(0,deck+4,spec.Length*.57f),new Vector3(0,deck+3,z+2),3,"Inner staysail");}
+            if(index==0)SailingHeadsails(mast,spec,z,deck,height);
             if(index==2)SailingTriangle(mast,new Vector3(0,deck+height*.54f,z),new Vector3(0,deck+3,z),new Vector3(0,deck+3,z-spec.Length*.19f),1,"Mizzen spanker");
         }
         static void SailingTriangle(Transform parent,Vector3 a,Vector3 b,Vector3 c,int sail,string name)

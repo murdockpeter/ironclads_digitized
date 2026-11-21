@@ -1,10 +1,26 @@
 # Ironclads — Ferrol & Hampton Roads
 
-**Close Action powder revision (1.8.4-dev):** outward muzzle jets, slow-rising grey smoke lasting up to three minutes and farther-carrying reports with a longer rolling tail. [Smoke and audio guide](Documentation/Close-Action-Powder-Smoke.md).
+**Close Action attached-head revision (1.8.13-dev):** the hull closes at its own stem, with a separate bow assembly containing curved timber headrails, open supports, the central knee, figurehead and rigid bowsprit.
+
+**Close Action rounded-bow revision (1.8.12-dev):** compact head projection, rounded cheeks into the central stem and smooth planking across the painted bands on all ten prototypes.
+
+**Close Action slimmer-bow revision (1.8.11-dev):** a shorter forecastle, finer upper bow sections and open headrail framing, with the lower hull still joined to the curved stem on all ten prototypes.
+
+**Close Action integrated-bow revision (1.8.10-dev):** the forward hull and forecastle now meet the curved stem and figurehead support, with continuous planking and closed interiors across all ten prototypes.
+
+**Close Action curved-head revision (1.8.9-dev):** an upward-sweeping knee, curved trailboards and headrails, and raised figureheads with clearance beneath the straight bowsprits on all ten prototypes.
+
+**Close Action interior and bow ornament revision (1.8.8-dev):** closed inner hull bottoms, solid gun decks and ceilings, interior supports, and original carved/gilded bow structures across all ten prototypes. [Visual guide and references](Documentation/Close-Action-Visuals.md).
+
+**Close Action headsail revision (1.8.7-dev):** three smaller, separate bow-area sails on their own stays across all ten prototypes, with independent wind animation and visibility by sail setting.
+
+**Close Action bow and rig revision (1.8.6-dev):** straight bowsprits with parallel overlapping jibbooms, refined bow/stem/forefoot contours on all ten prototypes, and fuller canvas at every wind strength.
+
+**Close Action powder revision (1.8.5-dev):** smaller, barrel-scaled plumes with a shorter outward throw, retaining slow-rising grey smoke lasting up to three minutes and farther-carrying reports with a longer rolling tail. [Smoke and audio guide](Documentation/Close-Action-Powder-Smoke.md).
 
 **Close Action canvas revision (1.8.3-dev):** fuller wind-driven sails with smooth random gusts, small traveling folds and independent timing per sail and ship. Includes the ten class/family prototypes, station-based hull contours and visible weather controls from 1.8.2-dev. [Hull and weather guide](Documentation/Close-Action-Hull-Contours.md). [Visual guide and sources](Documentation/Close-Action-Visuals.md).
 
-**Close Action module (protocol 9).** Run `./Start-Ironclads.ps1 -CloseAction` for Scenario 6, Nelson vs Brueys: 23 ships and three published force variants. Includes detailed sailing-ship models, chart-based movement and normal gunfire, sealed simultaneous orders, crew/sail logs, signals, saves, and a large multiplayer lobby. Complex critical hits, boarding, scattering and maintenance remain umpire-assisted. [Module guide and rule coverage](Documentation/Close-Action.md). The launcher now prefers `Builds/Windows-CloseAction-Smoke` for all modules.
+**Close Action module (protocol 9).** Run `./Start-Ironclads.ps1 -CloseAction` for Scenario 6, Nelson vs Brueys: 23 ships and three published force variants. Includes detailed sailing-ship models, chart-based movement and normal gunfire, sealed simultaneous orders, crew/sail logs, signals, saves, and a large multiplayer lobby. Complex critical hits, boarding, scattering and maintenance remain umpire-assisted. [Module guide and rule coverage](Documentation/Close-Action.md). The launcher now prefers `Builds/Windows-CloseAction-HeadFraming` for all modules.
 
 **Stonewall at the Gates player briefings:** [Confederate PDF](Documentation/Briefings/Stonewall-at-the-Gates-Confederate.pdf) and [Union PDF](Documentation/Briefings/Stonewall-at-the-Gates-Union.pdf). Revised breakout objective: at least one Confederate ironclad free and clear beyond the forts, with onward open-sea transit abstracted. Includes full METT-TC, OCOKA, SMEAC, synchronization matrices and a shared 60-turn match contract.
 

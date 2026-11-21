@@ -16,8 +16,14 @@ namespace Ironclads.Editor
     {
         const string ScenePath="Assets/Scenes/Ferrol.unity";
         public static void Deliver(){Prepare();BuildWindows();}
-        public static void DeliverCloseAction(){PlayerSettings.bundleVersion="1.8.4-dev";CloseActionReview.PrepareModels();IncludeShaders();PowderSmokeReview.Run();CloseActionReview.Verify();CloseActionDetailReview.Run();CloseActionHullReview.Run();BuildWindowsTo("Builds/Windows-CloseAction-Smoke");}
-        public static void DeliverCloseActionPlayer(){PlayerSettings.bundleVersion="1.8.4-dev";IncludeShaders();BuildWindowsTo("Builds/Windows-CloseAction-Smoke");}
+        public static void DeliverCloseAction(){PlayerSettings.bundleVersion="1.8.13-dev";CloseActionReview.PrepareModels();CloseActionSparReview.Run();CloseActionHeadsailReview.Run();CloseActionInteriorReview.Run();CloseActionHeadCurveReview.Run();CloseActionBowJoinReview.Run();IncludeShaders();PowderSmokeReview.Run();CloseActionReview.Verify();CloseActionDetailReview.Run();CloseActionHullReview.Run();BuildWindowsTo("Builds/Windows-CloseAction-HeadFraming");}
+        public static void DeliverCloseActionPlayer(){PlayerSettings.bundleVersion="1.8.13-dev";IncludeShaders();BuildWindowsTo("Builds/Windows-CloseAction-HeadFraming");}
+        public static void DeliverCloseActionSmokeScale(){PowderSmokeReview.Run();DeliverCloseActionPlayer();}
+        public static void DeliverCloseActionSpars(){CloseActionReview.PrepareModels();CloseActionSparReview.Run();CloseActionHullReview.Run();DeliverCloseActionPlayer();}
+        public static void DeliverCloseActionHeadsails(){CloseActionReview.PrepareModels();CloseActionSparReview.Run();CloseActionHeadsailReview.Run();DeliverCloseActionPlayer();}
+        public static void DeliverCloseActionInteriors(){CloseActionReview.PrepareModels();CloseActionInteriorReview.Run();CloseActionSparReview.Run();CloseActionHeadsailReview.Run();DeliverCloseActionPlayer();}
+        public static void DeliverCloseActionHeadCurves(){CloseActionReview.PrepareModels();CloseActionHeadCurveReview.Run();CloseActionInteriorReview.Run();CloseActionSparReview.Run();CloseActionHeadsailReview.Run();DeliverCloseActionPlayer();}
+        public static void DeliverCloseActionBowJoins(){CloseActionReview.PrepareModels();CloseActionBowJoinReview.Run();CloseActionHeadCurveReview.Run();CloseActionHullReview.Run();CloseActionInteriorReview.Run();CloseActionSparReview.Run();CloseActionHeadsailReview.Run();DeliverCloseActionPlayer();}
         public static void DeliverExpandedChart(){PlayerSettings.bundleVersion="1.7.1-dev";BuildWindowsTo("Builds/Windows-ExpandedChart");}
         public static void DeliverLobby(){Prepare();BuildWindowsTo("Builds/Windows-Multiplayer");}
         public static void DeliverBroadside(){Prepare();BuildWindowsTo("Builds/Windows-Broadside");}

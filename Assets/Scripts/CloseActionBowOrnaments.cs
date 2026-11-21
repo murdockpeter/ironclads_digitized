@@ -1,0 +1,155 @@
+using System.Collections.Generic;
+using UnityEngine;
+namespace Ironclads
+{
+    public static partial class Shipwright
+    {
+        static Material caGilt;
+        static float BowRichness(CloseActionSpec spec)=>spec.rate==120?1.2f:spec.rate==50?.82f:1;
+        static Vector3 BowBezier(Vector3 a,Vector3 b,Vector3 c,Vector3 d,float t)
+        {float u=1-t;return a*(u*u*u)+b*(3*u*u*t)+c*(3*u*t*t)+d*(t*t*t);}
+        static Vector3 BowFigurePosition(CloseActionSpec spec)
+        {
+            float deck=CloseActionHullLines.Get(spec.Length,spec.Beam).DeckHeight(spec.Length*.5f),z=spec.Length*.57f;
+            SailingBowspritFrame(spec,out var heel,out var end,out _,out _);
+            float sparY=Mathf.LerpUnclamped(heel.y,end.y,(z-heel.z)/(end.z-heel.z));
+            return new Vector3(0,Mathf.Min(deck+1.6f,sparY-.65f-1.62f*BowRichness(spec)),z);
+        }
+        static Vector3 HeadKneePoint(CloseActionSpec spec,float t)
+        {
+            Vector3 figure=BowFigurePosition(spec);float rich=BowRichness(spec);
+            return BowBezier(new Vector3(0,.5f,spec.Length*.475f),new Vector3(0,1.1f,spec.Length*.495f),new Vector3(0,figure.y-3.6f*rich,spec.Length*.566f),figure+Vector3.up*(.35f*rich),t);
+        }
+        static Vector3 HeadKneeNormal(CloseActionSpec spec,float t)
+        {return Vector3.Cross(Vector3.right,(HeadKneePoint(spec,Mathf.Min(1,t+.001f))-HeadKneePoint(spec,Mathf.Max(0,t-.001f))).normalized).normalized;}
+        static float HeadKneeDepth(CloseActionSpec spec,float t)=>Mathf.Lerp(1.1f,.8f,t)*BowRichness(spec);
+        static Vector3 HeadKneeInside(CloseActionSpec spec,float t)
+        {
+            Vector3 outer=HeadKneePoint(spec,t),inside=outer-HeadKneeNormal(spec,t)*HeadKneeDepth(spec,t);
+            var lines=CloseActionHullLines.Get(spec.Length,spec.Beam);
+            float stem=spec.Length*.5f-lines.BowRake(spec.Length*.5f,inside.y);
+            // Seat the independent knee against the existing stem. Never stretch the hull to its outline.
+            float crown=Mathf.SmoothStep(0,1,Mathf.InverseLerp(lines.DeckHeight(spec.Length*.5f)*.65f,BowFigurePosition(spec).y+.35f,inside.y));
+            inside.z=Mathf.Lerp(Mathf.Min(inside.z,stem-.20f),inside.z,crown);return inside;
+        }
+        static void SailingHeadRailPlank(Transform root,CloseActionSpec spec,int side,int rail)
+        {
+            const int steps=40;var vertices=new List<Vector3>();var triangles=new List<int>();
+            for(int n=0;n<=steps;n++){
+                float f=n/(float)steps;Vector3 p=HeadRailPoint(spec,side,rail,f);
+                Vector3 axis=(HeadRailPoint(spec,side,rail,Mathf.Min(1,f+.001f))-HeadRailPoint(spec,side,rail,Mathf.Max(0,f-.001f))).normalized;
+                Vector3 up=Vector3.ProjectOnPlane(Vector3.up,axis).normalized,across=Vector3.Cross(up,axis).normalized;
+                Vector3[] ring={p-across*.085f-up*.06f,p+across*.085f-up*.06f,p+across*.085f+up*.06f,p-across*.085f+up*.06f};
+                for(int edge=0;edge<4;edge++){
+                    vertices.Add(ring[edge]);vertices.Add(ring[(edge+1)%4]);
+                    if(n<steps){int a=n*8+edge*2;triangles.AddRange(new[]{a,a+1,a+8,a+1,a+9,a+8});}
+                }
+            }
+            triangles.AddRange(new[]{0,4,2,0,6,4});int last=steps*8;triangles.AddRange(new[]{last,last+2,last+4,last,last+4,last+6});
+            Part("Bent timber headrail",root,Mesh("Rectangular swept headrail plank",vertices,triangles),Hull);
+        }
+        static Vector3 HeadRailPoint(CloseActionSpec spec,int side,int rail,float f)
+        {
+            float deck=CloseActionHullLines.Get(spec.Length,spec.Beam).DeckHeight(spec.Length*.5f);Vector3 crown=HeadKneePoint(spec,1);
+            Vector3 point=BowBezier(new Vector3(side*spec.Beam*.32f,CloseActionHullLines.Get(spec.Length,spec.Beam).DeckHeight(spec.Length*.34f)+.3f+rail*.25f,spec.Length*.34f),
+                new Vector3(side*spec.Beam*.24f,deck-1.3f+rail*.25f,spec.Length*.47f),new Vector3(side*.65f,crown.y-2.8f+rail*.22f,spec.Length*.56f),
+                new Vector3(side*.20f,crown.y-.25f+rail*.22f,crown.z),f);
+            float low=spec.Length*.25f,high=spec.Length*.5f;
+            if(point.z<SailingShellPoint(1,high,point.y,spec.Length,spec.Beam,spec.Deck).z){
+                for(int n=0;n<16;n++){float z=(low+high)*.5f;if(SailingShellPoint(1,z,point.y,spec.Length,spec.Beam,spec.Deck).z<point.z)low=z;else high=z;}
+                float hullWidth=SailingShellPoint(1,(low+high)*.5f,point.y,spec.Length,spec.Beam,spec.Deck).x;
+                point.x=side*Mathf.Max(Mathf.Abs(point.x),hullWidth+.06f);
+            }
+            return point;
+        }
+        static void SailingBowOrnaments(Transform root,CloseActionSpec spec)
+        {
+            if(caGilt==null)caGilt=MakeMaterial("CA painted gold bow carving",new Color(.72f,.49f,.18f),.18f,.24f);
+            var head=new GameObject("Ornate bow carvings").transform;head.SetParent(root,false);
+            float rich=BowRichness(spec);
+            var framing=new GameObject("Attached beakhead framing").transform;framing.SetParent(root,false);
+            for(int side=-1;side<=1;side+=2){
+                for(int rail=0;rail<3;rail++)SailingHeadRailPlank(framing,spec,side,rail);
+                for(int rail=0;rail<3;rail++)for(int n=0;n<32;n++){
+                    Vector3 a=HeadRailPoint(spec,side,rail,n/32f),b=HeadRailPoint(spec,side,rail,(n+1)/32f),offset=new Vector3(side*.09f,.045f,0);
+                    SailingRod(framing,"Gilded headrail molding",a+offset,b+offset,.028f,caGilt,sides:5);
+                }
+                for(int n=1;n<=7;n++){
+                    float f=n/8f;Vector3 outer=HeadRailPoint(spec,side,0,f),lower=outer;lower.x=side*.22f*rich;lower.y-=.7f;
+                    Vector3 last=lower;
+                    for(int k=1;k<=8;k++){float u=k/8f;Vector3 next=Vector3.Lerp(lower,outer,u)+Vector3.down*(.20f*Mathf.Sin(u*Mathf.PI));SailingRod(framing,"Curved beakhead support timber",last,next,.075f,caOak,sides:7);last=next;}
+                }
+                for(int n=0;n<28;n++){
+                    float a=Mathf.Lerp(.22f,1,n/28f),b=Mathf.Lerp(.22f,1,(n+1)/28f);
+                    Vector3 pa=HeadKneePoint(spec,a),pb=HeadKneePoint(spec,b),na=HeadKneeNormal(spec,a),nb=HeadKneeNormal(spec,b);
+                    Vector3 p=pa-na*.08f+Vector3.right*side*.27f,q=pb-nb*.08f+Vector3.right*side*.27f;
+                    Vector3 topP=HeadKneeInside(spec,a)+na*.07f+Vector3.right*side*.27f,topQ=HeadKneeInside(spec,b)+nb*.07f+Vector3.right*side*.27f;
+                    Quad(head,"Painted carved trailboard",p,q,topQ,topP,spec.side==1?caBlue:Hull);
+                    SailingRod(head,"Trailboard lower gold border",p+Vector3.right*side*.02f,q+Vector3.right*side*.02f,.045f,caGilt,sides:6);
+                    SailingRod(head,"Trailboard upper gold border",topP+Vector3.right*side*.02f,topQ+Vector3.right*side*.02f,.045f,caGilt,sides:6);
+                }
+                for(int scroll=0;scroll<(spec.rate>=80?3:2);scroll++){
+                    float f=Mathf.Lerp(.3f,.96f,(scroll+1)/(spec.rate>=80?4f:3f));Vector3 center=(HeadKneePoint(spec,f)+HeadKneeInside(spec,f))*.5f+Vector3.right*side*.30f;
+                    BowScroll(head,center,side,.26f*rich);
+                }
+            }
+            var figure=new GameObject("Representative carved figurehead").transform;figure.SetParent(head,false);figure.localPosition=BowFigurePosition(spec);figure.localScale=Vector3.one*rich;
+            bool lion=spec.Prototype.key.Contains("Culloden");
+            if(lion){
+                BowEllipsoid(figure,"Carved lion body",new Vector3(0,.25f,.2f),new Vector3(.38f,.48f,.65f),caGilt);
+                BowEllipsoid(figure,"Lion mane",new Vector3(0,.65f,.65f),new Vector3(.44f,.45f,.30f),caGilt);
+                BowEllipsoid(figure,"Lion muzzle",new Vector3(0,.62f,.94f),new Vector3(.26f,.23f,.25f),caOak);
+                BowEllipsoid(figure,"Carved lion nose",new Vector3(0,.70f,1.18f),new Vector3(.075f,.055f,.035f),Black);
+                for(int side=-1;side<=1;side+=2)BowEllipsoid(figure,"Inset lion eye",new Vector3(side*.17f,.80f,.94f),new Vector3(.03f,.04f,.025f),Black);
+                for(int side=-1;side<=1;side+=2){BowEllipsoid(figure,"Lion forepaw",new Vector3(side*.24f,-.15f,.66f),new Vector3(.14f,.32f,.34f),caGilt);BowEllipsoid(figure,"Lion ear",new Vector3(side*.28f,.99f,.69f),new Vector3(.13f,.15f,.1f),caGilt);}
+            }else{
+                BowEllipsoid(figure,"Draped figurehead torso",new Vector3(0,.18f,.25f),new Vector3(.36f,.58f,.27f),caGilt);
+                BowEllipsoid(figure,"Carved head",new Vector3(0,.96f,.4f),new Vector3(.24f,.29f,.25f),caWhite);
+                BowEllipsoid(figure,"Carved face nose",new Vector3(0,.96f,.65f),new Vector3(.055f,.08f,.065f),caWhite);
+                for(int side=-1;side<=1;side+=2)BowEllipsoid(figure,"Inset carved eye",new Vector3(side*.09f,1.01f,.625f),new Vector3(.025f,.032f,.022f),Black);
+                BowEllipsoid(figure,"Crested helmet",new Vector3(0,1.12f,.36f),new Vector3(.29f,.20f,.29f),caGilt);
+                BowEllipsoid(figure,"Helmet plume",new Vector3(0,1.37f,.25f),new Vector3(.11f,.25f,.30f),spec.side==0?caRed:caBlue);
+                for(int side=-1;side<=1;side+=2){
+                    SailingRod(figure,"Carved draped arm",new Vector3(side*.25f,.58f,.2f),new Vector3(side*.48f,.13f,.54f),.13f,caGilt,.10f,sides:10);
+                    SailingRod(figure,"Carved lower drapery",new Vector3(side*.16f,-.12f,.18f),new Vector3(side*.21f,-.69f,-.08f),.16f,caGilt,.08f,sides:10);
+                }
+            }
+            BowEllipsoid(figure,"Gilt figurehead shield rim",new Vector3(0,-.02f,.70f),new Vector3(.49f,.58f,.10f),caGilt);
+            BowEllipsoid(figure,"Painted shield face",new Vector3(0,-.02f,.79f),new Vector3(.38f,.46f,.045f),spec.side==0?caBlue:caRed);
+            for(int side=-1;side<=1;side+=2)for(int leaf=0;leaf<7;leaf++){
+                float a=leaf/6f*2.1f;Vector3 p=new Vector3(side*(.48f+.12f*Mathf.Sin(a)),.49f-leaf*.13f,.72f);
+                BowEllipsoid(figure,"Carved laurel leaf",p,new Vector3(.09f,.14f,.045f),caGilt);
+            }
+            if(spec.side==0){Box(figure,"Shield upright cross",new Vector3(0,-.02f,.846f),new Vector3(.08f,.69f,.035f),caWhite);Box(figure,"Shield crossbar",new Vector3(0,-.02f,.848f),new Vector3(.57f,.08f,.035f),caWhite);}
+            else for(int ray=0;ray<8;ray++){float a=ray*Mathf.PI/4;SailingRod(figure,"Gilt shield sunburst",new Vector3(0,-.02f,.85f),new Vector3(Mathf.Cos(a)*.24f,-.02f+Mathf.Sin(a)*.29f,.85f),.018f,caGilt,sides:5);}
+            Combine(framing,5);
+            Combine(head,5);
+            SailingHeadKnee(head,spec);
+        }
+        static void SailingHeadKnee(Transform root,CloseActionSpec spec)
+        {
+            const int steps=64;var v=new List<Vector3>();var t=new List<int>();
+            for(int n=0;n<=steps;n++){
+                float f=n/(float)steps;Vector3 p=HeadKneePoint(spec,f),inside=HeadKneeInside(spec,f);float half=.25f*BowRichness(spec);
+                v.Add(p+Vector3.left*half);v.Add(p+Vector3.right*half);v.Add(inside+Vector3.right*half);v.Add(inside+Vector3.left*half);
+                if(n<steps)for(int edge=0;edge<4;edge++){int a=n*4+edge,b=n*4+(edge+1)%4;t.AddRange(new[]{a,b,a+4,b,b+4,a+4});}
+            }
+            t.AddRange(new[]{0,2,1,0,3,2});int last=steps*4;t.AddRange(new[]{last,last+1,last+2,last,last+2,last+3});
+            Part("Curved knee of head",root,Mesh("Continuous swept stem-to-figurehead timber",v,t),Hull);
+        }
+        static void BowScroll(Transform root,Vector3 center,int side,float radius)
+        {
+            Vector3 last=center+Vector3.up*radius;
+            for(int n=1;n<=44;n++){float f=n/44f,a=f*Mathf.PI*2.6f,r=radius*Mathf.Lerp(1,.08f,f);Vector3 next=center+new Vector3(0,Mathf.Cos(a)*r,Mathf.Sin(a)*r*side);SailingRod(root,"Carved gilt spiral",last,next,.026f,caGilt,sides:5);last=next;}
+        }
+        static void BowEllipsoid(Transform root,string name,Vector3 center,Vector3 size,Material material)
+        {
+            const int rings=12,sides=20;var v=new List<Vector3>();var t=new List<int>();
+            for(int r=0;r<=rings;r++)for(int s=0;s<=sides;s++){
+                float a=r*Mathf.PI/rings,b=s*Mathf.PI*2/sides;v.Add(center+Vector3.Scale(new Vector3(Mathf.Sin(a)*Mathf.Cos(b),Mathf.Cos(a),Mathf.Sin(a)*Mathf.Sin(b)),size));
+                if(r<rings&&s<sides){int i=r*(sides+1)+s;t.AddRange(new[]{i,i+1,i+sides+1,i+1,i+sides+2,i+sides+1});}
+            }
+            Part(name,root,Mesh(name,v,t),material);
+        }
+    }
+}

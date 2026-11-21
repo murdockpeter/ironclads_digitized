@@ -1,5 +1,14 @@
 param([switch]$Ferrol,[switch]$IronFire,[switch]$Ulsan,[switch]$PatrickHenry,[switch]$SuppliedModels,[switch]$James1865,[switch]$CloseAction)
 $ironcladsPlayer = Join-Path $PSScriptRoot 'Ironclads.exe'
+if (-not (Test-Path -LiteralPath $ironcladsPlayer)) { $ironcladsPlayer = Join-Path $PSScriptRoot 'Builds\Windows-CloseAction-HeadFraming\Ironclads.exe' }
+if (-not (Test-Path -LiteralPath $ironcladsPlayer)) { $ironcladsPlayer = Join-Path $PSScriptRoot 'Builds\Windows-CloseAction-RoundedBows\Ironclads.exe' }
+if (-not (Test-Path -LiteralPath $ironcladsPlayer)) { $ironcladsPlayer = Join-Path $PSScriptRoot 'Builds\Windows-CloseAction-SlimBows\Ironclads.exe' }
+if (-not (Test-Path -LiteralPath $ironcladsPlayer)) { $ironcladsPlayer = Join-Path $PSScriptRoot 'Builds\Windows-CloseAction-IntegratedBows\Ironclads.exe' }
+if (-not (Test-Path -LiteralPath $ironcladsPlayer)) { $ironcladsPlayer = Join-Path $PSScriptRoot 'Builds\Windows-CloseAction-CurvedHeads\Ironclads.exe' }
+if (-not (Test-Path -LiteralPath $ironcladsPlayer)) { $ironcladsPlayer = Join-Path $PSScriptRoot 'Builds\Windows-CloseAction-Interiors\Ironclads.exe' }
+if (-not (Test-Path -LiteralPath $ironcladsPlayer)) { $ironcladsPlayer = Join-Path $PSScriptRoot 'Builds\Windows-CloseAction-Headsails\Ironclads.exe' }
+if (-not (Test-Path -LiteralPath $ironcladsPlayer)) { $ironcladsPlayer = Join-Path $PSScriptRoot 'Builds\Windows-CloseAction-Spars\Ironclads.exe' }
+if (-not (Test-Path -LiteralPath $ironcladsPlayer)) { $ironcladsPlayer = Join-Path $PSScriptRoot 'Builds\Windows-CloseAction-SmokeScale\Ironclads.exe' }
 if (-not (Test-Path -LiteralPath $ironcladsPlayer)) { $ironcladsPlayer = Join-Path $PSScriptRoot 'Builds\Windows-CloseAction-Smoke\Ironclads.exe' }
 if (-not (Test-Path -LiteralPath $ironcladsPlayer)) { $ironcladsPlayer = Join-Path $PSScriptRoot 'Builds\Windows-CloseAction-Canvas\Ironclads.exe' }
 if (-not (Test-Path -LiteralPath $ironcladsPlayer)) { $ironcladsPlayer = Join-Path $PSScriptRoot 'Builds\Windows-CloseAction-Hull\Ironclads.exe' }

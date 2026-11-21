@@ -135,7 +135,9 @@ namespace Ironclads
         {
             if(!powder.isPlaying)powder.Play();if(!flash.isPlaying)flash.Play();
             ShotsFired++;Vector3 muzzle=mount.Muzzle,forward=mount.Direction;float weight=mount.type==Shipwright.GunType.Armstrong300?1.3f:mount.type==Shipwright.GunType.Armstrong70?.75f:1;
-            StartCoroutine(PowderJet(muzzle,forward,weight*Random.Range(.86f,1.18f)));
+            // Long-gun plumes are sized to the modeled barrel rather than the larger later-era batteries.
+            float gunScale=scene.scenario.CloseAction?Mathf.Clamp(mount.muzzleOffset/1.5f,.8f,1.15f):1;
+            StartCoroutine(PowderJet(muzzle,forward,weight*Random.Range(.86f,1.18f),scene.scenario.CloseAction?.5f*gunScale:1,scene.scenario.CloseAction?.32f*Mathf.Sqrt(gunScale):1));
             flash.Emit(new ParticleSystem.EmitParams {position=muzzle+forward*.75f,velocity=forward*10,startSize=weight*2.5f,startLifetime=.09f,startColor=new Color(1,.8f,.25f,1)},3);
             var lightGo=new GameObject("Brief cannon flash");lightGo.transform.SetParent(scene.seaRoot,false);lightGo.transform.position=muzzle;var light=lightGo.AddComponent<Light>();light.color=new Color(1,.56f,.18f);light.range=16*weight;light.intensity=5;flashes.Add(light);StartCoroutine(FlashOut(light));
             if(cannonSound&&!silentVerification) {
@@ -143,7 +145,7 @@ namespace Ironclads
                 float range=Vector3.Distance(scene.view.transform.position,muzzle);source.GetComponent<AudioLowPassFilter>().cutoffFrequency=Mathf.Lerp(18000,1500,Mathf.Clamp01(range/4000));source.PlayDelayed(range/343f);
             }
         }
-        IEnumerator PowderJet(Vector3 muzzle,Vector3 forward,float weight)
+        IEnumerator PowderJet(Vector3 muzzle,Vector3 forward,float weight,float sizeScale,float throwScale)
         {
             Vector3 right=Vector3.Cross(Vector3.up,forward).normalized,up=Vector3.Cross(forward,right).normalized;
             for(int pulse=0;pulse<3;pulse++) {
@@ -156,9 +158,9 @@ namespace Ironclads
                     float opacity=type<.55f?Random.Range(.78f,.98f):type<.87f?Random.Range(.58f,.82f):Random.Range(.32f,.55f);
                     float tint=Random.value,shade=tint<.35f?Random.Range(.32f,.54f):tint<.8f?Random.Range(.54f,.76f):Random.Range(.76f,.93f);
                     if(scene.scenario.DoB)shade=Mathf.Lerp(shade,.90f,.5f);
-                    float speed=Random.Range(26f,52f)*weight/(1+pulse*.25f);
+                    float speed=Random.Range(26f,52f)*weight*throwScale/(1+pulse*.25f);
                     uint seed=((uint)Random.Range(1,8388607)<<8)|(uint)Mathf.RoundToInt(shade*255);
-                    var emit=new ParticleSystem.EmitParams {position=muzzle+forward*Random.Range(.05f,2f)+ring*Random.Range(.08f,.6f),velocity=forward*speed+ring*Random.Range(1.2f,4f)+Vector3.up*Random.Range(.2f,.65f),startSize=size*weight,startLifetime=type>.87f?Random.Range(75f,110f):Random.Range(110f,180f),startColor=new Color(shade,shade,shade,opacity),rotation=Random.Range(0,360),angularVelocity=Random.Range(-3f,3f),randomSeed=seed};
+                    var emit=new ParticleSystem.EmitParams {position=muzzle+(forward*Random.Range(.05f,2f)+ring*Random.Range(.08f,.6f))*sizeScale,velocity=forward*speed+ring*(Random.Range(1.2f,4f)*sizeScale)+Vector3.up*Random.Range(.2f,.65f),startSize=size*weight*sizeScale,startLifetime=type>.87f?Random.Range(75f,110f):Random.Range(110f,180f),startColor=new Color(shade,shade,shade,opacity),rotation=Random.Range(0,360),angularVelocity=Random.Range(-3f,3f),randomSeed=seed};
                     powder.Emit(emit,1);
                 }
                 if(pulse<2)yield return new WaitForSeconds(Random.Range(.045f,.085f));

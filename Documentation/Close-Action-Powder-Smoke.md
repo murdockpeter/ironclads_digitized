@@ -1,6 +1,8 @@
 # Cannon smoke and reports
 
-The 1.8.4-dev local player adds a longer outward muzzle jet, persistent grey powder clouds and longer-range rolling reports. Launch with `./Start-Ironclads.ps1 -CloseAction`; the launcher prefers `Builds/Windows-CloseAction-Smoke`.
+The 1.8.5-dev local player refines the scale of the persistent grey powder clouds and retains the longer-range rolling reports from 1.8.4-dev. Launch with `./Start-Ironclads.ps1 -CloseAction`; the launcher prefers `Builds/Windows-CloseAction-IntegratedBows`.
+
+For Close Action's long guns, puff diameters are approximately half the preceding version and initial outward speeds approximately one third, with a small adjustment based on the modeled barrel's length. The spawn spread and radial burst scale down with the puffs. The calm-air muzzle jet settles within roughly half a typical liner's length instead of reaching far across the chart. Subsequent wind drift still uses the scenario's actual wind; an old cloud can travel farther downwind. The grey palette, slow rise, smoke lifetimes and report audio retain the previous settings. The later-era modules retain their existing effect scale.
 
 Smoke initially moves along each modeled barrel's actual direction. Reduced early drag lets the discharge push clear of the hull before it settles into ambient wind transport. The cloud then rises slowly, with coherent, slow eddies and small differences between puffs. Wind comes from the shared scenario weather, so strong wind still carries a cloud away rapidly across the sea. Calm weather leaves it hanging near the firing position. Smoke stays in world space when a ship moves.
 
