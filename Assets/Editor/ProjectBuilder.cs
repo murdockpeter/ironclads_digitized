@@ -16,6 +16,11 @@ namespace Ironclads.Editor
     {
         const string ScenePath="Assets/Scenes/Ferrol.unity";
         public static void Deliver(){Prepare();BuildWindows();}
+        public static void DeliverCloseAction(){PlayerSettings.bundleVersion="1.8.4-dev";CloseActionReview.PrepareModels();IncludeShaders();PowderSmokeReview.Run();CloseActionReview.Verify();CloseActionDetailReview.Run();CloseActionHullReview.Run();BuildWindowsTo("Builds/Windows-CloseAction-Smoke");}
+        public static void DeliverCloseActionPlayer(){PlayerSettings.bundleVersion="1.8.4-dev";IncludeShaders();BuildWindowsTo("Builds/Windows-CloseAction-Smoke");}
+        public static void DeliverExpandedChart(){PlayerSettings.bundleVersion="1.7.1-dev";BuildWindowsTo("Builds/Windows-ExpandedChart");}
+        public static void DeliverLobby(){Prepare();BuildWindowsTo("Builds/Windows-Multiplayer");}
+        public static void DeliverBroadside(){Prepare();BuildWindowsTo("Builds/Windows-Broadside");}
         public static void DeliverPass2(){Prepare();GeometryReview.Run();BuildWindows();}
         public static void DeliverPass3(){Prepare();GeometryReview.RunPass3();BuildWindows();}
         public static void DeliverBowRevision(){Prepare();GeometryReview.RunBowRevision();BuildWindowsTo("Builds/Windows-BowRevision");}
@@ -27,6 +32,11 @@ namespace Ironclads.Editor
         public static void DeliverMultiplayer(){Prepare();BuildWindowsTo("Builds/Windows-TCP");}
         public static void DeliverHamptonRoads(){Prepare();HamptonReview.Run();BuildWindowsTo("Builds/Windows-HamptonRoads");}
         public static void DeliverDetailAndTerrain(){Prepare();HamptonReview.Run();HamptonMetrics.Run();BuildWindowsTo("Builds/Windows-HamptonRoads-Detail");}
+        public static void DeliverFerrolPlaytest(){Prepare();BuildWindowsTo("Builds/Windows-Ferrol-Playtest");}
+        public static void DeliverNiagaraStern(){Prepare();GeometryReview.RunSternRevision();BuildWindowsTo("Builds/Windows-Niagara-Stern");}
+        public static void DeliverShipSheets(){AssetDatabase.Refresh();Prepare();BuildWindowsTo("Builds/Windows-ShipSheets");}
+        public static void DeliverJames(){if(File.Exists("contextonly/ShipSheets/Virginia2.pdf")){Directory.CreateDirectory("Assets/StreamingAssets/References");File.Copy("contextonly/ShipSheets/Virginia2.pdf","Assets/StreamingAssets/References/Virginia2.pdf",true);AssetDatabase.Refresh();}Prepare();JamesReview.Run();BuildWindowsTo("Builds/Windows-James1865");}
+        public static void DeliverSeaAudio(){Prepare();BuildWindowsTo("Builds/Windows-SeaAudio");}
         public static void DeliverSuppliedShips(){Prepare();SuppliedShipReview.Run();BuildWindowsTo("Builds/Windows-SuppliedShips");}
         public static void DeliverCoastlines(){Prepare();HamptonReview.Run();HamptonMetrics.Run();BuildWindowsTo("Builds/Windows-Coastlines");}
         public static void DeliverPatrickHenry(){Prepare();HamptonReview.Run();PatrickHenryReview.Run();BuildWindowsTo("Builds/Windows-PatrickHenry");}
@@ -39,7 +49,7 @@ namespace Ironclads.Editor
         {
             Directory.CreateDirectory("Assets/Generated");Directory.CreateDirectory("Artifacts");
             PlayerSettings.companyName="Ironclads";PlayerSettings.productName="Ironclads — Ferrol";
-            PlayerSettings.bundleVersion="1.5.0-dev";
+            PlayerSettings.bundleVersion="1.7.0";
             PlayerSettings.defaultScreenWidth=1600;PlayerSettings.defaultScreenHeight=1000;
             PlayerSettings.fullScreenMode=FullScreenMode.Windowed;PlayerSettings.runInBackground=true;
             PlayerSettings.resizableWindow=true;PlayerSettings.colorSpace=ColorSpace.Linear;
@@ -48,6 +58,8 @@ namespace Ironclads.Editor
             if(importer!=null){importer.maxTextureSize=8192;importer.textureCompression=TextureImporterCompression.CompressedHQ;importer.wrapModeU=TextureWrapMode.Repeat;importer.wrapModeV=TextureWrapMode.Clamp;importer.SaveAndReimport();}
             var si=(TextureImporter)AssetImporter.GetAtPath("Assets/Resources/StonewallSheet.png");
             if(si!=null){si.maxTextureSize=2048;si.textureCompression=TextureImporterCompression.Uncompressed;si.SaveAndReimport();}
+            var photo=(TextureImporter)AssetImporter.GetAtPath("Assets/Resources/StonewallPhotoSheet.jpg");
+            if(photo!=null){photo.maxTextureSize=4096;photo.textureCompression=TextureImporterCompression.Uncompressed;photo.mipmapEnabled=false;photo.SaveAndReimport();}
             var ni=(TextureImporter)AssetImporter.GetAtPath("Assets/Resources/NiagaraSheet.jpg");
             if(ni!=null){ni.maxTextureSize=4096;ni.textureCompression=TextureImporterCompression.CompressedHQ;ni.SaveAndReimport();}
             IncludeShaders();
@@ -56,6 +68,8 @@ namespace Ironclads.Editor
             foreach(var mat in materials) if(!AssetDatabase.Contains(mat))AssetDatabase.CreateAsset(mat,"Assets/Generated/"+mat.name+".mat");
             for(int i=0;i<2;i++) {
                 var ship=Shipwright.Create(i==1);string name=i==0?"USS-Niagara":"CSS-Stonewall";
+                foreach(var mat in ship.GetComponentsInChildren<Renderer>().SelectMany(r=>r.sharedMaterials).Distinct())
+                    if(mat!=null&&!AssetDatabase.Contains(mat))AssetDatabase.CreateAsset(mat,"Assets/Generated/"+mat.name+".mat");
                 foreach(var f in ship.GetComponentsInChildren<MeshFilter>()) {
                     if(!AssetDatabase.Contains(f.sharedMesh))AssetDatabase.CreateAsset(f.sharedMesh,"Assets/Generated/"+name+"-"+f.sharedMesh.name.Split(new[]{" - "},StringSplitOptions.None).Last()+".asset");
                 }
@@ -74,7 +88,7 @@ namespace Ironclads.Editor
             var settings=AssetDatabase.LoadAllAssetsAtPath("ProjectSettings/GraphicsSettings.asset").FirstOrDefault();
             if(settings==null)throw new Exception("Graphics settings asset missing.");
             var serialized=new SerializedObject(settings);var shaders=serialized.FindProperty("m_AlwaysIncludedShaders");
-            foreach(string name in new[]{"Ironclads/Ocean","Ironclads/Sky","Ironclads/Atmosphere","Ironclads/Weather Sprite","Ironclads/Powder Smoke","Ironclads/Chart","Ironclads/Coastal Ground","Ironclads/Worked Iron","Ironclads/Cruiser Finish","Ironclads/Supplied Ship","Standard"}) {
+            foreach(string name in new[]{"Ironclads/Stern Lettering","Ironclads/Close Action Canvas","Ironclads/Ocean","Ironclads/Sky","Ironclads/Atmosphere","Ironclads/Weather Sprite","Ironclads/Powder Smoke","Ironclads/Chart","Ironclads/Coastal Ground","Ironclads/Worked Iron","Ironclads/Cruiser Finish","Ironclads/Supplied Ship","Standard"}) {
                 var shader=Shader.Find(name);if(shader==null)throw new Exception("Missing shader "+name);
                 if(ShaderUtil.ShaderHasError(shader))throw new Exception("Shader compilation failed: "+name);
                 bool found=false;for(int i=0;i<shaders.arraySize;i++)if(shaders.GetArrayElementAtIndex(i).objectReferenceValue==shader)found=true;
@@ -99,6 +113,12 @@ namespace Ironclads.Editor
             Check(RuleChart.Range(new Hex(-3,4),new Hex(4,-2))==7,"Shortest hex route across mixed axes");
             Check(RuleChart.Range(new Hex(2,-2),new Hex(2,-2))==0,"Same hex range zero");
             Check(new Hex(0,0).ToString()=="2119","Local chart center label");
+            Check(RuleChart.Columns(false)*RuleChart.Rows(false)==6068,"Ferrol has 82 by 74 hexes");
+            Check(RuleChart.OnBoard(new Hex(61,25))&&!RuleChart.OnBoard(new Hex(62,24))&&!RuleChart.OnBoard(new Hex(61,26)),"Expanded Ferrol placement boundaries");
+            Check(RuleChart.OnBoard(new Hex(61,25),true)&&RuleChart.OnBoard(new Hex(20,8),true),"Expanded coastal board retains existing positions");
+            var opening=new Scenario();
+            Check(RuleChart.Range(RuleChart.At(opening.ships[0].Position),RuleChart.At(opening.ships[1].Position))==20,"Ferrol starts twenty hexes apart");
+            Check(Mathf.Abs(Vector3.Distance(opening.ships[0].Position,opening.ships[1].Position)-1828.8f)<.01f,"Ferrol opening range is 2000 yards");
             var noon=Navigation.SunDirection(new DateTime(2024,3,20,12,0,0,DateTimeKind.Utc),0,0);
             Check(noon.y>.998f,"Equinox Greenwich noon sun near zenith");
             Check(Navigation.SunDirection(new DateTime(2024,3,20,6,0,0,DateTimeKind.Utc),0,0).x>.99f,"Morning sun rises in east");
@@ -116,6 +136,9 @@ namespace Ironclads.Editor
             Check(Mathf.Abs(ship.east-926)<.1f&&Mathf.Abs(ship.north)<.01f,"Knot-to-meter motion faces east correctly");
             var copy=JsonUtility.FromJson<Scenario>(JsonUtility.ToJson(scenario));
             Check(copy.ships.Length==2&&copy.utc==scenario.utc&&copy.hexMode,"Scenario JSON preserves table state");
+            Check(ReleaseChecker.IsNewer("v1.10.0","1.7.0"),"Release versions compare numerically");
+            Check(!ReleaseChecker.IsNewer("v1.7.0","1.7.0")&&!ReleaseChecker.IsNewer("v1.0.0","1.7.0"),"Same/older releases do not prompt");
+            Check(!ReleaseChecker.IsNewer("invalid","1.7.0"),"Invalid release versions are ignored");
             Check(Resources.Load<Texture2D>("EarthMarch")!=null,"NASA globe texture included");
             Debug.Log("Optional private ship-sheet textures: Stonewall="+(Resources.Load<Texture2D>("StonewallSheet")!=null)+", Niagara="+(Resources.Load<Texture2D>("NiagaraSheet")!=null));
             foreach(string name in new[]{"USS-Niagara","CSS-Stonewall"}) {
@@ -155,6 +178,14 @@ namespace Ironclads.Editor
             Directory.CreateDirectory(directory);
             var report=BuildPipeline.BuildPlayer(new BuildPlayerOptions {scenes=new[]{ScenePath},locationPathName=directory+"/Ironclads.exe",target=BuildTarget.StandaloneWindows64,options=BuildOptions.None});
             if(report.summary.result!=BuildResult.Succeeded)throw new Exception("Player build failed: "+report.summary.result);
+            // These original player packets are public; private ship sheets remain excluded.
+            foreach(string side in new[]{"Confederate","Union"}) {
+                string name="Stonewall-at-the-Gates-"+side+".pdf";
+                string source="Documentation/Briefings/"+name;
+                if(!File.Exists(source))continue;
+                string references=directory+"/Ironclads_Data/StreamingAssets/References";
+                Directory.CreateDirectory(references);File.Copy(source,references+"/"+name,true);
+            }
             Debug.Log("IRONCLADS WINDOWS BUILD SUCCEEDED: "+report.summary.totalSize+" bytes");
         }
         static void ExportObj(GameObject ship,string path)

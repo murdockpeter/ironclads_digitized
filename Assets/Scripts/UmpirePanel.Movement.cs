@@ -13,6 +13,7 @@ namespace Ironclads
         }
         void SelectRules(bool miniatures)
         {
+            if(scene.scenario.James&&miniatures){scene.status="Stonewall at the Gates uses Yaquinto Ironclads hex movement.";return;}
             if(!ManageTable)return;chart.Remember();var s=scene.scenario;s.rulesetId=miniatures?"iron-fire":"ironclads";s.hexMode=!miniatures;scene.animateTime=false;
             foreach(var ship in s.ships){ship.orderedSpeed=ship.speed;ship.orderedAstern=ship.astern;ship.movementUsed=0;}
             if(!miniatures)chart.Snap();GetComponent<GunneryTools>().preset=3;

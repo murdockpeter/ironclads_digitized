@@ -102,6 +102,6 @@ namespace Ironclads
             for(int i=-3;i<=3;i++){Vector3 gun=new Vector3(i*14,5,0);Shipwright.Box(f,"Gun platform",gun-Vector3.up,new Vector3(5,.5f,6),Shipwright.Wood);Shipwright.Rod(f,"Shore cannon",gun,gun+Vector3.forward*4,.25f,Shipwright.Iron,sides:12);}}
         void Building(Transform f,Vector3 p,Vector3 size){Shipwright.Box(f,"Period masonry building",p+Vector3.up*size.y*.5f,size,stone);var r=Shipwright.Box(f,"Pitched roof",p+Vector3.up*size.y,new Vector3(size.x+2,1,size.z+2),roof);}
         void Waterfront(Vector3 p,float heading){var f=Group("Period waterfront",p,heading);for(int i=-2;i<=2;i++){Building(f,new Vector3(i*45,2,-35),new Vector3(25,8,16));Shipwright.Box(f,"Timber wharf",new Vector3(i*45,2,25),new Vector3(8,1.2f,70),Shipwright.Wood);}}
-        public void Position(Scenario s){if(root==null)return;root.gameObject.SetActive(s.Hampton);if(!s.Hampton)return;root.localPosition=new Vector3((float)((Longitude-s.longitude)*Math.PI/180*Navigation.EarthRadius*Math.Cos(s.latitude*Math.PI/180)),0,(float)((Latitude-s.latitude)*Math.PI/180*Navigation.EarthRadius));}
+        public void Position(Scenario s){if(root==null)return;root.gameObject.SetActive(s.Coastal);if(!s.Coastal)return;root.localPosition=new Vector3((float)((Longitude-s.longitude)*Math.PI/180*Navigation.EarthRadius*Math.Cos(s.latitude*Math.PI/180)),0,(float)((Latitude-s.latitude)*Math.PI/180*Navigation.EarthRadius));}
     }
 }

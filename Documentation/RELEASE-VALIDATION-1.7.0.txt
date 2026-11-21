@@ -1,0 +1,15 @@
+Ironclads v1.7.0 Windows x64 — validated 20 November 2026
+
+PASS: clean tracked-source staging build with Unity 6000.2.12f1.
+PASS: board scale, navigation, solar orientation, serialization and generated model checks.
+PASS: release versions compare numerically; equal, older and malformed versions do not prompt.
+PASS: Windows player queried the live GitHub latest-release endpoint successfully in all four graphical scenario checks.
+PASS: Ferrol player startup/rendering, placement/turn/undo, broadside/gunnery tools, batteries, audio waveforms, powder smoke, exhaust and persistence.
+PASS: Hampton Roads, supporting Union ships, Patrick Henry, batteries/turrets/paddles, smoke and persistence; Iron & Fire movement, curves, speed orders and drift.
+PASS: James six-ship scenario, independent turret aiming, 19 muzzles, six exhaust systems, save/load and module switching.
+PASS: Ulsan fleet, movement/bridge pivots, turn intervals, turrets, 21 funnels, salvos and save/load.
+PASS: direct TCP lobby regressions in James and Ulsan (host plus six guests each), Ferrol, Hampton and Iron & Fire (host plus two guests each). Checks include assignments, ready/start, orders, engine/turret commands, salvos, control transfers, stale command rejection, authenticated reconnect and offline recovery.
+PASS: no logged runtime errors in graphical checks. Captures reviewed for the six-ship multiplayer lobby.
+PASS: private ship-sheet resources absent in clean build; StreamingAssets contains only public geography sources/licenses. No PDFs, OBJ source models or PDB debug files in package.
+
+These are local loopback and graphics checks on the build machine; Internet routing and other hardware were not tested. Update downloads and installation are manual. Combat adjudication remains manual.

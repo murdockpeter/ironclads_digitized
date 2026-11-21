@@ -1,5 +1,33 @@
 # Ironclads — Ferrol & Hampton Roads
 
+**Close Action powder revision (1.8.4-dev):** outward muzzle jets, slow-rising grey smoke lasting up to three minutes and farther-carrying reports with a longer rolling tail. [Smoke and audio guide](Documentation/Close-Action-Powder-Smoke.md).
+
+**Close Action canvas revision (1.8.3-dev):** fuller wind-driven sails with smooth random gusts, small traveling folds and independent timing per sail and ship. Includes the ten class/family prototypes, station-based hull contours and visible weather controls from 1.8.2-dev. [Hull and weather guide](Documentation/Close-Action-Hull-Contours.md). [Visual guide and sources](Documentation/Close-Action-Visuals.md).
+
+**Close Action module (protocol 9).** Run `./Start-Ironclads.ps1 -CloseAction` for Scenario 6, Nelson vs Brueys: 23 ships and three published force variants. Includes detailed sailing-ship models, chart-based movement and normal gunfire, sealed simultaneous orders, crew/sail logs, signals, saves, and a large multiplayer lobby. Complex critical hits, boarding, scattering and maintenance remain umpire-assisted. [Module guide and rule coverage](Documentation/Close-Action.md). The launcher now prefers `Builds/Windows-CloseAction-Smoke` for all modules.
+
+**Stonewall at the Gates player briefings:** [Confederate PDF](Documentation/Briefings/Stonewall-at-the-Gates-Confederate.pdf) and [Union PDF](Documentation/Briefings/Stonewall-at-the-Gates-Union.pdf). Revised breakout objective: at least one Confederate ironclad free and clear beyond the forts, with onward open-sea transit abstracted. Includes full METT-TC, OCOKA, SMEAC, synchronization matrices and a shared 60-turn match contract.
+
+**Local development: expanded coastal chart (1.7.1-dev).** Hampton Roads and Stonewall at the Gates now use a 480 ? 380 grid of 100-yard hexes across the modeled coastal region, with additional room beyond its shores. Existing positions/IDs are preserved; extended coordinates use `column/row` when they exceed the original two-digit range. Camera travel and coordinate entry cover the enlarged board. The launcher prefers `Builds/Windows-ExpandedChart`. Multiplayer requires matching protocol 8 builds. Tests were not run for this change, as requested.
+
+**Stable release: v1.7.0 ? enhanced multiplayer.** [Download the Windows x64 ZIP](https://github.com/murdockpeter/ironclads_digitized/releases/latest), extract everything and run `Ironclads.exe`. Includes all scenario modules and the protocol 7 lobby. The app checks for newer stable GitHub releases at startup; every scenario has **Check for updates** and a startup-check preference. Downloads and installation are manual. [Release notes](Documentation/RELEASE-1.7.0.md).
+
+The entries below record earlier development deliveries.
+
+**Latest: multiplayer lobby (1.7.0-dev / protocol 7).** `Start-Ironclads.ps1 -James1865` opens `Builds/Windows-Multiplayer` with six human ship commanders and an optional separate host/umpire. Includes an in-app direct TCP lobby, captain names and preferred sides, multiple ships per player, ready/start, host-approved control requests during play, reassignment and authenticated reconnect. All modules use the new lobby; every participant needs the matching build. [Connection and control instructions](Documentation/MULTIPLAYER.md).
+
+**Latest: offset broadside measuring arcs.** Gunnery now offers port, starboard or both nested arcs from a movable pivot across the ship: Confederate 16?/40? and wooden / Union casemate 20?/50?, plus custom angles. The pivot offset and length are adjustable. `Start-Ironclads.ps1 -Ferrol` (or `-James1865`) opens `Builds/Windows-Broadside`. [Measuring controls and calibration](Documentation/GUNNERY-TOOLS.md).
+
+**Latest: Stonewall at the Gates (1.6.0-dev).** `Start-Ironclads.ps1 -James1865` opens a new local Yaquinto Ironclads scenario: Onondaga, Mahopac and Sangamon versus Stonewall, Virginia II and Fredericksburg. Includes five new modeled ships, six-ship hex orders, turret training, arbitrary targeting, working batteries, smoke, coastal scenery and save/load. [Alternate-history briefing, ship outfits, objectives and sources](Documentation/Stonewall-at-the-Gates.md).
+
+**Latest: sea audio controls (1.5.4-dev).** Use the always-visible **Sea sounds ON/OFF** button to mute ocean and wind ambience independently of cannon reports. Weather also offers a sea-volume slider. Both preferences are local and remembered between launches. `Start-Ironclads.ps1 -Ferrol` opens the latest `Builds/Windows-SeaAudio` player.
+
+**Latest: photographed ship sheets (1.5.3-dev).** The local reference viewer uses `contextonly/ShipSheets/USS_Niagara.jpg` (the existing 1863 card) and the new `CSS_Stonewall.jpg` photograph. Open either under **Sources**; sheets fit the available space initially and have zoom, scrolling and a **Fit sheet** button. These private images remain ignored by Git. The selected 1865 Niagara working battery is retained. `Start-Ironclads.ps1 -Ferrol` uses `Builds/Windows-ShipSheets`.
+
+**Latest: Niagara stern and paint (1.5.2-dev).** `Start-Ironclads.ps1 -Ferrol` opens the latest build with a raked round counter, finer lower stern, fitted gallery and near-black/off-white paint based on the retained 1863 photograph. Keeps the expanded map and 2,000-yard opening range. [Revision and historical limits](Documentation/Niagara-Stern-Revision.md).
+
+**Latest: Ferrol playtest board (1.5.1-dev).** `Start-Ironclads.ps1 -Ferrol` opens the latest build with an 82 x 74, 100-yard hex chart and ships 20 hexes (2,000 yards) apart on reciprocal headings. This doubles both board dimensions. Use it offline for umpired orders and movement; End Turn advances time without moving ships. [Playtest setup](Documentation/Ferrol-Playtest.md).
+
 **Latest: supplied Monitor/Virginia comparison (1.5.0-dev).** `Start-Ironclads.ps1 -SuppliedModels` opens optional hybrids using the user-provided OBJ/texture pairs. Sources offers per-ship local appearance switches. Monitor reuses the supplied hull with our detailed working turret; Virginia reuses most of the supplied exterior with our ten fitted guns and a source-funnel smoke binding. Originals remain selectable. [Comparison, counts and reuse details](Documentation/Supplied-Ship-Models.md).
 
 **Latest: detailed Hampton Roads coastline (1.4.1-dev).** The local coast now uses full-resolution GSHHG shorelines and a USGS elevation grid sampled four times more closely in both directions. Continuous curved beach profiles, sand-to-meadow transitions and low outcrops replace straight independent strips. `Start-Ironclads.ps1` uses `Builds/Windows-Coastlines`; inspect the beach landmark under Scenarios. [Sources, measurements and limits](Documentation/Hampton-Coastline.md).
@@ -78,7 +106,7 @@ The globe is a separate scale from the meter-based tactical scene. Click it to r
 
 The supplied `contextonly/NEW_IRONCLADS_RULES.pdf` establishes approximately 100 yards per hex and three minutes per turn (p. 3), hexside facings (pp. 9–10), and shortest-path hex range (p. 18). The chart uses **91.44 meters between adjacent centers**, six facings and integer hex distance. Models retain their physical dimensions rather than being scaled as cardboard counters. Niagara's bowsprit extends beyond her occupied hex; the highlighted center hex determines her game location.
 
-This is a **new 41 × 37 open-sea board** with custom local IDs, not a scan of mapboards I–IV. The original mapboard artwork is absent from the supplied folder. Their numbering, coastlines, active shoals, current zones and scenario entry/exit boundaries are not reproduced. The included Ferrol setup is a two-vessel what-if; the book's Scenario 4D also uses Sacramento. See [rules mapping](Documentation/RULES-COMPATIBILITY.md).
+This is a **new 82 × 74 Ferrol open-sea board (Hampton Roads remains 41 × 37)** with custom local IDs, not a scan of mapboards I–IV. The original mapboard artwork is absent from the supplied folder. Their numbering, coastlines, active shoals, current zones and scenario entry/exit boundaries are not reproduced. The included Ferrol setup is a two-vessel what-if; the book's Scenario 4D also uses Sacramento. See [rules mapping](Documentation/RULES-COMPATIBILITY.md).
 
 ## Generated assets and verification
 

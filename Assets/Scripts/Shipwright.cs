@@ -15,7 +15,7 @@ namespace Ironclads
         }
         public static void Materials()
         {
-            if (Hull != null) return;
+            if (Hull != null && Iron != null && Deck != null && Wood != null && Rope != null && Canvas != null && Black != null && Brass != null && White != null) return;
             Hull = MakeMaterial("Tarred timber", new Color(.055f,.065f,.066f));
             Iron = MakeMaterial("Weathered iron", new Color(.13f,.155f,.16f), .65f, .29f);
             Deck = MakeMaterial("Weathered teak", new Color(.54f,.43f,.28f));
@@ -83,7 +83,7 @@ namespace Ironclads
         static readonly float[] NiagaraGunStations={-26,-13,0,13,26};
         static bool InGunPort(float z)
         {foreach(float center in NiagaraGunStations)if(Mathf.Abs(z-center)<.90f-.0001f)return true;return false;}
-        static Vector3 HullPoint(float z,int rib,float length,float beam,float deck,float draft)
+        static Vector3 HullPoint(float z,int rib,float length,float beam,float deck,float draft,bool niagaraStern=false)
         {
             float f=z/length+.5f,top=DeckHeight(z,length,deck);
             // A nonzero end depth creates a proper stem instead of pinching the keel up to the deck.
@@ -91,10 +91,10 @@ namespace Ironclads
             int k=rib<=12?rib:24-rib;
             float drop=k==0?0:k==1?.35f:k==2?1.65f:1.65f+(depth-1.65f)*Mathf.Sin((k-2)/10f*Mathf.PI*.5f);
             float x=HullHalfWidth(z,length,beam)*Mathf.Sqrt(Mathf.Max(0,1-drop*drop/(depth*depth)));
-            return new Vector3((rib<=12?-1:1)*x,top-drop,z);
+            return new Vector3((rib<=12?-1:1)*x,top-drop,niagaraStern?NiagaraRakedZ(z,top-drop):z);
         }
         static bool InPort(float z,float[] stations){foreach(float center in stations)if(Mathf.Abs(z-center)<.90f-.0001f)return true;return false;}
-        static void HullForm(Transform root, float length, float beam, float deck, float draft, Material material,float[] gunStations=null)
+        static void HullForm(Transform root, float length, float beam, float deck, float draft, Material material,float[] gunStations=null,bool niagaraStern=false)
         {
             var v=new List<Vector3>(); var t=new List<int>(); var dv=new List<Vector3>(); var dt=new List<int>();
             const int stations=512,ribs=24;bool ports=length>80;
@@ -106,7 +106,7 @@ namespace Ironclads
             for(int j=0;j<zValues.Count;j++) {
                 float z=zValues[j],half=HullHalfWidth(z,length,beam),top=DeckHeight(z,length,deck);
                 for(int k=0;k<=ribs;k++) {
-                    v.Add(HullPoint(z,k,length,beam,deck,draft));
+                    v.Add(HullPoint(z,k,length,beam,deck,draft,niagaraStern));
                     bool opening=ports&&j<zValues.Count-1&&InPort((z+zValues[j+1])*.5f,batteryStations)&&(k==1||k==22);
                     if(j<zValues.Count-1&&k<ribs&&!opening){int i=j*(ribs+1)+k;t.AddRange(new[]{i,i+1,i+ribs+1,i+1,i+ribs+2,i+ribs+1});}
                 }
@@ -148,7 +148,7 @@ namespace Ironclads
             // Stem and keel visibly join the closed shell; curved headrails support the bowsprit.
             for(int end=-1;end<=1;end+=2) {
                 float z=end*length*.5f;Vector3 top=new Vector3(0,DeckHeight(z,length,deck),z);
-                Rod(root,end>0?"Reinforced stem":"Stern post",top+Vector3.down*(deck+draft)*.65f,top+Vector3.up*.45f,.09f,material,sides:12);
+                if(end>0||!niagaraStern)Rod(root,end>0?"Reinforced stem":"Stern post",top+Vector3.down*(deck+draft)*.65f,top+Vector3.up*.45f,.09f,material,sides:12);
                 if(end<0)continue;
                 for(int side=-1;side<=1;side+=2) {
                     float startWidth=HullHalfWidth(end*length*.42f,length,beam)*.95f;
@@ -212,23 +212,24 @@ namespace Ironclads
             Rod(root,"Backstay",top,new Vector3(0,baseY,z-yard*1.8f),.025f,Rope,sides:4);
             RiggingFittings(root,z,baseY,height,beam);
         }
-        public enum GunType { Parrott150, Armstrong300, Armstrong70, DahlgrenXI, DahlgrenIX, Brooke7, Brooke64, DahlgrenVIII, DahlgrenX, Naval8, Naval6, Naval3, Smoothbore32 }
-        public static int SoundKind(GunType type)=>type==GunType.Smoothbore32?0:type==GunType.Naval8?1:type==GunType.Naval6?0:type==GunType.Naval3?2:type==GunType.DahlgrenVIII||type==GunType.DahlgrenX?0:type==GunType.DahlgrenXI?1:type==GunType.DahlgrenIX?0:type==GunType.Brooke7||type==GunType.Brooke64?2:(int)type;
-        public static float Bore(GunType type)=>type==GunType.Smoothbore32?.163f:type==GunType.DahlgrenVIII?.2032f:type==GunType.DahlgrenX?.254f:type==GunType.DahlgrenXI?.2794f:type==GunType.DahlgrenIX?.2286f:type==GunType.Brooke7?.1778f:type==GunType.Brooke64?.16256f:type==GunType.Armstrong300?.254f:type==GunType.Armstrong70?.16256f:.2032f;
-        public static float BarrelLength(GunType type)=>type==GunType.Smoothbore32?2.74f:type==GunType.DahlgrenVIII?3.1f:type==GunType.DahlgrenX?3.7f:type==GunType.DahlgrenXI?3.96f:type==GunType.DahlgrenIX?3.35f:type==GunType.Brooke7?3.8f:type==GunType.Brooke64?3.5f:type==GunType.Armstrong70?2.65f:4.05f;
+        public enum GunType { Parrott150, Armstrong300, Armstrong70, DahlgrenXI, DahlgrenIX, Brooke7, Brooke64, DahlgrenVIII, DahlgrenX, Naval8, Naval6, Naval3, Smoothbore32, DahlgrenXV, Brooke8, BrookeXI }
+        public static int SoundKind(GunType type)=>type==GunType.DahlgrenXV||type==GunType.BrookeXI?1:type==GunType.Brooke8?2:type==GunType.Smoothbore32?0:type==GunType.Naval8?1:type==GunType.Naval6?0:type==GunType.Naval3?2:type==GunType.DahlgrenVIII||type==GunType.DahlgrenX?0:type==GunType.DahlgrenXI?1:type==GunType.DahlgrenIX?0:type==GunType.Brooke7||type==GunType.Brooke64?2:(int)type;
+        public static float Bore(GunType type)=>type==GunType.DahlgrenXV?.381f:type==GunType.Brooke8?.2032f:type==GunType.BrookeXI?.2794f:type==GunType.Smoothbore32?.163f:type==GunType.DahlgrenVIII?.2032f:type==GunType.DahlgrenX?.254f:type==GunType.DahlgrenXI?.2794f:type==GunType.DahlgrenIX?.2286f:type==GunType.Brooke7?.1778f:type==GunType.Brooke64?.16256f:type==GunType.Armstrong300?.254f:type==GunType.Armstrong70?.16256f:.2032f;
+        public static float BarrelLength(GunType type)=>type==GunType.DahlgrenXV?4.57f:type==GunType.BrookeXI?3.96f:type==GunType.Brooke8?4.05f:type==GunType.Smoothbore32?2.74f:type==GunType.DahlgrenVIII?3.1f:type==GunType.DahlgrenX?3.7f:type==GunType.DahlgrenXI?3.96f:type==GunType.DahlgrenIX?3.35f:type==GunType.Brooke7?3.8f:type==GunType.Brooke64?3.5f:type==GunType.Armstrong70?2.65f:4.05f;
         public static GameObject Gun(Transform root,Vector3 p,Vector3 direction,GunType type,int detail=1)
         {
             var go=new GameObject(type==GunType.Parrott150?"150-pounder Parrott rifle":type==GunType.Armstrong300?"300-pounder Armstrong rifle":"70-pounder Armstrong rifle");
             if((int)type>=3)go.name=type==GunType.DahlgrenXI?"XI-inch Dahlgren":type==GunType.DahlgrenIX?"IX-inch Dahlgren":type==GunType.Brooke7?"7-inch Brooke rifle":"6.4-inch Brooke rifle";
             if(type==GunType.DahlgrenVIII)go.name="VIII-inch shell gun";if(type==GunType.DahlgrenX)go.name="X-inch smoothbore pivot";
             if(type==GunType.Smoothbore32)go.name="32-pounder smoothbore";
+            if(type==GunType.DahlgrenXV)go.name="XV-inch Dahlgren";if(type==GunType.Brooke8)go.name="8-inch Brooke rifle";if(type==GunType.BrookeXI)go.name="XI-inch Brooke smoothbore";
             go.transform.SetParent(root,false);go.transform.localPosition=p;go.transform.localRotation=Quaternion.LookRotation(direction,Vector3.up);
             go.AddComponent<GunMount>().type=type;
             Transform gun=go.transform;float length=BarrelLength(type),scale=type==GunType.Armstrong70?.72f:1;
             bool parrott=type==GunType.Parrott150;float radius=parrott?.33f:type==GunType.Armstrong300?.39f:.25f;
-            bool dahlgren=type==GunType.DahlgrenXI||type==GunType.DahlgrenIX||type==GunType.DahlgrenVIII||type==GunType.DahlgrenX||type==GunType.Smoothbore32,brooke=type==GunType.Brooke7||type==GunType.Brooke64;
-            if(dahlgren)radius=type==GunType.Smoothbore32?.27f:type==GunType.DahlgrenXI?.44f:.37f;
-            if(brooke)radius=.32f;
+            bool dahlgren=type==GunType.DahlgrenXV||type==GunType.DahlgrenXI||type==GunType.DahlgrenIX||type==GunType.DahlgrenVIII||type==GunType.DahlgrenX||type==GunType.Smoothbore32,brooke=type==GunType.Brooke8||type==GunType.BrookeXI||type==GunType.Brooke7||type==GunType.Brooke64;
+            if(dahlgren)radius=type==GunType.DahlgrenXV?.56f:type==GunType.Smoothbore32?.27f:type==GunType.DahlgrenXI?.44f:.37f;
+            if(brooke)radius=type==GunType.BrookeXI?.52f:type==GunType.Brooke8?.42f:.32f;
             float rear=-length*.55f,muzzle=length*.45f,bore=Bore(type)*.5f;
             // A surface of revolution describes the breech, reinforce, chase, muzzle swell,
             // annular muzzle face, actual bore wall and recessed closed bore bottom.
@@ -331,7 +332,7 @@ namespace Ironclads
             Materials();
             var go=new GameObject(stonewall ? "CSS Stonewall" : "USS Niagara"); var root=go.transform;
             float length=stonewall?52.3756f:100.228f,beam=stonewall?9.9568f:16.764f,deck=stonewall?1.85f:4.3f;
-            if(stonewall)StonewallHull(root);else HullForm(root,length,beam,deck,7.4422f,Hull);
+            if(stonewall)StonewallHull(root);else HullForm(root,length,beam,deck,7.4422f,Hull,niagaraStern:true);
             if(stonewall) {
                 // Sloping battery armor extends down into the hull; base footprints are verified against it.
                 StonewallBattery(root,false);
@@ -348,14 +349,7 @@ namespace Ironclads
                 Rod(root,"Bowsprit",new Vector3(0,deck+2.0f,21),new Vector3(0,deck+4.8f,33),.18f,Wood,.08f);
             } else {
                 // Post-1862/63 silhouette: three masts, two funnels, white gun-deck stripe.
-                for(int side=-1;side<=1;side+=2)for(int j=5;j<124;j++) {
-                    float z=(j/128f-.5f)*length,z2=((j+1)/128f-.5f)*length;
-                    // Keep white paint outside the shell and out of the actual open ports.
-                    if(InGunPort(z)||InGunPort(z2)||InGunPort((z+z2)*.5f))continue;
-                    Vector3 a=new Vector3(side*(HullHalfWidth(z,length,beam)+.045f),DeckHeight(z,length,deck)-1,z);
-                    Vector3 b=new Vector3(side*(HullHalfWidth(z2,length,beam)+.045f),DeckHeight(z2,length,deck)-1,z2);
-                    Quad(root,"Painted gun deck band",a+Vector3.up*.30f,b+Vector3.up*.30f,b-Vector3.up*.30f,a-Vector3.up*.30f,White);
-                }
+                NiagaraPaintBand(root);
                 for(int side=-1;side<=1;side+=2) for(int j=0;j<5;j++) {
                     float z=NiagaraGunStations[j],w=HullHalfWidth(z,length,beam);
                     Gun(root,new Vector3(side*(w-1.0f),DeckHeight(z,length,deck)-.85f,z),Vector3.right*side,GunType.Parrott150);
@@ -366,7 +360,8 @@ namespace Ironclads
                     Rod(root,"Funnel",new Vector3(0,deck,z),new Vector3(0,deck+10,z),1.0f,Iron,sides:16);
                     Rod(root,"Funnel cap",new Vector3(0,deck+9.75f,z),new Vector3(0,deck+10.15f,z),1.14f,Black,sides:16);
                 }
-                Box(root,"Quarterdeck house",new Vector3(0,deck+1,-38),new Vector3(5.4f,2.0f,7),Hull);
+                Box(root,"Quarterdeck house",new Vector3(0,deck+.65f,-38),new Vector3(4.6f,1.3f,6),Hull);
+                Box(root,"Quarterdeck house roof",new Vector3(0,deck+1.34f,-38),new Vector3(4.85f,.12f,6.2f),Hull);
                 NiagaraRoundStern(root,length,beam,deck);
                 Rod(root,"Bowsprit",new Vector3(0,deck+1,43),new Vector3(0,deck+7,66),.4f,Wood,.11f);
                 for(int side=-1;side<=1;side+=2) Rod(root,"Bobstay",new Vector3(side*2,1,46),new Vector3(0,deck+7,66),.055f,Rope);
@@ -374,6 +369,7 @@ namespace Ironclads
             Fittings(root,deck,length,beam);
             DeckDetails(root,stonewall);
             FinalPassDetails(root,stonewall);
+            if(!stonewall)ApplyNiagaraFinish(root);
             if(combine) Combine(root);
             return go;
         }

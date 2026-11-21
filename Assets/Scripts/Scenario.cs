@@ -30,26 +30,30 @@ namespace Ironclads
         public int version = 1;
         public string scenarioId = "ferrol";
         public string rulesetId="ironclads";
+        public CloseActionState closeAction;
+        public bool CloseAction=>scenarioId==CloseActionScenario.Id;
         public bool Miniatures => rulesetId=="iron-fire";
         public bool Hampton => scenarioId == "hampton-roads";
+        public bool James=>scenarioId=="james-1865";
+        public bool Coastal=>Hampton||James;
         public bool DoB=>scenarioId=="ulsan";
         public int dobTurnSeconds=180;
         public float dobVisibilityPercent=90;
-        public float Limit=>DoB?200000:20000;
+        public float Limit=>CloseAction?200000:DoB?200000:Coastal?25000:20000;
         public int supportVersion=1;
         public ShipState minnesota=NewMinnesota();
         public int patrickVersion=1;
         public ShipState patrickHenry=NewPatrickHenry();
         public static ShipState NewPatrickHenry()=>new ShipState("CSS Patrick Henry",430,520,240){turnClass=3};
-        public int ShipSlots=>DoB?7:Hampton?4:2;
+        public int ShipSlots=>CloseAction?ships.Length:DoB?7:James?6:Hampton?4:2;
         public bool Mobile(int i)=>i>=0&&(i<ships.Length||Hampton&&i==3);
         public System.Collections.Generic.IEnumerable<ShipState> MovingShips {get{foreach(var ship in ships)yield return ship;if(Hampton)yield return patrickHenry;}}
         public int minnesotaPortGuns=11,minnesotaStarboardGuns=21,minnesotaBowGuns=1;
         public static ShipState NewMinnesota()=>new ShipState("USS Minnesota",-650,-450,90){engineLoad=.15f};
         public ShipState State(int i)=>Hampton&&i==2?minnesota:Hampton&&i==3?patrickHenry:ships[i];
-        public string ShortName(int i) => DoB?UlsanScenario.Ships[i].name:Hampton&&i==3?"Patrick Henry":Hampton&&i==2?"Minnesota":Hampton ? (i==0?"Monitor":"Virginia") : (i==0?"Niagara":"Stonewall");
-        public float Length(int i) => DoB?UlsanScenario.Ships[i].length:Hampton&&i==3?76.2f:Hampton&&i==2?80.6831f:Hampton?(i==0?52.4256f:80.16f):(i==0?100.228f:52.3756f);
-        public float Deck(int i) => DoB?5.2f:Hampton&&i==3?2.6f:Hampton&&i==2?4.3f:Hampton?(i==0?.4572f:.29f):(i==0?4.3f:1.85f);
+        public string ShortName(int i) => CloseAction?CloseActionScenario.Spec(this,i).name:James?JamesScenario.Names[i]:DoB?UlsanScenario.Ships[i].name:Hampton&&i==3?"Patrick Henry":Hampton&&i==2?"Minnesota":Hampton ? (i==0?"Monitor":"Virginia") : (i==0?"Niagara":"Stonewall");
+        public float Length(int i) => CloseAction?CloseActionScenario.Spec(this,i).Length:James?JamesScenario.Lengths[i]:DoB?UlsanScenario.Ships[i].length:Hampton&&i==3?76.2f:Hampton&&i==2?80.6831f:Hampton?(i==0?52.4256f:80.16f):(i==0?100.228f:52.3756f);
+        public float Deck(int i) => CloseAction?CloseActionScenario.Spec(this,i).Deck:James?JamesScenario.Decks[i]:DoB?5.2f:Hampton&&i==3?2.6f:Hampton&&i==2?4.3f:Hampton?(i==0?.4572f:.29f):(i==0?4.3f:1.85f);
         public static Scenario HamptonRoads() => new Scenario {
             scenarioId="hampton-roads",latitude=36.983,longitude=-76.385,utc="1862-03-09T14:00:00Z",
             windKnots=7,windFrom=270,cloud=.22f,waveHeight=.18f,visibilityKm=22,
@@ -62,9 +66,11 @@ namespace Ironclads
         public bool hexMode = true;
         public float windKnots = 12, windFrom = 290, cloud = .3f, rain = 0, visibilityKm = 20, waveHeight = .8f;
         public ShipState[] ships = {
-            new ShipState("USS Niagara", -115, 20, 25),
-            new ShipState("CSS Stonewall", 120, 150, 230)
+            FerrolShip("USS Niagara",new Hex(20,-2),0),
+            FerrolShip("CSS Stonewall",new Hex(20,18),180)
         };
+        static ShipState FerrolShip(string name,Hex hex,float heading)
+        {var p=RuleChart.Center(hex);return new ShipState(name,p.x,p.z,heading);}
         public DateTime Date => DateTime.Parse(utc, System.Globalization.CultureInfo.InvariantCulture,
             System.Globalization.DateTimeStyles.AdjustToUniversal | System.Globalization.DateTimeStyles.AssumeUniversal);
         public void Advance(float seconds)
@@ -78,16 +84,20 @@ namespace Ironclads
         public static Scenario Parse(string json)
         {
             var s = JsonUtility.FromJson<Scenario>(json);
-            if (s == null || s.version != 1 || s.ships == null || s.ships.Length != (s.DoB?7:2) ||
+            if (s == null || s.version != 1 || s.ships == null || s.ships.Length != (s.CloseAction?CloseActionScenario.Fleet(s.closeAction?.variant??0).Length:s.DoB?7:s.James?6:2) ||
                 !Finite(s.latitude) || !Finite(s.longitude) || Math.Abs(s.latitude) > 90 || Math.Abs(s.longitude) > 180)
                 throw new InvalidDataException("Invalid scenario location or ship list.");
             var date = s.Date;
             if(string.IsNullOrEmpty(s.scenarioId))s.scenarioId="ferrol";
-            if(s.scenarioId!="ferrol"&&s.scenarioId!="hampton-roads"&&!s.DoB)throw new InvalidDataException("Unknown scenario.");
+            if(s.scenarioId!="ferrol"&&s.scenarioId!="hampton-roads"&&!s.DoB&&!s.James&&!s.CloseAction)throw new InvalidDataException("Unknown scenario.");
             if(string.IsNullOrEmpty(s.rulesetId))s.rulesetId="ironclads";
-            if(s.rulesetId!="ironclads"&&s.rulesetId!="iron-fire"&&s.rulesetId!="dob")throw new InvalidDataException("Unknown tabletop ruleset.");
+            if(s.rulesetId!="ironclads"&&s.rulesetId!="iron-fire"&&s.rulesetId!="dob"&&s.rulesetId!="close-action")throw new InvalidDataException("Unknown tabletop ruleset.");
+            if(s.CloseAction!=(s.rulesetId=="close-action"))throw new InvalidDataException("Close Action module / ruleset mismatch.");
+            if(s.CloseAction){s.hexMode=true;CloseActionRules.ValidateState(s);}
             if(s.DoB!=(s.rulesetId=="dob"))throw new InvalidDataException("Ulsan uses the Dawn of the Battleship tabletop mode.");
             if(s.DoB){s.hexMode=false;if(s.dobTurnSeconds!=180&&s.dobTurnSeconds!=1800)throw new InvalidDataException("Invalid DoB turn interval.");if(!Finite(s.dobVisibilityPercent)||s.dobVisibilityPercent<0||s.dobVisibilityPercent>100)throw new InvalidDataException("Invalid visibility percentage.");}
+            if(s.James&&s.rulesetId!="ironclads")throw new InvalidDataException("James 1865 uses Yaquinto Ironclads.");
+            if(s.James)s.hexMode=true;
             if(s.Miniatures)s.hexMode=false;
             if(s.minnesota==null||s.supportVersion==0){s.minnesota=NewMinnesota();s.minnesotaPortGuns=11;s.minnesotaStarboardGuns=21;s.minnesotaBowGuns=1;s.supportVersion=1;}
             var auxiliary=s.minnesota;
@@ -112,7 +122,9 @@ namespace Ironclads
                 if(ship.turnClass==0)ship.turnClass=3; // field absent in pre-miniatures saves
                 if(!Finite(ship.orderedSpeed)||!Finite(ship.movementUsed)||ship.orderedSpeed<0||ship.orderedSpeed>(s.DoB?35:20)||ship.movementUsed<0||ship.movementUsed>100||ship.turnClass<1||ship.turnClass>5)throw new InvalidDataException("Invalid miniatures movement order.");
             }
-            if(s.DoB)for(int i=0;i<7;i++)s.ships[i].name=UlsanScenario.Ships[i].name;
+            if(s.CloseAction)for(int i=0;i<s.ships.Length;i++)s.ships[i].name=CloseActionScenario.Spec(s,i).name;
+            else if(s.James)for(int i=0;i<6;i++)s.ships[i].name=JamesScenario.Names[i];
+            else if(s.DoB)for(int i=0;i<7;i++)s.ships[i].name=UlsanScenario.Ships[i].name;
             else {s.ships[0].name=s.Hampton?"USS Monitor":"USS Niagara";s.ships[1].name=s.Hampton?"CSS Virginia (Merrimack)":"CSS Stonewall";}
             if (!Finite(s.windKnots) || !Finite(s.windFrom) || !Finite(s.cloud) || !Finite(s.rain) || !Finite(s.visibilityKm) || !Finite(s.waveHeight))
                 throw new InvalidDataException("Invalid weather values.");

@@ -7,6 +7,7 @@ namespace Ironclads
     {
         public Shipwright.GunType type;
         public int batterySide=-99;
+        public int closeActionBattery=-1;
         public float muzzleOffset;
         public Vector3 Muzzle=>transform.TransformPoint(Vector3.forward*(muzzleOffset>0?muzzleOffset+.08f:Shipwright.BarrelLength(type)*.45f+.08f));
         public Vector3 Direction=>transform.forward;
