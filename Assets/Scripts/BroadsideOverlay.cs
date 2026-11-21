@@ -44,7 +44,7 @@ namespace Ironclads
         void LateUpdate()
         {
             if(scene==null||scene.seaRoot==null)return;
-            bool show=visible&&scene.showOverlay&&!scene.globeMode;
+            bool show=!scene.scenario.CloseAction&&visible&&scene.showOverlay&&!scene.globeMode;
             for(int i=0;i<4;i++) {
                 int bank=i/2;bool inner=i%2==0;float width=inner?innerWidth:outerWidth;
                 if(outlines[i]==null&&show){

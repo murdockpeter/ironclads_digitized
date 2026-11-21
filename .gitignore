@@ -32,3 +32,8 @@
 .DS_Store
 /Assets/Resources/SuppliedShips/
 /Assets/Resources/SuppliedShips.meta
+/Documentation/CloseActionRules.pdf
+/Documentation/CloseActionScenarios.pdf
+
+/Assets/Resources/CloseActionModels/
+/Assets/Resources/CloseActionModels.meta

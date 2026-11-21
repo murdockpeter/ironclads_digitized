@@ -7,6 +7,7 @@ namespace Ironclads
     {
         void Scenarios()
         {
+            if(Button("Close Action / Nelson vs Brueys"))scene.StartCloseAction();
             Heading("CHOOSE YOUR SEA TABLE");
             Text("Starting a scenario resets the shared table. Save your current positions first if you want to return to them.");
             GUI.enabled=ManageTable;

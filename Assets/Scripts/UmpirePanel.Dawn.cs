@@ -21,13 +21,13 @@ namespace Ironclads
             GUILayout.BeginHorizontal();if(Button("Fleet view"))scene.Overview();if(Button(scene.globeMode?"Return to sea":"World globe"))scene.ToggleGlobe();GUILayout.EndHorizontal();
             dawnTab=GUILayout.SelectionGrid(dawnTab,new[]{"Ships / move","Gunnery","Weather","Notes / save","TCP fleets","Modules"},3,button);
             if(scene.network.Active&&Button("Lobby / requests ("+scene.network.Lobby.requests.Length+")"))ShowDawnTab(4);
-            scroll=GUILayout.BeginScrollView(scroll);
+            BeginPanelScroll();
             if(dawnTab<3){int selected=GUILayout.SelectionGrid(scene.selected,DawnNames,2,button);if(selected!=scene.selected){scene.selected=selected;naval.target=selected<3?3:0;}
                 Text(s.ships[scene.selected].name+" · "+(scene.selected<3?"Russian":"Japanese")+" armored cruiser");
                 if(Button("Inspect selected cruiser"))scene.Focus(scene.selected);}
             switch(dawnTab){case 0:DawnMovement();break;case 1:DawnGunnery();break;case 2:GUI.enabled=ManageTable;DawnWeather();GUI.enabled=true;break;case 3:DawnNotes();break;case 4:DawnNetwork();break;case 5:DawnModules();break;}
             ReleaseControls();
-            GUILayout.Space(12);GUILayout.EndScrollView();naval.lowLightAid=GUILayout.Toggle(naval.lowLightAid,"Low-light viewing aid · local",toggle);GUILayout.Label("RMB orbit · Wheel zoom · MMB/WASD pan\nShift + click: exact placement · H hide UI\nv"+Application.version,small);GUILayout.EndArea();
+            GUILayout.Space(12);EndPanelScroll();naval.lowLightAid=GUILayout.Toggle(naval.lowLightAid,"Low-light viewing aid · local",toggle);GUILayout.Label("RMB orbit · Wheel zoom · MMB/WASD pan\nShift + click: exact placement · H hide UI\nv"+Application.version,small);GUILayout.EndArea();
             float x=352,w=Screen.width-x-22;GUI.DrawTexture(new Rect(x,18,w,74),panelTex);GUI.Label(new Rect(x+14,26,w-28,20),"ULSAN · OPEN SEA · RUSSIAN AND JAPANESE CRUISER DIVISIONS",sub);
             GUI.Label(new Rect(x+14,49,w-28,30),s.ships[scene.selected].name+"  /  "+(scene.selected<3?"VLADIVOSTOK SQUADRON":"SECOND DIVISION"),big);
             if(w>700)GUI.Label(new Rect(Screen.width-315,28,280,55),s.Date.AddHours(9).ToString("dd MMM yyyy · HH:mm",CultureInfo.InvariantCulture)+" scenario (UTC+9)\n"+$"TURN {s.turn:00} · {s.dobTurnSeconds/60} min · SUN {scene.SunAltitude:0.0}°",small);
@@ -85,12 +85,13 @@ namespace Ironclads
         }
         void DawnNotes()
         {
-            Heading("UMPIRE LOG");GUI.enabled=ManageTable;scene.scenario.umpireNotes=GUILayout.TextArea(scene.scenario.umpireNotes,4000,field,GUILayout.Height(180));if(Button("Undo last table action"))chart.Undo();GUI.enabled=true;SaveLoad();
+            Heading("UMPIRE LOG");GUI.enabled=ManageTable;scene.scenario.umpireNotes=GUILayout.TextArea(scene.scenario.umpireNotes,4000,notesField,GUILayout.Width(270),GUILayout.Height(180));if(Button("Undo last table action"))chart.Undo();GUI.enabled=true;SaveLoad();
             Text("No detection, ammunition, damage or victory rules are executed. Use your owned books and ship records. Saves include the fleet, orders, clocks, turret bearings and engine settings.");
         }
         void DawnNetwork()=>MultiplayerLobby();
         void DawnModules()
         {
+            if(Button("Close Action / Nelson vs Brueys"))scene.StartCloseAction();
             Heading("SCENARIO MODULES");GUI.enabled=ManageTable;if(Button("Reset Ulsan · printed seven-cruiser setup"))scene.StartUlsan();if(Button("Hampton Roads")){scene.StartScenario(true);ShowTab(8);}if(Button("Ferrol")){scene.StartScenario(false);ShowTab(8);}GUI.enabled=true;
             Heading("SUPPLIED BOOKS / REFERENCES");Text("Dawn of the Battleship v1.1 (17 Feb 2023); Dawn of the Rising Sun scenario pp.49–51 and annex configurations. Initial courses 090° / 125°, 10 knots; 400/500 yd column spacing; Rossia 195° from Izumo at 8.5 kyd. This is the base scenario; optional distant protected-cruiser reinforcements are not deployed.");
             Text("Cruiser hulls, gun mounts, fittings and paint are procedural reconstructions. The model includes main/secondary batteries and representative light guns, not every small weapon. No private PDF scans or complete combat tables are bundled.");

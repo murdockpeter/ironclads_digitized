@@ -24,16 +24,17 @@ namespace Ironclads
     }
     [Serializable] public class TablePacket
     {
-        public int protocol=7,ship,q,r,facing,sequence,ack,side,player,epoch,generation,request;
+        public int protocol=9,ship,q,r,facing,sequence,ack,side,player,epoch,generation,request;
         public float load,turret,aftTurret,dobMoved,east,north,heading,speed,orderedSpeed,movementUsed;
         public int turnClass=3,turnNumber;
         public bool astern,orderedAstern,boilers,ready;
         public string type,code,state,scenarioId,rulesetId,name,token;
         public TableLobby lobby;
     }
-    public class MultiplayerSession : MonoBehaviour
+    public partial class MultiplayerSession : MonoBehaviour
     {
-        public const int Protocol=7,MaxPlayers=7;
+        public const int Protocol=9,MaxPlayers=32;
+        public int PlayerCapacity=>scene.scenario.CloseAction?32:7;
         public MaritimeScene scene;
         public bool Active {get;private set;}
         public bool IsHost {get;private set;}
@@ -51,7 +52,7 @@ namespace Ironclads
         public int OwnerFor(int ship)=>ship>=0&&ship<Lobby.owners.Length?Lobby.owners[ship]:-1;
         public bool CanControl(int ship)=>ship>=0&&ship<scene.scenario.ShipSlots&&(!Active||Lobby.running&&Lobby.scenarioId==scene.scenario.scenarioId&&Lobby.rulesetId==scene.scenario.rulesetId&&(IsHost||Connected)&&OwnerFor(ship)==LocalPlayer);
         public string PlayerLabel(int id)=>id<0?"Unassigned":(Lobby.players.FirstOrDefault(p=>p.id==id)?.name??"Unknown")+" #"+id;
-        public int ShipSide(int ship)=>scene.scenario.James?(ship<3?0:1):scene.scenario.DoB?UlsanScenario.Ships[ship].side:Owner(ship);
+        public int ShipSide(int ship)=>scene.scenario.CloseAction?CloseActionScenario.Spec(scene.scenario,ship).side:scene.scenario.James?(ship<3?0:1):scene.scenario.DoB?UlsanScenario.Ships[ship].side:Owner(ship);
         sealed class Client
         {
             public int peer,player=-1,ack,count;
@@ -68,7 +69,7 @@ namespace Ironclads
         bool applying;
         Scenario hostedTable;
         string reconnectKey="",reconnectToken="";
-        readonly float[] nextFire=new float[16];
+        readonly float[] nextFire=new float[64];
         public static string NewCode()=>Guid.NewGuid().ToString("N").Substring(0,12).ToUpperInvariant();
         static string CleanName(string name)=>new string((name??"Captain").Where(c=>!char.IsControl(c)&&c!='<'&&c!='>').Take(24).ToArray()).Trim();
         public bool Host(int port,int ship,string code,bool loopbackOnly=false)
@@ -79,8 +80,8 @@ namespace Ironclads
                 transport=new DirectTcpTransport();transport.Listen(port,loopbackOnly);Active=true;IsHost=true;LocalPlayer=0;SessionCode=code;
                 Lobby=new TableLobby{players=new[]{new LobbyPlayer{id=0,name=CleanName(PlayerName)+" (host)",connected=true,ready=true}}};
                 ResetAssignments();if(ship>=0)Lobby.owners[ship]=0;
-                scene.animateTime=false;if(!scene.scenario.Miniatures&&!scene.scenario.DoB){scene.scenario.hexMode=true;scene.GetComponent<RuleChart>().Snap();foreach(var vessel in scene.scenario.MovingShips)vessel.speed=0;}
-                hostedTable=scene.scenario;HostAddresses=FindAddresses();ConnectionStatus="Lobby open on TCP "+Port+". Up to six guests can join.";return true;
+                scene.animateTime=false;if(!scene.scenario.CloseAction&&!scene.scenario.Miniatures&&!scene.scenario.DoB){scene.scenario.hexMode=true;scene.GetComponent<RuleChart>().Snap();foreach(var vessel in scene.scenario.MovingShips)vessel.speed=0;}
+                hostedTable=scene.scenario;HostAddresses=FindAddresses();ConnectionStatus="Lobby open on TCP "+Port+". Guests can now join; captain capacity follows the module.";return true;
             }catch{Stop();ConnectionStatus="Could not host on that TCP port. It may already be in use.";return false;}
         }
         public bool Join(string address,int port,string code)
@@ -165,7 +166,7 @@ namespace Ironclads
         }
         public void SubmitShip(int ship)
         {
-            if(!scene.scenario.Mobile(ship)||!Active||IsHost||applying||!CanControl(ship))return;
+            if(scene.scenario.CloseAction||!scene.scenario.Mobile(ship)||!Active||IsHost||applying||!CanControl(ship))return;
             var vessel=scene.scenario.State(ship);var hex=RuleChart.At(vessel.Position);
             pending[ship]=new TablePacket{type="ship",ship=ship,q=hex.q,r=hex.r,facing=RuleChart.Facing(vessel.heading),load=vessel.engineLoad,boilers=vessel.boilersLit,turret=vessel.turretHeading,aftTurret=vessel.aftTurretHeading,dobMoved=vessel.dobMovedSeconds,scenarioId=scene.scenario.scenarioId,rulesetId=scene.scenario.rulesetId,east=vessel.east,north=vessel.north,heading=vessel.heading,speed=vessel.speed,orderedSpeed=vessel.orderedSpeed,movementUsed=vessel.movementUsed,turnClass=vessel.turnClass,astern=vessel.astern,orderedAstern=vessel.orderedAstern,turnNumber=scene.scenario.turn,sequence=++sequence,epoch=Lobby.epochs[ship],generation=Lobby.generation};
             SendPending(false);
@@ -254,7 +255,7 @@ namespace Ironclads
                 LobbyPlayer p=null;
                 if(returning.Value!=null){p=Lobby.players.FirstOrDefault(p=>p.id==returning.Key);if(p==null||p.connected){Reject(c,"That player is already connected.");return;}}
                 else {
-                    if(Lobby.players.Length>=MaxPlayers){Reject(c,"Lobby full. Host can remove a disconnected player to free a place.");return;}
+                    if(Lobby.players.Length>=PlayerCapacity){Reject(c,"Lobby full. Host can remove a disconnected player to free a place.");return;}
                     string name=CleanName(packet.name);p=new LobbyPlayer{id=nextPlayer++,name=string.IsNullOrEmpty(name)?"Captain":name};
                     Lobby.players=Lobby.players.Concat(new[]{p}).ToArray();tokens[p.id]=Guid.NewGuid().ToString("N");
                 }
@@ -268,8 +269,9 @@ namespace Ironclads
                 case "side":if(packet.side< -1||packet.side>1)throw new Exception();player.side=packet.side;Publish();return;
                 case "control":if(packet.generation==Lobby.generation)AddRequest(c.player,packet.ship);return;
                 case "fire":if(Authorized(c,packet))BroadcastFire(packet.ship,packet.side);return;
+                case "ca-order":case "ca-fire":case "ca-signal":ReceiveCloseAction(c,packet);return;
                 case "ship":
-                    if(!Authorized(c,packet)||!scene.scenario.Mobile(packet.ship)||packet.sequence<=c.ack)return;
+                    if(scene.scenario.CloseAction||!Authorized(c,packet)||!scene.scenario.Mobile(packet.ship)||packet.sequence<=c.ack)return;
                     if(!ValidShip(packet))throw new Exception();
                     scene.GetComponent<RuleChart>().Remember();ApplyShip(scene.scenario.State(packet.ship),packet,scene.scenario.Miniatures||scene.scenario.DoB);c.ack=packet.sequence;c.lastState=null;return;
                 default:throw new Exception();
@@ -285,13 +287,16 @@ namespace Ironclads
             }
             if(packet.type=="state")ApplyState(packet);
             else if(packet.type=="fire"){if(packet.ship<0||packet.ship>=scene.scenario.ShipSlots||packet.side< -1||packet.side>3)throw new Exception();scene.UpdateWorld();scene.GetComponent<BatteryEffects>().FireLocal(packet.ship,packet.side);}
+            else if(packet.type=="ca-ack")scene.status=packet.name;
+            else if(packet.type=="ca-signal-delivery")scene.closeAction.ReceiveDeliveredSignal(JsonUtility.FromJson<CloseActionSignal>(packet.state));
+            else if(packet.type=="ca-display"){if(scene.scenario.CloseAction)scene.GetComponent<BatteryEffects>().FireCloseActionLocal(packet.ship,packet.side);}
             else if(packet.type!="pong")throw new Exception();
         }
-        public static bool ValidShip(TablePacket packet)=>ValidCourse(packet)&&float.IsFinite(packet.dobMoved)&&packet.dobMoved>=0&&packet.dobMoved<=1800&&float.IsFinite(packet.aftTurret)&&packet.aftTurret>=0&&packet.aftTurret<360&&packet.ship>=0&&packet.ship<(packet.rulesetId=="dob"?7:packet.scenarioId=="james-1865"?6:packet.scenarioId=="hampton-roads"?4:2)&&(packet.rulesetId=="dob"||packet.scenarioId=="james-1865"||packet.ship!=2)&&(packet.rulesetId=="dob"||packet.rulesetId=="iron-fire"||RuleChart.OnBoard(new Hex(packet.q,packet.r),packet.scenarioId=="hampton-roads"))&&packet.facing>=0&&packet.facing<6&&float.IsFinite(packet.turret)&&packet.turret>=0&&packet.turret<360&&float.IsFinite(packet.load)&&packet.load>=0&&packet.load<=1;
+        public static bool ValidShip(TablePacket packet)=>ValidCourse(packet)&&float.IsFinite(packet.dobMoved)&&packet.dobMoved>=0&&packet.dobMoved<=1800&&float.IsFinite(packet.aftTurret)&&packet.aftTurret>=0&&packet.aftTurret<360&&packet.ship>=0&&packet.ship<(packet.rulesetId=="dob"?7:packet.scenarioId=="james-1865"?6:packet.scenarioId=="hampton-roads"?4:2)&&(packet.rulesetId=="dob"||packet.scenarioId=="james-1865"||packet.ship!=2)&&(packet.rulesetId=="dob"||packet.rulesetId=="iron-fire"||RuleChart.OnBoard(new Hex(packet.q,packet.r),(packet.scenarioId=="hampton-roads"||packet.scenarioId=="james-1865")))&&packet.facing>=0&&packet.facing<6&&float.IsFinite(packet.turret)&&packet.turret>=0&&packet.turret<360&&float.IsFinite(packet.load)&&packet.load>=0&&packet.load<=1;
         static bool ValidCourse(TablePacket p)
         {
             if(p.rulesetId!="iron-fire"&&p.rulesetId!="dob")return true;
-            bool dob=p.rulesetId=="dob";float limit=dob?200000:20000,maxSpeed=dob?35:20;
+            bool dob=p.rulesetId=="dob";float limit=dob?200000:(p.scenarioId=="hampton-roads"||p.scenarioId=="james-1865")?25000:20000,maxSpeed=dob?35:20;
             return float.IsFinite(p.east)&&float.IsFinite(p.north)&&Mathf.Abs(p.east)<=limit&&Mathf.Abs(p.north)<=limit&&float.IsFinite(p.heading)&&p.heading>=0&&p.heading<360&&float.IsFinite(p.speed)&&p.speed>=0&&p.speed<=maxSpeed&&float.IsFinite(p.orderedSpeed)&&p.orderedSpeed>=0&&p.orderedSpeed<=maxSpeed&&float.IsFinite(p.movementUsed)&&p.movementUsed>=0&&p.movementUsed<=100&&p.turnClass>=1&&p.turnClass<=5&&float.IsFinite(p.aftTurret)&&p.aftTurret>=0&&p.aftTurret<360&&float.IsFinite(p.dobMoved)&&p.dobMoved>=0&&p.dobMoved<=1800;
         }
         static string FindAddresses()
@@ -310,9 +315,9 @@ namespace Ironclads
         }
         void ApplyState(TablePacket packet)
         {
-            if(packet.state==null||packet.state.Length>32000)throw new Exception();
+            if(packet.state==null||packet.state.Length>200000)throw new Exception();
             var state=Scenario.Parse(packet.state);if((!state.hexMode&&!state.Miniatures&&!state.DoB)||state.umpireNotes.Length>4000||state.turn<1||state.turn>1000000)throw new Exception();
-            foreach(var ship in state.MovingShips)if(!state.Miniatures&&!state.DoB&&!RuleChart.OnBoard(RuleChart.At(ship.Position),state.Hampton))throw new Exception();
+            foreach(var ship in state.MovingShips)if(!state.CloseAction&&!state.Miniatures&&!state.DoB&&!RuleChart.OnBoard(RuleChart.At(ship.Position),state.Coastal))throw new Exception();
             if(packet.lobby==null||packet.lobby.owners==null||packet.lobby.epochs==null||packet.lobby.players==null||packet.lobby.requests==null||packet.lobby.owners.Length!=state.ShipSlots||packet.lobby.epochs.Length!=state.ShipSlots||packet.lobby.players.Length>MaxPlayers)throw new Exception();
             if(state.scenarioId!=scene.scenario.scenarioId||state.rulesetId!=scene.scenario.rulesetId||packet.lobby.generation!=Lobby.generation)pending.Clear();
             Lobby=packet.lobby;

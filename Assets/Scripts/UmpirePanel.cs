@@ -14,7 +14,7 @@ namespace Ironclads
         float SheetFit()=>Mathf.Clamp(Mathf.Min(Mathf.Max(100,Screen.width-430)/(float)sheet.width,Mathf.Max(100,Screen.height-270)/(float)sheet.height),.15f,1.3f);
         public void ShowSheet(bool niagara=false){sheet=ShipSheet(niagara);if(sheet==null){sheetOpen=false;scene.status="This optional user-supplied ship sheet is not bundled.";return;}sheetTitle=niagara?"USS NIAGARA / SUPPLIED 1863 CARD":"CSS STONEWALL / SUPPLIED SHIP SHEET";sheetZoom=SheetFit();sheetScroll=Vector2.zero;sheetOpen=true;}
         Vector2 scroll,sheetScroll;
-        GUIStyle title,sub,body,small,button,field,section,big,toggle;
+        GUIStyle title,sub,body,small,button,field,notesField,section,big,toggle;
         Texture2D panelTex,buttonTex,fieldTex,white;
         Texture2D sheet;
         string sheetTitle="CSS STONEWALL / SUPPLIED SHIP SHEET";
@@ -38,12 +38,20 @@ namespace Ironclads
             small=new GUIStyle(body){fontSize=11};
             section=new GUIStyle(body){fontSize=11,fontStyle=FontStyle.Bold,normal={textColor=gold},margin=new RectOffset(0,0,16,7)};
             big=new GUIStyle(body){fontSize=23,normal={textColor=Color.white}};
-            button=new GUIStyle(GUI.skin.button){fontSize=12,padding=new RectOffset(8,8,9,9),margin=new RectOffset(2,2,3,3),
+            button=new GUIStyle(GUI.skin.button){fontSize=12,wordWrap=true,padding=new RectOffset(8,8,9,9),margin=new RectOffset(2,2,3,3),
                 normal={background=buttonTex,textColor=ink},hover={background=buttonTex,textColor=gold},active={background=fieldTex,textColor=teal}};
             field=new GUIStyle(GUI.skin.textField){fontSize=13,padding=new RectOffset(8,8,6,6),normal={background=fieldTex,textColor=Color.white},focused={background=fieldTex,textColor=gold}};
+            notesField=new GUIStyle(field){wordWrap=true};
             toggle=new GUIStyle(GUI.skin.toggle){fontSize=12,normal={textColor=ink},onNormal={textColor=teal}};
             sheet=ShipSheet();
         }
+        void BeginPanelScroll()
+        {
+            scroll.x=0;
+            scroll=GUILayout.BeginScrollView(scroll,GUIStyle.none,GUI.skin.verticalScrollbar,GUILayout.ExpandHeight(true));
+            GUILayout.BeginVertical(GUILayout.Width(270));
+        }
+        void EndPanelScroll(){GUILayout.EndVertical();GUILayout.EndScrollView();}
         void Heading(string text)=>GUILayout.Label(text,section);
         bool Button(string text)=>GUILayout.Button(text,button);
         void Text(string text)=>GUILayout.Label(text,body);
@@ -56,6 +64,7 @@ namespace Ironclads
         void OnGUI()
         {
             if(scene==null||scene.view==null)return;if(title==null)Styles();if(chart==null)chart=GetComponent<RuleChart>();
+            if(scene.scenario.CloseAction){CloseActionGUI();return;}
             if(scene.scenario.James){JamesGUI();return;}
             if(scene.scenario.DoB){if(scene.dawn==null||scene.vessels.Length!=7)scene.UpdateWorld();DawnGUI();return;}
             if(shownScenario!=scene.scenario.scenarioId){shownScenario=scene.scenario.scenarioId;SyncScenarioFields();}
@@ -78,10 +87,10 @@ namespace Ironclads
             if(Button("Gunnery tools / bearings & arcs"))ShowTab(4);
             if(Button("Fire batteries / smoke & sound"))ShowTab(5);
             if(Button(scene.network!=null&&scene.network.Active?"Multiplayer · "+(scene.network.IsHost?"HOST":"GUEST"):"Multiplayer · direct TCP/IP"))ShowTab(7);
-            scroll=GUILayout.BeginScrollView(scroll,false,false,GUILayout.ExpandHeight(true));
+            BeginPanelScroll();
             switch(tab){case 0:Vessels();break;case 1:GUI.enabled=ManageTable;Weather();GUI.enabled=true;break;case 2:Chart();break;case 3:Sources();break;case 4:Gunnery();break;case 5:FireBatteries();break;case 6:Engines();break;case 7:Multiplayer();break;case 8:Scenarios();break;case 9:MovementPanel();break;case 10:UnionSupport();break;case 11:PatrickHenryPanel();break;}
             ReleaseControls();
-            GUILayout.Space(18);GUILayout.EndScrollView();
+            GUILayout.Space(18);EndPanelScroll();
             GUILayout.Label("RMB orbit  ·  Wheel zoom  ·  MMB pan\n1 / 2 focus  ·  Tab globe  ·  H hide UI  ·  v"+Application.version,small);
             GUILayout.EndArea();
             Header();
@@ -127,11 +136,11 @@ namespace Ironclads
                 GUILayout.BeginHorizontal();if(Button("↶  60°"))chart.Turn(-1);if(Button("60°  ↷"))chart.Turn(1);GUILayout.EndHorizontal();
                 GUILayout.BeginHorizontal();if(Button("Astern 1 hex"))chart.Move(-1);if(Button("Ahead 1 hex"))chart.Move(1);GUILayout.EndHorizontal();
                 GUILayout.Label("Shift + click the sea to place the selected ship.",small);
-                GUILayout.BeginHorizontal();col=GUILayout.TextField(col,2,field);row=GUILayout.TextField(row,2,field);
+                GUILayout.BeginHorizontal();col=GUILayout.TextField(col,4,field);row=GUILayout.TextField(row,4,field);
                 if(Button("Place")) {
-                    if(int.TryParse(col,out int c)&&int.TryParse(row,out int r)&&c>=1&&c<=RuleChart.Columns(scene.scenario.Hampton)&&r>=1&&r<=RuleChart.Rows(scene.scenario.Hampton)) {
+                    if(int.TryParse(col,out int c)&&int.TryParse(row,out int r)&&c>=RuleChart.FirstColumn(scene.scenario.Coastal)&&c<=RuleChart.LastColumn(scene.scenario.Coastal)&&r>=RuleChart.FirstRow(scene.scenario.Coastal)&&r<=RuleChart.LastRow(scene.scenario.Coastal)) {
                         int q=c-21;chart.Place(new Hex(q,r-19-Mathf.FloorToInt(q/2f)));
-                    } else scene.status=$"Use a local column 01-{RuleChart.Columns(scene.scenario.Hampton)} and row 01-{RuleChart.Rows(scene.scenario.Hampton)}.";
+                    } else scene.status=$"Use column {RuleChart.FirstColumn(scene.scenario.Coastal)} to {RuleChart.LastColumn(scene.scenario.Coastal)} and row {RuleChart.FirstRow(scene.scenario.Coastal)} to {RuleChart.LastRow(scene.scenario.Coastal)}.";
                 }GUILayout.EndHorizontal();
             } else {
                 ship.heading=Slider("Heading",ship.heading,0,359,"°");
@@ -139,7 +148,7 @@ namespace Ironclads
                 GUILayout.Label($"East {ship.east:0} m  ·  North {ship.north:0} m",small);
                 GUILayout.BeginHorizontal();east=GUILayout.TextField(east,8,field);north=GUILayout.TextField(north,8,field);
                 if(Button("Set m")) {
-                    if(float.TryParse(east,NumberStyles.Float,CultureInfo.InvariantCulture,out float e)&&float.TryParse(north,NumberStyles.Float,CultureInfo.InvariantCulture,out float n)&&!float.IsNaN(e)&&!float.IsNaN(n)&&Mathf.Abs(e)<=20000&&Mathf.Abs(n)<=20000) {
+                    if(float.TryParse(east,NumberStyles.Float,CultureInfo.InvariantCulture,out float e)&&float.TryParse(north,NumberStyles.Float,CultureInfo.InvariantCulture,out float n)&&!float.IsNaN(e)&&!float.IsNaN(n)&&Mathf.Abs(e)<=scene.scenario.Limit&&Mathf.Abs(n)<=scene.scenario.Limit) {
                         chart.Remember();ship.east=e;ship.north=n;
                     }else scene.status="Coordinates must be finite meters within ±20,000.";
                 }GUILayout.EndHorizontal();
@@ -159,7 +168,7 @@ namespace Ironclads
             GUI.enabled=ManageTable;
             if(Button($"End turn {scene.scenario.turn}  →  +3 minutes"))chart.NextTurn();
             if(scene.scenario.Miniatures)Text("End turn applies ordered speeds and resets both movement rulers. Positions stay where you moved them.");
-            scene.scenario.umpireNotes=GUILayout.TextArea(scene.scenario.umpireNotes,4000,field,GUILayout.Height(64));
+            scene.scenario.umpireNotes=GUILayout.TextArea(scene.scenario.umpireNotes,4000,notesField,GUILayout.Width(270),GUILayout.Height(64));
             GUILayout.BeginHorizontal();if(Button("Undo placement"))chart.Undo();GUI.enabled=true;if(Button("Log positions"))chart.Export();GUILayout.EndHorizontal();
             SaveLoad();
         }
@@ -220,7 +229,7 @@ namespace Ironclads
             Heading("USING THE MAP");
             Text("Range is the shortest hex path, excluding the firing hex and including the target hex (rules p. 18).");
             Text("Placement and facing controls carry out your orders. You decide movement allowances, turning capacity, current, collisions, line of sight, fire and damage.");
-            Text($"The local {RuleChart.Columns(scene.scenario.Hampton)} x {RuleChart.Rows(scene.scenario.Hampton)} chart has its own IDs. It does not reproduce printed mapboards I-IV or their shoals and boundaries.");
+            Text($"The local {RuleChart.Columns(scene.scenario.Coastal)} x {RuleChart.Rows(scene.scenario.Coastal)} chart has its own IDs. It does not reproduce printed mapboards I-IV or their shoals and boundaries.");
             if(scene.scenario.Hampton){Text("Hampton Roads: reconstructed shores and forts, approximate placement. Opening ship positions and weather are adjustable presets. No depth, grounding, terrain obstruction or shore fire is adjudicated automatically.");if(Button("Coastal overview"))CoastalView();return;}
             Heading("FERROL SCENARIO 4D");
             Text("The supplied rules include the three-ship breakout on 24 March 1865. This scene is your two-ship variant. Sacramento and the original board arrangement are not included.");

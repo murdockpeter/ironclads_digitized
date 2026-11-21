@@ -15,7 +15,7 @@ namespace Ironclads
         }
         public static void Materials()
         {
-            if (Hull != null) return;
+            if (Hull != null && Iron != null && Deck != null && Wood != null && Rope != null && Canvas != null && Black != null && Brass != null && White != null) return;
             Hull = MakeMaterial("Tarred timber", new Color(.055f,.065f,.066f));
             Iron = MakeMaterial("Weathered iron", new Color(.13f,.155f,.16f), .65f, .29f);
             Deck = MakeMaterial("Weathered teak", new Color(.54f,.43f,.28f));

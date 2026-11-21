@@ -15,7 +15,11 @@ namespace Ironclads
         public override bool Equals(object o)=>o is Hex h&&Equals(h);
         public override int GetHashCode()=>q*397^r;
         public static Hex operator +(Hex a,Hex b)=>new Hex(a.q+b.q,a.r+b.r);
-        public override string ToString() => (q+21).ToString("00")+(r+Mathf.FloorToInt(q/2f)+19).ToString("00");
+        public override string ToString()
+        {
+            int column=q+21,row=r+Mathf.FloorToInt(q/2f)+19;
+            return column>=1&&column<=99&&row>=1&&row<=99?column.ToString("00")+row.ToString("00"):column+"/"+row;
+        }
     }
     public class RuleChart : MonoBehaviour
     {
@@ -37,16 +41,23 @@ namespace Ironclads
         }
         public static int Range(Hex a,Hex b)=>Mathf.Max(Mathf.Abs(a.q-b.q),Mathf.Abs(a.r-b.r),Mathf.Abs((a.q+a.r)-(b.q+b.r)));
         public static int Facing(float heading)=>((Mathf.RoundToInt(heading/60)%6)+6)%6;
-        // Extend east and north to preserve existing four-digit hex IDs and saved positions.
-        public static int Columns(bool hampton)=>hampton?41:82;
-        public static int Rows(bool hampton)=>hampton?37:74;
-        public static bool OnBoard(Hex h,bool hampton=false){int row=h.r+Mathf.FloorToInt(h.q/2f);return h.q>=-20&&h.q<Columns(hampton)-20&&row>=-18&&row<Rows(hampton)-18;}
-        bool gridHampton;
+        // Coastal bounds cover the full geographic scenery plus a sea margin.
+        // Keep the existing coordinate origin so saved positions and old IDs remain valid.
+        public static int MinQ(bool coastal)=>coastal?-220:-20;
+        public static int MinRow(bool coastal)=>coastal?-180:-18;
+        public static int Columns(bool coastal)=>coastal?480:82;
+        public static int Rows(bool coastal)=>coastal?380:74;
+        public static int FirstColumn(bool coastal)=>MinQ(coastal)+21;
+        public static int LastColumn(bool coastal)=>FirstColumn(coastal)+Columns(coastal)-1;
+        public static int FirstRow(bool coastal)=>MinRow(coastal)+19;
+        public static int LastRow(bool coastal)=>FirstRow(coastal)+Rows(coastal)-1;
+        public static bool OnBoard(Hex h,bool coastal=false){int row=h.r+Mathf.FloorToInt(h.q/2f);return h.q>=MinQ(coastal)&&h.q<MinQ(coastal)+Columns(coastal)&&row>=MinRow(coastal)&&row<MinRow(coastal)+Rows(coastal);}
+        bool gridCoastal;
         void RebuildGrid()
         {
-            gridHampton=scene.scenario.Hampton;
+            gridCoastal=scene.scenario.Coastal;
             var verts=new List<Vector3>();var indices=new List<int>();
-            for(int q=-20;q<Columns(gridHampton)-20;q++)for(int row=-18;row<Rows(gridHampton)-18;row++) {
+            for(int q=MinQ(gridCoastal);q<MinQ(gridCoastal)+Columns(gridCoastal);q++)for(int row=MinRow(gridCoastal);row<MinRow(gridCoastal)+Rows(gridCoastal);row++) {
                 Hex h=new Hex(q,row-Mathf.FloorToInt(q/2f));Vector3 center=Center(h);
                 for(int i=0;i<6;i++) {
                     float a=i*Mathf.PI/3,b=(i+1)*Mathf.PI/3;
@@ -84,8 +95,8 @@ namespace Ironclads
         void LateUpdate()=>Refresh();
         public void Refresh()
         {
-            if(scene==null||scene.seaRoot==null)return;if(grid==null)Build();if(gridHampton!=scene.scenario.Hampton)RebuildGrid();
-            if(scene.scenario.DoB){grid.SetActive(false);rangeLine.gameObject.SetActive(false);foreach(var line in rings)line.gameObject.SetActive(false);foreach(var line in headings)line.gameObject.SetActive(false);foreach(var line in arcs)line.gameObject.SetActive(false);scene.view.orthographic=false;return;}
+            if(scene==null||scene.seaRoot==null)return;if(grid==null)Build();if(gridCoastal!=scene.scenario.Coastal)RebuildGrid();
+            if(scene.scenario.DoB||scene.scenario.CloseAction){grid.SetActive(false);rangeLine.gameObject.SetActive(false);foreach(var line in rings)line.gameObject.SetActive(false);foreach(var line in headings)line.gameObject.SetActive(false);foreach(var line in arcs)line.gameObject.SetActive(false);scene.view.orthographic=false;return;}
             Shader.SetGlobalFloat("_ChartWaveHeight",scene.scenario.waveHeight);
             grid.SetActive(showGrid&&!scene.scenario.Miniatures&&!scene.globeMode&&scene.showOverlay);
             rangeLine.gameObject.SetActive(showRange&&!scene.globeMode&&scene.showOverlay);
@@ -104,7 +115,7 @@ namespace Ironclads
             rangeLine.SetPosition(0,(s.Miniatures?s.ships[from].Position:Center(At(s.ships[from].Position)))+Vector3.up*.25f);
             rangeLine.SetPosition(1,(s.Miniatures?s.ships[to].Position:Center(At(s.ships[to].Position)))+Vector3.up*.25f);
             for(int i=0;i<3;i++) {
-                arcs[i].gameObject.SetActive(showArcs&&!scene.globeMode&&scene.selected==1&&!scene.scenario.Hampton&&!s.James&&scene.showOverlay);
+                arcs[i].gameObject.SetActive(showArcs&&!scene.globeMode&&scene.selected==1&&!scene.scenario.Coastal&&scene.showOverlay);
                 Vector3 origin=s.ships[1].Position+Vector3.up*.2f;
                 float start=s.ships[1].heading+(i==0?-90:i==1?-150:30),sweep=i==0?180:120;
                 var pts=new Vector3[33];pts[0]=origin;pts[32]=origin;
@@ -123,14 +134,14 @@ namespace Ironclads
         public void Place(Hex h)
         {
             if(scene.network!=null&&!scene.network.CanControl(scene.selected)){scene.status="You can place only your assigned ship.";return;}
-            if(!OnBoard(h,scene.scenario.Hampton)){scene.status=$"Outside the local {Columns(scene.scenario.Hampton)} x {Rows(scene.scenario.Hampton)} hex board.";return;}
+            if(!OnBoard(h,scene.scenario.Coastal)){scene.status=$"Outside the local {Columns(scene.scenario.Coastal)} x {Rows(scene.scenario.Coastal)} hex board.";return;}
             Remember();var s=scene.scenario.ships[scene.selected];Vector3 p=Center(h);s.east=p.x;s.north=p.z;
             scene.status=$"Placed {s.name} in local hex {h}.";
             scene.network?.SubmitShip(scene.selected);
         }
         public void Snap()
         {
-            if(scene.scenario.Miniatures||(scene.network!=null&&!scene.network.CanManage))return;
+            if(scene.scenario.CloseAction||scene.scenario.Miniatures||(scene.network!=null&&!scene.network.CanManage))return;
             Remember();foreach(var s in scene.scenario.MovingShips){var p=Center(At(s.Position));s.east=p.x;s.north=p.z;s.heading=Facing(s.heading)*60;}
         }
         public void Move(int sign) {var ship=scene.scenario.ships[scene.selected];Hex h=At(ship.Position),d=Directions[Facing(ship.heading)];Place(new Hex(h.q+sign*d.q,h.r+sign*d.r));}
@@ -151,11 +162,11 @@ namespace Ironclads
         }
         void OnGUI()
         {
-            if(scene==null||scene.scenario.DoB||scene.scenario.Miniatures||scene.globeMode||!scene.showOverlay||!showGrid||!showLabels||scene.distance<220)return;
+            if(scene==null||scene.scenario.CloseAction||scene.scenario.DoB||scene.scenario.Miniatures||scene.globeMode||!scene.showOverlay||!showGrid||!showLabels||scene.distance<220)return;
             if(label==null)label=new GUIStyle(GUI.skin.label){fontSize=10,alignment=TextAnchor.MiddleCenter,normal={textColor=new Color(.67f,.85f,.83f,.65f)}};
             Hex near=At(scene.target);int radius=Mathf.Clamp(Mathf.CeilToInt(scene.distance/HexMeters),4,25);
             for(int q=near.q-radius;q<=near.q+radius;q++)for(int r=near.r-radius;r<=near.r+radius;r++) {
-                Hex h=new Hex(q,r);if(!OnBoard(h,scene.scenario.Hampton))continue;
+                Hex h=new Hex(q,r);if(!OnBoard(h,scene.scenario.Coastal))continue;
                 Vector3 p=scene.view.WorldToScreenPoint(Center(h));
                 // Suppress labels whose projected neighbors would overlap at fleet-view scale.
                 Vector3 north=scene.view.WorldToScreenPoint(Center(h+Directions[0]));
@@ -163,7 +174,7 @@ namespace Ironclads
                 if(Vector2.Distance(new Vector2(p.x,p.y),new Vector2(north.x,north.y))<30||
                    Vector2.Distance(new Vector2(p.x,p.y),new Vector2(diagonal.x,diagonal.y))<30)continue;
                 if(p.z>0&&p.x>350&&p.x<Screen.width-20&&p.y>60&&p.y<Screen.height-100)
-                    GUI.Label(new Rect(p.x-24,Screen.height-p.y-7,48,14),h.ToString(),label);
+                    GUI.Label(new Rect(p.x-38,Screen.height-p.y-7,76,14),h.ToString(),label);
             }
         }
     }

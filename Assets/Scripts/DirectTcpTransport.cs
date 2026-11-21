@@ -13,7 +13,7 @@ namespace Ironclads
     // Only byte/string I/O runs on background threads; Unity state stays on the main thread.
     public sealed class DirectTcpTransport : IDisposable
     {
-        public const int MaxFrame=65536;
+        public const int MaxFrame=262144;
         public readonly struct Notice
         {
             public readonly int peer; public readonly string kind,text;

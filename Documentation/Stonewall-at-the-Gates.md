@@ -1,6 +1,17 @@
 # Stonewall at the Gates - Yaquinto Ironclads module
 
-A six-ironclad alternate-history encounter in Hampton Roads, 28 March 1865, 14:00 UTC. Local umpire play or six human commanders over direct TCP; version 1.7.0-dev. This is an additional module: Ferrol, the 1862 Hampton Roads duel and Ulsan remain available.
+A six-ironclad alternate-history encounter in Hampton Roads, 28 March 1865, 14:00 UTC. Local umpire play or six human commanders over direct TCP; local expanded-chart build 1.7.1-dev. This is an additional module: Ferrol, the 1862 Hampton Roads duel and Ulsan remain available.
+
+## Player briefing packets ? revised 21 November 2026
+
+- [Confederate command packet (11-page PDF)](Briefings/Stonewall-at-the-Gates-Confederate.pdf)
+- [Union command packet (11-page PDF)](Briefings/Stonewall-at-the-Gates-Union.pdf)
+
+Each packet contains historical framing, the shared match contract, an original tactical schematic, side-specific METT-TC and OCOKA, all five SMEAC paragraphs, a synchronization matrix, a captain's working card and linked sources. The two plans differ; the victory criteria do not. These packets replace the earlier two-survivor objective and 20-turn limit.
+
+The breakout is a plausible force-preservation mission under explicit counterfactuals, rather than a claim that one ironclad can reverse the land war. Stonewall needs an early Atlantic arrival and orders to join the river withdrawal; Virginia II and Fredericksburg need a successful upper-James passage. For a longer campaign, assume the Union spring offensive is delayed or checked and organized fighting continues into summer. No extended war is needed to make a late-March salvage mission intelligible. River ironclads are not treated as automatically capable of an ocean cruising campaign.
+
+Passing Fort Monroe leads into the lower Chesapeake, not directly into the Atlantic. The gate below deliberately abstracts a successful onward passage through the Virginia Capes. It is not a historical harbor boundary. These staff formats and orders are modern retrospective game aids, not authentic 1865 orders.
 
 ## The divergence
 
@@ -27,13 +38,13 @@ Mahopac uses the Canonicus-class overall raft dimensions (235 feet by 43 feet 8 
 
 ## Playtest setup
 
-- Board: 82 columns by 74 rows; adjacent centers 100 yards apart. Three-minute turns.
+- Board: expanded 480-column by 380-row coastal grid; adjacent centers 100 yards apart. Three-minute turns; preserved coordinate origin and existing deployments.
 - Opening: two three-ship lines, corresponding opponents 20 hexes / 2,000 yards apart. Ships start stationary with reciprocal headings; deploy from written orders using the normal hex controls. Use the models' center hex for occupancy and range.
-- Suggested duration: 20 turns / one hour. This is a proposed scenario limit, not a quoted published scenario.
-- Suggested Confederate objective: bring Stonewall and at least one companion off the eastern chart edge in a condition eligible to escape under your agreed damage rules.
-- Suggested Union objective: prevent that breakout within 20 turns.
-- Agree precise victory/draw criteria, firing templates, ammunition, ship ratings, engine capacity, turning limits and any handicaps from your Yaquinto cards before play. Numerical game ratings are not inferred from naval dimensions or visual guns. No automatic combat, damage, movement legality, loading or victory evaluation is applied.
-- The existing modern-data Hampton Roads shore and fort reconstruction provides visual scenery. No depth survey or historical 1865 battery reconstruction is claimed. Declare navigable hexes, shoals, shore restrictions, fort activity and any currents before beginning; the game does not enforce grounding or fort fire. Existing 1862 support ships and wrecks are not deployed in this module.
+- Duration: 60 resolved turns / three hours, 14:00?17:00 UTC on the game clock. Keep a resolved-turn ledger. This design allowance accommodates the expanded approach; it is not a published historical scenario or a playtested balance result. Both sides write and reveal free initial headings before Turn 1, without free displacement.
+- Confederate objective: at least ONE of Stonewall, Virginia II or Fredericksburg must escape free and clear. Stonewall is not a mandatory survivor. Cross Gate LIBERTY west-to-east through column 184, rows 22?70 inclusive, then complete two consecutive qualifying clear turns east of the gate. The ship must be afloat, steerable, under its own power, not surrendered or towed, and free of fatal unresolved damage under the agreed rules. No operational Union monitor may cover it with functional guns at effective range, bearing and line of fire under the declared visibility rules. Ignore reload state for this clearance check: an enemy reload interval does not confer freedom. Resolve the entire turn before counting. A failed condition resets the clear count. After two qualifying turns, onward passage through the Capes is conceded without a fresh off-map interception.
+- Union objective: prevent every qualifying escape through the end of Turn 60. A candidate on only one clear turn at the deadline has not escaped. End early if all three Confederate hulls are sunk, captured or scuttled. There is no casualty-points override or draw; additional escapees change narrative quality, not the one-ship threshold. If a candidate reaches the map edge before adjudication, retain its status in an umpire-managed off-map holding box.
+- Use the shared victory contract above; agree firing templates, ammunition, ship ratings, engine capacity, turning limits and any handicaps from your Yaquinto cards before play. Numerical game ratings are not inferred from naval dimensions or visual guns. No automatic combat, damage, movement legality, loading or victory evaluation is applied.
+- The existing modern-data Hampton Roads shore and fort reconstruction provides visual scenery. No depth survey or historical 1865 battery reconstruction is claimed. Declare navigable hexes, shoals, shore restrictions, visibility and any currents before beginning. Baseline separate fort fire is OFF, an explicit balance abstraction rather than a historical finding. Fort Monroe and Fort Wool remain Union-held. Any active-fort variant requires identical written battery ratings, arcs, ranges, rates and target rules issued to both sides before play; the game does not enforce grounding or fort fire. Existing 1862 support ships and wrecks are not deployed in this module.
 - This scenario has not yet been balanced through human play. The Union's large smoothbores and the Confederate ram/pivot batteries make a different tactical problem from Ferrol; parity of ship count is not proof of equal strength.
 
 ## Controls and launching
@@ -42,11 +53,11 @@ Mahopac uses the Canonicus-class overall raft dimensions (235 feet by 43 feet 8 
 .\Start-Ironclads.ps1 -James1865
 ```
 
-Executable: `Builds/Windows-Multiplayer/Ironclads.exe -james-1865`.
+Executable: `Builds/Windows-ExpandedChart/Ironclads.exe -james-1865`. The revised Briefing / save panel links both player PDFs. The source PDFs live in `Documentation/Briefings`; local copies are placed in StreamingAssets/References for the viewer. The launcher restores locally available reference files after a build.
 
 From another module, choose Scenarios and then **Stonewall at the Gates / 3 vs 3 (1865)**. Starting a scenario replaces the current table, so use Save table first if needed. All six hulls can be selected and inspected. Shift-click sea or enter a column/row to place the selected ship. Ahead/astern and port/starboard controls operate on that ship. End Turn changes time and retains all six positions. Undo and CSV logging cover the entire table. Save/load includes all six ships, weather, notes, heading and both Onondaga turret angles.
 
-Gunnery permits any selected ship to measure any target ship or an Alt-clicked hex. Custom arc guides remain measuring aids; match them to the printed firing template. Fire buttons emit only the selected battery. The local sea-sound preference and separate cannon-volume controls are retained. For network play, open **Multiplayer**, host or join the internal TCP lobby, request ships, and have the host approve assignments. Each participant marks ready before the host starts the match. The lobby remains available for host-approved control transfers during play. One captain can command several ships; a separate host can act as umpire. All participants need protocol 7. See [multiplayer instructions](MULTIPLAYER.md).
+Gunnery permits any selected ship to measure any target ship or an Alt-clicked hex. Custom arc guides remain measuring aids; match them to the printed firing template. Fire buttons emit only the selected battery. The local sea-sound preference and separate cannon-volume controls are retained. For network play, open **Multiplayer**, host or join the internal TCP lobby, request ships, and have the host approve assignments. Each participant marks ready before the host starts the match. The lobby remains available for host-approved control transfers during play. One captain can command several ships; a separate host can act as umpire. All participants need the matching expanded-chart protocol 8 build. See [multiplayer instructions](MULTIPLAYER.md).
 
 ## Sources and research limits
 
@@ -64,3 +75,7 @@ Research performed 12 November 2026. NHHC page fetching was intermittent; indexe
 ## Validation
 
 Editor and runtime reports, model counts and review images are in `Artifacts/James1865/`. Checks cover fleet creation, finite geometry, battery counts, opening hexes on visual water, placement/undo for every ship, manual turn handling, independent twin-turret aiming, six-ship save parsing, firing all 19 guns, exhaust attachment/emission, target selection and return to the older modules. These are functional checks, not a historical-accuracy or play-balance certification.
+
+## Regenerating the player PDFs
+
+Run `python Tools/build-player-briefings.py` with ReportLab and the Windows Calibri / Georgia fonts installed. The script contains the original scenario text and vector schematic and writes exactly two shareable PDFs to `Documentation/Briefings`. No private game cards, ship sheets or rulebook scans are embedded. Player editions are dated 21 November 2026; historical facts are linked separately from the counterfactuals and house scenario rules. The new objective and duration have not undergone gameplay balance trials.

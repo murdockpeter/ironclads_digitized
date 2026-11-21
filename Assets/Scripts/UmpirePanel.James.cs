@@ -16,7 +16,7 @@ namespace Ironclads
             if(Button(scene.soundEnabled?"Sea sounds: ON / mute":"Sea sounds: OFF / enable"))scene.SetSeaAudio(!scene.soundEnabled,scene.seaVolume);
             if(scene.network.Active&&Button("Lobby / control requests ("+scene.network.Lobby.requests.Length+")"))ShowJamesTab(5);
             jamesTab=GUILayout.SelectionGrid(jamesTab,new[]{"Ships / orders","Gunnery / fire","Weather","Briefing / save","Scenarios","Multiplayer"},2,button);
-            scroll=GUILayout.BeginScrollView(scroll);
+            BeginPanelScroll();
             if(jamesTab<2){
             Heading("UNION IRONCLADS");GUILayout.BeginHorizontal();for(int i=0;i<3;i++)if(Button(JamesScenario.Names[i].Replace("USS ","")))SelectJames(i);GUILayout.EndHorizontal();
             Heading("CONFEDERATE IRONCLADS");GUILayout.BeginHorizontal();for(int i=3;i<6;i++)if(Button(JamesScenario.Names[i].Replace("CSS ","")))SelectJames(i);GUILayout.EndHorizontal();
@@ -28,8 +28,8 @@ namespace Ironclads
                     Heading("HEX MOVEMENT / UMPIRE ORDERS");Text($"Local hex {RuleChart.At(ship.Position)} / {RuleChart.Facings[RuleChart.Facing(ship.heading)]} / {ship.heading:0} degrees");
                     GUILayout.BeginHorizontal();if(Button("Turn port 60"))chart.Turn(-1);if(Button("Turn starboard 60"))chart.Turn(1);GUILayout.EndHorizontal();
                     GUILayout.BeginHorizontal();if(Button("Astern 1 hex"))chart.Move(-1);if(Button("Ahead 1 hex"))chart.Move(1);GUILayout.EndHorizontal();
-                    Text("Shift-click the sea to place this ship, or enter local column and row.");GUILayout.BeginHorizontal();jamesColumn=GUILayout.TextField(jamesColumn,2,field);jamesRow=GUILayout.TextField(jamesRow,2,field);GUILayout.EndHorizontal();
-                    if(Button("Place in hex")){if(int.TryParse(jamesColumn,out int c)&&int.TryParse(jamesRow,out int r)&&c>=1&&c<=82&&r>=1&&r<=74){int q=c-21;chart.Place(new Hex(q,r-19-Mathf.FloorToInt(q/2f)));}else scene.status="Use columns 01-82 and rows 01-74.";}
+                    Text("Shift-click the sea to place this ship, or enter local column and row.");GUILayout.BeginHorizontal();jamesColumn=GUILayout.TextField(jamesColumn,4,field);jamesRow=GUILayout.TextField(jamesRow,4,field);GUILayout.EndHorizontal();
+                    if(Button("Place in hex")){if(int.TryParse(jamesColumn,out int c)&&int.TryParse(jamesRow,out int r)&&c>=RuleChart.FirstColumn(true)&&c<=RuleChart.LastColumn(true)&&r>=RuleChart.FirstRow(true)&&r<=RuleChart.LastRow(true)){int q=c-21;chart.Place(new Hex(q,r-19-Mathf.FloorToInt(q/2f)));}else scene.status=$"Use columns {RuleChart.FirstColumn(true)} to {RuleChart.LastColumn(true)} and rows {RuleChart.FirstRow(true)} to {RuleChart.LastRow(true)}.";}
                     if(scene.selected<3){Heading("TURRET TRAINING");ship.turretHeading=Slider("Forward turret",ship.turretHeading,0,359," degrees");if(scene.selected==0)ship.aftTurretHeading=Slider("Aft turret",ship.aftTurretHeading,0,359," degrees");Text("Train turrets visually; use your ship card for permitted arcs and obstructions.");}
                     Heading("VISUAL ENGINE EFFORT");ship.boilersLit=GUILayout.Toggle(ship.boilersLit,"Boilers lit",toggle);ship.engineLoad=Slider("Engine effort",ship.engineLoad*100,0,100," %")/100;Text("Engine effort changes smoke. Move ships manually using your written orders and ship cards.");
                     if(GUI.changed&&OwnShip)scene.network.SubmitShip(scene.selected);GUI.enabled=ManageTable;
@@ -49,16 +49,18 @@ namespace Ironclads
                 case 2:GUI.enabled=ManageTable;Weather();GUI.enabled=true;break;
                 case 3:
                     Heading("ALTERNATE HISTORY / UMPIRE BRIEFING");Text("28 March 1865: an early Atlantic passage puts Stonewall in Hampton Roads. Virginia II and Fredericksburg have escaped the upper James to meet her. Onondaga, Mahopac and Sangamon are concentrated to stop them. These departures from history create the encounter.");
-                    Text("Suggested game: 20 turns, 100-yard hexes, three-minute turns. Confederates must bring Stonewall and at least one companion off the eastern chart edge; Union must prevent this. Agree damage, escape eligibility and victory terms using your Yaquinto rules and cards before play. Objectives and end conditions are manual.");
-                    Text("All six begin stationary, roughly 2,000 yards between lines. Apply written movement orders yourself. No automatic movement allowances, loading, hits, damage or grounding. Modern geographic coast shapes and existing fort scenery are visual context; declare playable water, shoals and fort activity before starting.");
+                    Text("Breakout mission: get at least ONE Confederate ironclad free and clear past Fort Monroe and Fort Wool toward the open sea. Union must prevent every escape. Play 60 resolved three-minute turns (14:00-17:00 UTC). Gate LIBERTY: column 184, rows 22-70. Cross west to east, then complete two consecutive qualifying clear turns under the shared PDF rules. Onward transit through the Virginia Capes is abstracted; passing Fort Monroe alone is not yet the Atlantic. Victory is umpire-adjudicated.");
+                    Text("All six begin stationary, roughly 2,000 yards between lines. Reveal free initial headings together; no free displacement. Use written orders and agreed ship cards. Baseline separate shore fire is OFF as a balance abstraction; forts remain Union-held. Declare playable water and visibility before starting. No automatic movement, loading, hits, damage, grounding, gate scoring or victory evaluation.");
                     Text("Virginia II follows your supplied 7-inch bow card; historical summaries differ. Fredericksburg uses a provisional DANFS battery; reconcile with your own card. Exact hull lines, fittings and small paint markings are reconstructions. Niagara remains available in Ferrol with ten rifles; she is wooden and is outside this all-ironclad force.");
+                    if(Button("Confederate player briefing / PDF"))OpenReference("Stonewall-at-the-Gates-Confederate.pdf");
+                    if(Button("Union player briefing / PDF"))OpenReference("Stonewall-at-the-Gates-Union.pdf");
                     if(Button("Open supplied Virginia II sheet"))OpenReference("Virginia2.pdf");
-                    GUI.enabled=ManageTable;s.umpireNotes=GUILayout.TextArea(s.umpireNotes,4000,field,GUILayout.Height(100));GUI.enabled=true;SaveLoad();if(Button("Log all six positions"))chart.Export();GUI.enabled=ManageTable;if(Button("Reset six-ship deployment"))scene.StartJames();GUI.enabled=true;break;
+                    GUI.enabled=ManageTable;s.umpireNotes=GUILayout.TextArea(s.umpireNotes,4000,notesField,GUILayout.Width(270),GUILayout.Height(100));GUI.enabled=true;SaveLoad();if(Button("Log all six positions"))chart.Export();GUI.enabled=ManageTable;if(Button("Reset six-ship deployment"))scene.StartJames();GUI.enabled=true;break;
                 case 4:Scenarios();break;
                 case 5:MultiplayerLobby();break;
             }
             ReleaseControls();
-            GUILayout.Space(15);GUILayout.EndScrollView();GUILayout.Label("RMB orbit / wheel zoom / MMB pan / H hide UI\nv"+Application.version,small);GUILayout.EndArea();
+            GUILayout.Space(15);EndPanelScroll();GUILayout.Label("RMB orbit / wheel zoom / MMB pan / H hide UI\nv"+Application.version,small);GUILayout.EndArea();
             float x=352,w=Screen.width-x-22;GUI.DrawTexture(new Rect(x,18,w,74),panelTex);GUI.Label(new Rect(x+15,25,w-30,20),"HAMPTON ROADS / ALTERNATE HISTORY / YAQUINTO IRONCLADS",sub);GUI.Label(new Rect(x+15,48,w-30,34),"Stonewall at the Gates / 3 vs 3",big);
             GUI.DrawTexture(new Rect(342,Screen.height-45,Screen.width-354,33),panelTex);GUI.Label(new Rect(354,Screen.height-40,Screen.width-380,26),$"TURN {s.turn:00} / {s.Date:dd MMM yyyy HH:mm} UTC / "+scene.status,small);if(!scene.globeMode)ShipLabels();
         }

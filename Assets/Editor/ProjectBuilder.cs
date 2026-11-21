@@ -16,6 +16,9 @@ namespace Ironclads.Editor
     {
         const string ScenePath="Assets/Scenes/Ferrol.unity";
         public static void Deliver(){Prepare();BuildWindows();}
+        public static void DeliverCloseAction(){PlayerSettings.bundleVersion="1.8.4-dev";CloseActionReview.PrepareModels();IncludeShaders();PowderSmokeReview.Run();CloseActionReview.Verify();CloseActionDetailReview.Run();CloseActionHullReview.Run();BuildWindowsTo("Builds/Windows-CloseAction-Smoke");}
+        public static void DeliverCloseActionPlayer(){PlayerSettings.bundleVersion="1.8.4-dev";IncludeShaders();BuildWindowsTo("Builds/Windows-CloseAction-Smoke");}
+        public static void DeliverExpandedChart(){PlayerSettings.bundleVersion="1.7.1-dev";BuildWindowsTo("Builds/Windows-ExpandedChart");}
         public static void DeliverLobby(){Prepare();BuildWindowsTo("Builds/Windows-Multiplayer");}
         public static void DeliverBroadside(){Prepare();BuildWindowsTo("Builds/Windows-Broadside");}
         public static void DeliverPass2(){Prepare();GeometryReview.Run();BuildWindows();}
@@ -85,7 +88,7 @@ namespace Ironclads.Editor
             var settings=AssetDatabase.LoadAllAssetsAtPath("ProjectSettings/GraphicsSettings.asset").FirstOrDefault();
             if(settings==null)throw new Exception("Graphics settings asset missing.");
             var serialized=new SerializedObject(settings);var shaders=serialized.FindProperty("m_AlwaysIncludedShaders");
-            foreach(string name in new[]{"Ironclads/Ocean","Ironclads/Sky","Ironclads/Atmosphere","Ironclads/Weather Sprite","Ironclads/Powder Smoke","Ironclads/Chart","Ironclads/Coastal Ground","Ironclads/Worked Iron","Ironclads/Cruiser Finish","Ironclads/Supplied Ship","Standard"}) {
+            foreach(string name in new[]{"Ironclads/Stern Lettering","Ironclads/Close Action Canvas","Ironclads/Ocean","Ironclads/Sky","Ironclads/Atmosphere","Ironclads/Weather Sprite","Ironclads/Powder Smoke","Ironclads/Chart","Ironclads/Coastal Ground","Ironclads/Worked Iron","Ironclads/Cruiser Finish","Ironclads/Supplied Ship","Standard"}) {
                 var shader=Shader.Find(name);if(shader==null)throw new Exception("Missing shader "+name);
                 if(ShaderUtil.ShaderHasError(shader))throw new Exception("Shader compilation failed: "+name);
                 bool found=false;for(int i=0;i<shaders.arraySize;i++)if(shaders.GetArrayElementAtIndex(i).objectReferenceValue==shader)found=true;
@@ -112,7 +115,7 @@ namespace Ironclads.Editor
             Check(new Hex(0,0).ToString()=="2119","Local chart center label");
             Check(RuleChart.Columns(false)*RuleChart.Rows(false)==6068,"Ferrol has 82 by 74 hexes");
             Check(RuleChart.OnBoard(new Hex(61,25))&&!RuleChart.OnBoard(new Hex(62,24))&&!RuleChart.OnBoard(new Hex(61,26)),"Expanded Ferrol placement boundaries");
-            Check(!RuleChart.OnBoard(new Hex(61,25),true)&&RuleChart.OnBoard(new Hex(20,8),true),"Hampton retains original board boundaries");
+            Check(RuleChart.OnBoard(new Hex(61,25),true)&&RuleChart.OnBoard(new Hex(20,8),true),"Expanded coastal board retains existing positions");
             var opening=new Scenario();
             Check(RuleChart.Range(RuleChart.At(opening.ships[0].Position),RuleChart.At(opening.ships[1].Position))==20,"Ferrol starts twenty hexes apart");
             Check(Mathf.Abs(Vector3.Distance(opening.ships[0].Position,opening.ships[1].Position)-1828.8f)<.01f,"Ferrol opening range is 2000 yards");
@@ -175,6 +178,14 @@ namespace Ironclads.Editor
             Directory.CreateDirectory(directory);
             var report=BuildPipeline.BuildPlayer(new BuildPlayerOptions {scenes=new[]{ScenePath},locationPathName=directory+"/Ironclads.exe",target=BuildTarget.StandaloneWindows64,options=BuildOptions.None});
             if(report.summary.result!=BuildResult.Succeeded)throw new Exception("Player build failed: "+report.summary.result);
+            // These original player packets are public; private ship sheets remain excluded.
+            foreach(string side in new[]{"Confederate","Union"}) {
+                string name="Stonewall-at-the-Gates-"+side+".pdf";
+                string source="Documentation/Briefings/"+name;
+                if(!File.Exists(source))continue;
+                string references=directory+"/Ironclads_Data/StreamingAssets/References";
+                Directory.CreateDirectory(references);File.Copy(source,references+"/"+name,true);
+            }
             Debug.Log("IRONCLADS WINDOWS BUILD SUCCEEDED: "+report.summary.totalSize+" bytes");
         }
         static void ExportObj(GameObject ship,string path)

@@ -1,5 +1,15 @@
 # Ironclads — Ferrol & Hampton Roads
 
+**Close Action powder revision (1.8.4-dev):** outward muzzle jets, slow-rising grey smoke lasting up to three minutes and farther-carrying reports with a longer rolling tail. [Smoke and audio guide](Documentation/Close-Action-Powder-Smoke.md).
+
+**Close Action canvas revision (1.8.3-dev):** fuller wind-driven sails with smooth random gusts, small traveling folds and independent timing per sail and ship. Includes the ten class/family prototypes, station-based hull contours and visible weather controls from 1.8.2-dev. [Hull and weather guide](Documentation/Close-Action-Hull-Contours.md). [Visual guide and sources](Documentation/Close-Action-Visuals.md).
+
+**Close Action module (protocol 9).** Run `./Start-Ironclads.ps1 -CloseAction` for Scenario 6, Nelson vs Brueys: 23 ships and three published force variants. Includes detailed sailing-ship models, chart-based movement and normal gunfire, sealed simultaneous orders, crew/sail logs, signals, saves, and a large multiplayer lobby. Complex critical hits, boarding, scattering and maintenance remain umpire-assisted. [Module guide and rule coverage](Documentation/Close-Action.md). The launcher now prefers `Builds/Windows-CloseAction-Smoke` for all modules.
+
+**Stonewall at the Gates player briefings:** [Confederate PDF](Documentation/Briefings/Stonewall-at-the-Gates-Confederate.pdf) and [Union PDF](Documentation/Briefings/Stonewall-at-the-Gates-Union.pdf). Revised breakout objective: at least one Confederate ironclad free and clear beyond the forts, with onward open-sea transit abstracted. Includes full METT-TC, OCOKA, SMEAC, synchronization matrices and a shared 60-turn match contract.
+
+**Local development: expanded coastal chart (1.7.1-dev).** Hampton Roads and Stonewall at the Gates now use a 480 ? 380 grid of 100-yard hexes across the modeled coastal region, with additional room beyond its shores. Existing positions/IDs are preserved; extended coordinates use `column/row` when they exceed the original two-digit range. Camera travel and coordinate entry cover the enlarged board. The launcher prefers `Builds/Windows-ExpandedChart`. Multiplayer requires matching protocol 8 builds. Tests were not run for this change, as requested.
+
 **Stable release: v1.7.0 ? enhanced multiplayer.** [Download the Windows x64 ZIP](https://github.com/murdockpeter/ironclads_digitized/releases/latest), extract everything and run `Ironclads.exe`. Includes all scenario modules and the protocol 7 lobby. The app checks for newer stable GitHub releases at startup; every scenario has **Check for updates** and a startup-check preference. Downloads and installation are manual. [Release notes](Documentation/RELEASE-1.7.0.md).
 
 The entries below record earlier development deliveries.

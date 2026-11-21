@@ -7,7 +7,7 @@ namespace Ironclads
     {
         bool hostUmpire=true;
         int assignmentPlayer;
-        string[] SideNames=>scene.scenario.DoB?new[]{"Russia","Japan"}:new[]{"Union","Confederacy"};
+        string[] SideNames=>scene.scenario.CloseAction?new[]{"British","French"}:scene.scenario.DoB?new[]{"Russia","Japan"}:new[]{"Union","Confederacy"};
         void MultiplayerLobby()
         {
             var net=scene.network;
@@ -23,7 +23,7 @@ namespace Ironclads
                 if(Button("Open lobby")){if(int.TryParse(networkPort,out int port))net.Host(port,hostUmpire?-1:hostShip,networkCode);else scene.status="Enter a TCP port from 1 to 65535.";}
                 Heading("JOIN A HOST");GUILayout.Label("Host IPv4 address",small);networkAddress=GUILayout.TextField(networkAddress,45,field);
                 if(Button("Join IP / port / code above")){if(int.TryParse(networkPort,out int port))net.Join(networkAddress.Trim(),port,networkCode);else scene.status="Enter the host's TCP port.";}
-                Text("Six commanders can play with an optional separate host/umpire. Use matching protocol 7 builds. Players connect first, then choose ships in this lobby.");
+                Text("Capacity: "+net.PlayerCapacity+" players including host. Use matching protocol "+MultiplayerSession.Protocol+" builds. Players connect first, then choose ships in this lobby.");
                 Text("Use the host's LAN IP on your network, or public IP over the internet. The host usually needs TCP port forwarding and a firewall allowance. Players normally need no port forwarding. No public server browser or relay service is required.");
                 Text("Direct TCP is unencrypted. A shared VPN can provide connectivity where direct hosting is unavailable.");return;
             }

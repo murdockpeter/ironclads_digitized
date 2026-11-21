@@ -39,6 +39,8 @@ namespace Ironclads
         public HamptonTerrain terrain;
         public HamptonSupport support;
         public Transform Vessel(int i)=>scenario.Hampton&&i==2?support?.minnesota:scenario.Hampton&&i==3?support?.patrickHenry:vessels[i];
+        public CloseActionTable closeAction;
+        public void StartCloseAction(int variant=0){if(network!=null&&!network.CanManage)return;GetComponent<RuleChart>()?.Remember();scenario=CloseActionScenario.Create(variant);selected=0;animateTime=false;if(closeAction==null){closeAction=gameObject.AddComponent<CloseActionTable>();closeAction.scene=this;}closeAction.Bind(true);Overview();status="Close Action / Nelson vs Brueys: review scattering and opening sail before plotting.";}
         public DawnNavalTable dawn;
         public void StartUlsan(){if(network!=null&&!network.CanManage)return;GetComponent<RuleChart>()?.Remember();scenario=UlsanScenario.Create();selected=0;animateTime=false;Overview();status="Ulsan — 14 August 1904, 05:20 scenario time. Seven-cruiser setup loaded.";}
         public void StartScenario(bool hampton)
@@ -53,12 +55,12 @@ namespace Ironclads
         public void StartJames(){if(network!=null&&!network.CanManage){status="The host chooses the scenario.";return;}GetComponent<RuleChart>()?.Remember();scenario=JamesScenario.Create();selected=0;animateTime=false;var guns=GetComponent<GunneryTools>();guns.preset=3;guns.pickedTarget=false;guns.fleetTarget=3;guns.reach=12;GetComponent<RuleChart>().Snap();Overview();status="Stonewall at the Gates - 28 March 1865 alternate history. Six ironclads.";}
         void EnsureFleet()
         {
-            string appearance=scenario.scenarioId+(scenario.Hampton?(suppliedMonitor?"-M":"")+(suppliedVirginia?"-V":""):"");
+            string appearance=scenario.scenarioId+(scenario.CloseAction?"-"+scenario.closeAction.variant:"")+(scenario.Hampton?(suppliedMonitor?"-M":"")+(suppliedVirginia?"-V":""):"");
             if(fleetId==appearance)return;
             GetComponent<BatteryEffects>()?.Clear();GetComponent<EngineExhaust>()?.ResetFunnels();
             foreach(var vessel in vessels)if(vessel!=null){vessel.gameObject.SetActive(false);if(Application.isPlaying)Destroy(vessel.gameObject);else DestroyImmediate(vessel.gameObject);}
             vessels=new Transform[scenario.ships.Length];
-            for(int i=0;i<vessels.Length;i++){vessels[i]=(scenario.James?Shipwright.CreateJamesShip(i):scenario.DoB?Shipwright.CreateCruiser(i):scenario.Hampton?(i==0?(suppliedMonitor?Shipwright.CreateSuppliedHybrid(true):Shipwright.CreateMonitor()):(suppliedVirginia?Shipwright.CreateSuppliedHybrid(false):Shipwright.CreateVirginia())):Shipwright.Create(i==1)).transform;vessels[i].SetParent(seaRoot,false);}
+            for(int i=0;i<vessels.Length;i++){vessels[i]=(scenario.CloseAction?Shipwright.CreateCloseActionShip(CloseActionScenario.Spec(scenario,i)):scenario.James?Shipwright.CreateJamesShip(i):scenario.DoB?Shipwright.CreateCruiser(i):scenario.Hampton?(i==0?(suppliedMonitor?Shipwright.CreateSuppliedHybrid(true):Shipwright.CreateMonitor()):(suppliedVirginia?Shipwright.CreateSuppliedHybrid(false):Shipwright.CreateVirginia())):Shipwright.Create(i==1)).transform;vessels[i].SetParent(seaRoot,false);}
             selected=Mathf.Clamp(selected,0,vessels.Length-1);
             if(scenario.DoB&&dawn==null){dawn=gameObject.AddComponent<DawnNavalTable>();dawn.scene=this;}
             dawn?.ResetEffects();
@@ -109,6 +111,8 @@ namespace Ironclads
             gameObject.AddComponent<BatteryEffects>().scene=this;
             gameObject.AddComponent<EngineExhaust>().scene=this;
             network=gameObject.AddComponent<MultiplayerSession>();network.scene=this;
+            closeAction=gameObject.AddComponent<CloseActionTable>();closeAction.scene=this;
+            if(Application.isPlaying&&Array.IndexOf(Environment.GetCommandLineArgs(),"-verify-close-action")>=0&&FindFirstObjectByType<CloseActionVerification>()==null)gameObject.AddComponent<CloseActionVerification>();
             if(Application.isPlaying&&Array.IndexOf(Environment.GetCommandLineArgs(),"-verify-lobby")>=0)gameObject.AddComponent<LobbyVerification>();
             if(Application.isPlaying&&Array.IndexOf(Environment.GetCommandLineArgs(),"-verify-runtime")>=0)gameObject.AddComponent<RuntimeVerification>();
             if(Application.isPlaying&&Array.IndexOf(Environment.GetCommandLineArgs(),"-verify-james")>=0)gameObject.AddComponent<JamesVerification>();
@@ -165,6 +169,7 @@ namespace Ironclads
             view.clearFlags=globeMode?CameraClearFlags.SolidColor:CameraClearFlags.Skybox;view.backgroundColor=new Color(.002f,.004f,.010f);
             marker.localPosition=Navigation.GlobePoint(scenario.latitude,scenario.longitude)*101.3f;
             for(int i=0;i<scenario.ships.Length;i++) {
+                if(scenario.CloseAction){vessels[i].gameObject.SetActive(!scenario.closeAction.logs[i].removed);vessels[i].GetComponent<CloseActionVisual>()?.Refresh(scenario.closeAction.logs[i],scenario.ships[i].heading,scenario.windFrom,scenario.windKnots);}
                 var s=scenario.ships[i];float time=Application.isPlaying?Time.time:15;
                 vessels[i].localPosition=s.Position+Vector3.up*WaveAt(s.Position,time)*.65f;
                 vessels[i].localRotation=Quaternion.Euler(Mathf.Sin(time*.6f+i)*scenario.waveHeight*.65f,s.heading,Mathf.Sin(time*.83f+i*2)*scenario.waveHeight*1.25f);
@@ -185,7 +190,7 @@ namespace Ironclads
         void Update()
         {
             if(!initialized)return;
-            if(scenario.Miniatures||scenario.DoB||scenario.James)animateTime=false;
+            if(scenario.Miniatures||scenario.DoB||scenario.James||scenario.CloseAction)animateTime=false;
             if(network!=null&&network.Active){animateTime=false;if(!scenario.Miniatures&&!scenario.DoB)scenario.hexMode=true;}
             if(Input.GetKeyDown(KeyCode.Tab)) ToggleGlobe();
             if(Input.GetKeyDown(KeyCode.H))showOverlay=!showOverlay;
@@ -204,7 +209,7 @@ namespace Ironclads
                 }
                 float scroll=Input.mouseScrollDelta.y;
                 if(globeMode)globeDistance=Mathf.Clamp(globeDistance*Mathf.Exp(-scroll*.10f),115,600);
-                else distance=Mathf.Clamp(distance*Mathf.Exp(-scroll*.12f),18,scenario.DoB?80000:12000);
+                else distance=Mathf.Clamp(distance*Mathf.Exp(-scroll*.12f),18,scenario.DoB||scenario.CloseAction?80000:scenario.Coastal?45000:12000);
                 if(!globeMode) {
                     Vector3 right=Quaternion.Euler(0,yaw,0)*Vector3.right,forward=Quaternion.Euler(0,yaw,0)*Vector3.forward;
                     if(Input.GetMouseButton(2))target-=right*Input.GetAxisRaw("Mouse X")*distance*.025f+forward*Input.GetAxisRaw("Mouse Y")*distance*.025f;
@@ -230,6 +235,7 @@ namespace Ironclads
         }
         public void Focus(int i)
         {
+            if(scenario.CloseAction){globeMode=false;selected=i;target=scenario.ships[i].Position+Vector3.up*19;distance=scenario.Length(i)*2.3f;pitch=18;yaw=scenario.ships[i].heading-65;UpdateWorld();SetCamera();return;}
             if(scenario.James){globeMode=false;selected=i;target=scenario.ships[i].Position+Vector3.up*3;distance=scenario.Length(i)*1.7f;pitch=20;yaw=scenario.ships[i].heading-65;UpdateWorld();SetCamera();return;}
             if(scenario.DoB){globeMode=false;selected=i;target=scenario.ships[i].Position+Vector3.up*8;distance=UlsanScenario.Ships[i].length*1.6f;pitch=17;yaw=scenario.ships[i].heading-65;UpdateWorld();SetCamera();return;}
             globeMode=false;selected=i;target=scenario.ships[i].Position+Vector3.up*(i==0?10:6);
@@ -242,6 +248,7 @@ namespace Ironclads
             globeMode=false;var ship=scenario.ships[selected];bool stonewall=selected==1;
             float length=scenario.Length(selected),deck=scenario.Deck(selected);
             Vector3 local=bow?new Vector3(0,deck,length*.47f):stonewall?new Vector3(0,deck+1.25f,22.0f):new Vector3(7.5f,deck-.85f,0);
+            if(scenario.CloseAction)local=bow?new Vector3(0,deck+2,length*.4f):new Vector3(5,deck-1,0);
             if(scenario.Hampton&&!bow)local=selected==0?new Vector3(0,1.8f,3):new Vector3(6,1.5f,15);
             target=ship.Position+Quaternion.Euler(0,ship.heading,0)*local;
             yaw=ship.heading+(bow?-135:stonewall?-160:-90);pitch=bow?18:10;
@@ -253,7 +260,7 @@ namespace Ironclads
             target=ship.Position+Quaternion.Euler(0,ship.heading,0)*new Vector3(0,deck-1,-length*.47f);
             yaw=ship.heading+32;pitch=18;distance=selected==0?29:24;UpdateWorld();SetCamera();
         }
-        public void Overview() {if(scenario.DoB||scenario.James){globeMode=false;var bounds=new Bounds(scenario.ships[0].Position,Vector3.zero);foreach(var ship in scenario.ships)bounds.Encapsulate(ship.Position);target=bounds.center;distance=Mathf.Max(2500,bounds.size.magnitude*1.7f);pitch=65;UpdateWorld();SetCamera();return;}globeMode=false;target=(scenario.ships[0].Position+scenario.ships[1].Position)/2+Vector3.up*5;distance=Mathf.Max(330,Vector3.Distance(scenario.ships[0].Position,scenario.ships[1].Position)*1.65f);pitch=32;UpdateWorld();SetCamera();}
+        public void Overview() {if(scenario.DoB||scenario.James||scenario.CloseAction){globeMode=false;var bounds=new Bounds(scenario.ships[0].Position,Vector3.zero);foreach(var ship in scenario.ships)bounds.Encapsulate(ship.Position);target=bounds.center;distance=Mathf.Max(2500,bounds.size.magnitude*1.7f);pitch=65;UpdateWorld();SetCamera();return;}globeMode=false;target=(scenario.ships[0].Position+scenario.ships[1].Position)/2+Vector3.up*5;distance=Mathf.Max(330,Vector3.Distance(scenario.ships[0].Position,scenario.ships[1].Position)*1.65f);pitch=32;UpdateWorld();SetCamera();}
         public void ToggleGlobe() {globeMode=!globeMode;if(globeMode){globeYaw=(float)scenario.longitude;globePitch=(float)scenario.latitude;}UpdateWorld();SetCamera();}
         void PickGlobe()
         {
@@ -274,10 +281,11 @@ namespace Ironclads
         IEnumerator Start()
         {
             string[] args=Environment.GetCommandLineArgs();
-            if(Array.IndexOf(args,"-james-1865")>=0)StartJames();
+            if(Array.IndexOf(args,"-close-action")>=0)StartCloseAction();
+            else if(Array.IndexOf(args,"-james-1865")>=0)StartJames();
             else if(Array.IndexOf(args,"-ulsan")>=0)StartUlsan();
             else if(Array.IndexOf(args,"-hampton-roads")>=0)StartScenario(true);
-            if(!scenario.DoB&&!scenario.James&&Array.IndexOf(args,"-iron-fire")>=0){scenario.rulesetId="iron-fire";scenario.hexMode=false;animateTime=false;GetComponent<UmpirePanel>().ShowTab(9);}
+            if(!scenario.CloseAction&&!scenario.DoB&&!scenario.James&&Array.IndexOf(args,"-iron-fire")>=0){scenario.rulesetId="iron-fire";scenario.hexMode=false;animateTime=false;GetComponent<UmpirePanel>().ShowTab(9);}
             if(Array.IndexOf(args,"-patrick-henry")>=0){if(!scenario.Hampton)StartScenario(true);GetComponent<UmpirePanel>().ShowTab(11);support.InspectPatrick();}
             if(Array.IndexOf(args,"-supplied-models")>=0){if(!scenario.Hampton)StartScenario(true);SelectSuppliedModels(true,true);GetComponent<UmpirePanel>().ShowTab(3);Focus(1);}
             if(Array.IndexOf(args,"-niagara-stern")>=0){if(scenario.Hampton||scenario.DoB)StartScenario(false);selected=0;InspectStern();}

@@ -21,7 +21,7 @@ namespace Ironclads
         }
         public void Build()
         {
-            if(scene.scenario.DoB||funnels[0]!=null)return;
+            if(scene.scenario.CloseAction||scene.scenario.DoB||funnels[0]!=null)return;
             var material=new Material(Shader.Find("Ironclads/Powder Smoke"));material.mainTexture=BatteryEffects.SmokeTexture(true);
             Vector3[] outlets={new Vector3(0,14.5f,7),new Vector3(0,14.5f,-9),new Vector3(0,12.05f,0)};
             if(scene.scenario.Hampton)outlets=new[]{new Vector3(-.95f,.86f,-13),new Vector3(.95f,.86f,-13),new Vector3(0,11.9f,-1),new Vector3(0,14,12),new Vector3(0,13.8f,5)};
@@ -52,7 +52,7 @@ namespace Ironclads
         }
         void LateUpdate()
         {
-            if(scene==null||!Application.isPlaying||scene.scenario.DoB)return;Build();
+            if(scene==null||!Application.isPlaying||scene.scenario.CloseAction||scene.scenario.DoB)return;Build();
             if(scene.globeMode){if(!globeCleared)Clear();globeCleared=true;return;}globeCleared=false;
             float dt=Mathf.Min(Time.deltaTime,.1f);Vector3 wind=BatteryEffects.Wind(scene.scenario.windFrom,scene.scenario.windKnots);
             for(int funnel=0;funnel<6;funnel++) {

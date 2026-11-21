@@ -60,7 +60,7 @@ namespace Ironclads
         void LateUpdate()
         {
             if(scene==null||scene.seaRoot==null)return;
-            if(scene.scenario.DoB){if(sector!=null){foreach(var l in new[]{sector,axis,sight,targetOutline})l.gameObject.SetActive(false);foreach(var l in bands)l.gameObject.SetActive(false);}return;}if(sector==null)Build();
+            if(scene.scenario.CloseAction||scene.scenario.DoB){if(sector!=null){foreach(var l in new[]{sector,axis,sight,targetOutline})l.gameObject.SetActive(false);foreach(var l in bands)l.gameObject.SetActive(false);}return;}if(sector==null)Build();
             if((scene.selected==0||scene.scenario.Hampton||scene.scenario.Miniatures)&&preset<3)preset=3;
             bool show=visible&&!scene.globeMode&&scene.showOverlay;
             foreach(var line in new[]{sector,axis,sight,targetOutline})line.gameObject.SetActive(show);
@@ -70,7 +70,7 @@ namespace Ironclads
             // Alt-click measures; Shift-click remains placement only.
             if(Input.GetKey(KeyCode.LeftAlt)&&!Input.GetKey(KeyCode.LeftShift)&&Input.GetMouseButtonDown(0)&&Input.mousePosition.x>330&&Input.mousePosition.y>55&&Input.mousePosition.y<Screen.height-100) {
                 var plane=new Plane(Vector3.up,Vector3.zero);var ray=scene.view.ScreenPointToRay(Input.mousePosition);
-                if(plane.Raycast(ray,out float distance)){var point=ray.GetPoint(distance);var h=RuleChart.At(point);if(scene.scenario.Miniatures?CourseMovement.Inside(point):RuleChart.OnBoard(h,scene.scenario.Hampton)){targetHex=h;freeTarget=point;pickedTarget=true;}}
+                if(plane.Raycast(ray,out float distance)){var point=ray.GetPoint(distance);var h=RuleChart.At(point);if(scene.scenario.Miniatures?CourseMovement.Inside(point):RuleChart.OnBoard(h,scene.scenario.Coastal)){targetHex=h;freeTarget=point;pickedTarget=true;}}
             }
             if(!show)return;
             Vector3 origin=Origin+Vector3.up*.38f,target=TargetPoint+Vector3.up*.38f;
