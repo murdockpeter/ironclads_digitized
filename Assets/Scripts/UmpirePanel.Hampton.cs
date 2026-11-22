@@ -7,10 +7,12 @@ namespace Ironclads
     {
         void Scenarios()
         {
+            if(Button("Close Action / Nelson vs Brueys"))scene.StartCloseAction();
             Heading("CHOOSE YOUR SEA TABLE");
             Text("Starting a scenario resets the shared table. Save your current positions first if you want to return to them.");
             GUI.enabled=ManageTable;
             if(Button("Ulsan · Dawn of the Battleship")){scene.StartUlsan();return;}
+            if(Button("Stonewall at the Gates / 3 vs 3 (1865)")){scene.StartJames();return;}
             Heading("TABLETOP RULESET");
             if(Button((!scene.scenario.Miniatures?"● ":"")+"Yaquinto Ironclads · hex movement"))SelectRules(false);
             if(Button((scene.scenario.Miniatures?"● ":"")+"Iron & Fire · miniatures movement"))SelectRules(true);

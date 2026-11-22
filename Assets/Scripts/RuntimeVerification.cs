@@ -34,6 +34,22 @@ namespace Ironclads
             Check(scene.vessels[0].GetComponentsInChildren<MeshFilter>().Length==36,"Niagara does not have the pass-4 spatial mesh sections.");
             Check(scene.vessels[1].GetComponentsInChildren<MeshFilter>().Length==32,"Stonewall does not have the pass-4 spatial mesh sections.");
             string initial=JsonUtility.ToJson(scene.scenario);
+            bool originalSea=scene.soundEnabled;float originalSeaVolume=scene.seaVolume;
+            bool originalCannons=scene.GetComponent<BatteryEffects>().cannonSound;
+            scene.SetSeaAudio(false,.5f);scene.UpdateWorld();
+            Check(scene.GetComponent<AudioSource>().volume==0&&scene.GetComponent<BatteryEffects>().cannonSound==originalCannons,"Sea mute affected cannon preference or failed to silence ambience.");
+            scene.SetSeaAudio(true,.5f);scene.UpdateWorld();
+            Check(Mathf.Abs(scene.GetComponent<AudioSource>().volume-(.28f+scene.scenario.windKnots*.007f)*.5f)<.001f,"Sea volume control failed.");
+            Check(PlayerPrefs.GetInt("SeaAudio.Enabled")==1&&Mathf.Abs(PlayerPrefs.GetFloat("SeaAudio.Volume")-.5f)<.001f,"Sea audio preferences were not saved.");
+            scene.SetSeaAudio(originalSea,originalSeaVolume);
+            Check(RuleChart.Range(RuleChart.At(scene.scenario.ships[0].Position),RuleChart.At(scene.scenario.ships[1].Position))==20,"Ferrol opening range is not 20 hexes.");
+            Check(Mathf.Abs(Vector3.Distance(scene.scenario.ships[0].Position,scene.scenario.ships[1].Position)-1828.8f)<.01f,"Ferrol opening range is not 2000 yards.");
+            var grid=scene.seaRoot.Find("100 yard hex chart — custom local coordinates");
+            Check(grid!=null&&grid.GetComponent<MeshFilter>().sharedMesh.vertexCount==82*74*12,"Expanded chart geometry has incorrect cell count.");
+            chart.Place(new Hex(61,25));Check(RuleChart.At(scene.scenario.ships[0].Position).Equals(new Hex(61,25)),"Expanded map corner cannot be occupied.");
+            chart.Move(1);Check(RuleChart.At(scene.scenario.ships[0].Position).Equals(new Hex(61,25)),"Movement escaped expanded board boundary.");chart.Undo();
+            scene.scenario=JsonUtility.FromJson<Scenario>(initial);
+
             Vector3 a=scene.scenario.ships[0].Position,b=scene.scenario.ships[1].Position;DateTime utc=scene.scenario.Date;
             chart.NextTurn();Check(scene.scenario.ships[0].Position==a&&scene.scenario.ships[1].Position==b,"End Turn moved a ship in umpire mode.");
             Check((scene.scenario.Date-utc).TotalSeconds==180&&scene.scenario.turn==2,"End Turn did not advance three minutes.");
@@ -58,6 +74,24 @@ namespace Ironclads
             string beforeGunnery=JsonUtility.ToJson(scene.scenario);guns.pickedTarget=true;guns.targetHex=new Hex(0,3);guns.preset=3;guns.customCenter=0;guns.customSweep=90;
             yield return new WaitForSeconds(.2f);Check(JsonUtility.ToJson(scene.scenario)==beforeGunnery,"Gunnery guide modified scenario state.");
             yield return Capture(Path.Combine(output,"Player-gunnery-custom.png"));
+            var broadside=scene.GetComponent<BroadsideOverlay>();
+            foreach(float heading in new[]{0f,60f,275f,359f})foreach(int sign in new[]{-1,1})foreach(var widths in new[]{new Vector2(16,40),new Vector2(20,50)}){
+                Vector3 center=new Vector3(100,0,-50),apex=BroadsideOverlay.Apex(center,heading,sign,RuleChart.HexMeters);
+                float bearing=heading+sign*90;
+                Check(Vector3.Distance(apex,center-BroadsideOverlay.Direction(bearing)*RuleChart.HexMeters)<.001f,"Broadside pivot must lie opposite the checked side.");
+                Vector3 inner=apex+BroadsideOverlay.Direction(bearing+widths.x/2)*400;
+                Vector3 outer=apex+BroadsideOverlay.Direction(bearing+(widths.x+widths.y)/4)*400;
+                Check(BroadsideOverlay.Contains(center,heading,sign,RuleChart.HexMeters,widths.x,1000,inner),"Inclusive inner broadside boundary / rotation.");
+                Check(!BroadsideOverlay.Contains(center,heading,sign,RuleChart.HexMeters,widths.x,1000,outer)&&BroadsideOverlay.Contains(center,heading,sign,RuleChart.HexMeters,widths.y,1000,outer),"Nested broadside inner/outer distinction.");
+                Check(!BroadsideOverlay.Contains(center,heading,-sign,RuleChart.HexMeters,widths.y,1000,outer),"Broadside port/starboard reflection.");
+                Check(!BroadsideOverlay.Contains(center,heading,sign,RuleChart.HexMeters,widths.y,300,outer),"Broadside length limit.");
+            }
+            broadside.visible=true;broadside.side=2;guns.visible=false;broadside.FrameView();
+            yield return new WaitForSeconds(.2f);yield return Capture(Path.Combine(output,"Player-broadside-confederate.png"));
+            broadside.template=1;broadside.innerWidth=20;broadside.outerWidth=50;broadside.offset=1.5f;
+            yield return new WaitForSeconds(.2f);yield return Capture(Path.Combine(output,"Player-broadside-wide.png"));
+            Check(JsonUtility.ToJson(scene.scenario)==beforeGunnery,"Broadside measuring preferences modified the scenario.");
+            broadside.visible=false;
             guns.visible=false;guns.pickedTarget=false;chart.showRange=true;
             chart.topDown=false;scene.Focus(0);panel.ShowTab(0);yield return new WaitForSeconds(.2f);
             yield return Capture(Path.Combine(output,"Player-Niagara.png"));
@@ -111,7 +145,7 @@ namespace Ironclads
             }
             scene.scenario=JsonUtility.FromJson<Scenario>(initial);
             var exhaust=scene.GetComponent<EngineExhaust>();exhaust.Build();exhaust.Clear();
-            Check(exhaust.funnels.Length==5&&exhaust.funnels[3]==null&&exhaust.funnels[4]==null&&exhaust.funnels[0].transform.parent==scene.vessels[0]&&exhaust.funnels[1].transform.parent==scene.vessels[0]&&exhaust.funnels[2].transform.parent==scene.vessels[1],"Engine exhaust funnel/ship attachment incorrect.");
+            Check(exhaust.funnels.Length==6&&exhaust.funnels[3]==null&&exhaust.funnels[4]==null&&exhaust.funnels[5]==null&&exhaust.funnels[0].transform.parent==scene.vessels[0]&&exhaust.funnels[1].transform.parent==scene.vessels[0]&&exhaust.funnels[2].transform.parent==scene.vessels[1],"Engine exhaust funnel/ship attachment incorrect.");
             Check(EngineExhaust.EmissionRate(1,true)>EngineExhaust.EmissionRate(0,true)*10&&EngineExhaust.EmissionRate(1,false)==0,"Engine order does not control exhaust output.");
             exhaust.SetOrder(0,1);exhaust.SetOrder(1,1);scene.scenario.windFrom=270;scene.scenario.windKnots=14;
             scene.Focus(0);panel.ShowTab(6);yield return new WaitForSeconds(3);

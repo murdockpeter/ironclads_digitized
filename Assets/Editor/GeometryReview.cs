@@ -17,6 +17,7 @@ namespace Ironclads.Editor
         public static void RunPass3(){Output="Artifacts/Pass3";Baseline="Artifacts/Pass2/Baseline";PassThreeReview.CheckCounts();Run();}
         public static void RunBowRevision(){Output="Artifacts/BowRevision";Baseline="Artifacts/Pass3/Baseline";Run();}
         public static void RunPass4(){Output="Artifacts/Pass4";Baseline="Artifacts/Pass4/Baseline";PassFourReview.CheckCounts();Run();}
+        public static void RunSternRevision(){Output="Artifacts/NiagaraStern";Baseline="Artifacts/Pass4/Baseline";Run();}
         static void Require(bool ok,string message){if(!ok)throw new Exception("Geometry review: "+message);}
         public static void Run()
         {
@@ -60,6 +61,8 @@ namespace Ironclads.Editor
         static void CheckRoundedStern(StringBuilder report)
         {
             Require(Shipwright.Width(0)<.001f,"Niagara stern still has a broad flat transom.");
+            Require(Shipwright.NiagaraRakedZ(-50.114f,0)-Shipwright.NiagaraRakedZ(-50.114f,4.85f)>3,"Niagara counter does not overhang the waterline run.");
+            Require(Mathf.Abs(Shipwright.NiagaraRakedZ(-20,0)+20)<.001f,"Stern revision altered the midbody.");
             float previous=0;
             for(int i=0;i<=200;i++) {
                 float width=Shipwright.Width(i*.001f);Require(width>=previous-.00001f,"Niagara stern outline reverses curvature/width.");previous=width;
@@ -106,7 +109,7 @@ namespace Ironclads.Editor
             }
             var hull=ship.GetComponentsInChildren<MeshFilter>().First(f=>f.name=="Carvel hull").sharedMesh;
             var ns=hull.normals;
-            Require(ns[ns.Length-2].z<-.99f&&ns[ns.Length-1].z>.99f,ship.name+" hull end closures face inward.");
+            Require(ns[ns.Length-2].z<-.5f&&ns[ns.Length-1].z>.99f,ship.name+" hull end closures face inward.");
             report.AppendLine($"PASS: closed bow/stern/deck seams; no unexpected hull boundary edges ({intentional} intentionally open gun-port edges).");
         }
         static void CheckBore(Transform gun)

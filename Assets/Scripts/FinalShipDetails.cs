@@ -7,18 +7,28 @@ namespace Ironclads
         public static float NiagaraSurfaceX(float z,float y)
         {
             const float length=100.228f,beam=16.764f,deck=4.3f,draft=7.4422f;
-            float f=z/length+.5f,depth=(deck+draft)*(.65f+.35f*Mathf.Pow(Mathf.Max(0,Mathf.Sin(Mathf.PI*f)),.25f));
-            float drop=DeckHeight(z,length,deck)-y;
-            return HullHalfWidth(z,length,beam)*Mathf.Sqrt(Mathf.Max(0,1-drop*drop/(depth*depth)));
+            if(z<NiagaraRakedZ(-length*.5f,y)||z>length*.5f)return 0;
+            float low=-length*.5f,high=length*.5f;
+            for(int i=0;i<28;i++){float mid=(low+high)*.5f;if(NiagaraRakedZ(mid,y)<z)low=mid;else high=mid;}
+            float station=(low+high)*.5f,f=station/length+.5f;
+            float depth=(deck+draft)*(.65f+.35f*Mathf.Pow(Mathf.Max(0,Mathf.Sin(Mathf.PI*f)),.25f));
+            float drop=DeckHeight(station,length,deck)-y;
+            return HullHalfWidth(station,length,beam)*Mathf.Sqrt(Mathf.Max(0,1-drop*drop/(depth*depth)));
         }
         public static Vector3 NiagaraSternSurface(float x,float y)
         {
             float low=-50.114f,high=-34;
-            for(int i=0;i<28;i++){float mid=(low+high)*.5f;if(NiagaraSurfaceX(mid,y)<Mathf.Abs(x))low=mid;else high=mid;}
+            for(int i=0;i<28;i++){float mid=(low+high)*.5f;if(NiagaraSurfaceX(mid,y)<=Mathf.Abs(x)+.001f)low=mid;else high=mid;}
             return new Vector3(x,y,(low+high)*.5f-.025f);
         }
         static void NiagaraRoundStern(Transform root,float length,float beam,float deck)
         {
+            // The sternpost is beneath the counter, rather than an exposed vertical bar
+            // down the center of the gallery. A narrow rudder follows the tucked-in run.
+            Vector3 postBottom=new Vector3(0,-5.7f,NiagaraRakedZ(-length*.5f,-5.7f)+.15f);
+            Vector3 postTop=new Vector3(0,-.7f,NiagaraRakedZ(-length*.5f,-.7f)+.15f);
+            Rod(root,"Counter sternpost",postBottom,postTop,.13f,Hull,sides:12);
+            Quad(root,"Stern rudder",postTop,postBottom,postBottom+Vector3.back*1.1f,postTop+Vector3.back*.65f,Hull);
             // Lights are representative; their positions now follow the curved shell.
             for(int i=-2;i<=2;i++) {
                 float x=i*1.1f,y=deck-1.1f;

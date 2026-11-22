@@ -1,5 +1,7 @@
 using System;
 using System.Collections.Concurrent;
+using System.Collections.Generic;
+using System.Linq;
 using System.IO;
 using System.Net;
 using System.Net.Sockets;
@@ -11,7 +13,7 @@ namespace Ironclads
     // Only byte/string I/O runs on background threads; Unity state stays on the main thread.
     public sealed class DirectTcpTransport : IDisposable
     {
-        public const int MaxFrame=65536;
+        public const int MaxFrame=262144;
         public readonly struct Notice
         {
             public readonly int peer; public readonly string kind,text;
@@ -20,7 +22,8 @@ namespace Ironclads
         readonly ConcurrentQueue<Notice> incoming=new ConcurrentQueue<Notice>();
         readonly object gate=new object();
         volatile bool running=true;
-        TcpListener listener;TcpClient connecting;Peer current;
+        TcpListener listener;TcpClient connecting;
+        readonly Dictionary<int,Peer> peers=new Dictionary<int,Peer>();
         int serial,queued;
         public bool Overflowed {get;private set;}
         public int Port {get;private set;}
@@ -33,7 +36,7 @@ namespace Ironclads
         static void Background(ThreadStart action){new Thread(action){IsBackground=true,Name="Ironclads direct TCP"}.Start();}
         public void Listen(int port,bool loopbackOnly)
         {
-            listener=new TcpListener(loopbackOnly?IPAddress.Loopback:IPAddress.Any,port);listener.Start(2);Port=((IPEndPoint)listener.LocalEndpoint).Port;
+            listener=new TcpListener(loopbackOnly?IPAddress.Loopback:IPAddress.Any,port);listener.Start(8);Port=((IPEndPoint)listener.LocalEndpoint).Port;
             Background(()=>{while(running)try{var socket=listener.AcceptTcpClient();Attach(socket);}catch{if(running)Post(new Notice(0,"error","TCP listener stopped."));break;}});
         }
         public void Connect(string address,int port)
@@ -51,19 +54,19 @@ namespace Ironclads
         void Attach(TcpClient socket)
         {
             lock(gate) {
-                if(!running||current!=null){socket.Close();return;}
-                socket.NoDelay=true;socket.SendTimeout=5000;current=new Peer(this,socket,++serial);
+                if(!running||peers.Count>=8){socket.Close();return;}
+                socket.NoDelay=true;socket.SendTimeout=5000;var current=new Peer(this,socket,++serial);peers.Add(current.id,current);
                 Post(new Notice(current.id,"connected"));current.Start();
             }
         }
         public bool Send(int peer,string message)
         {
-            lock(gate)return current!=null&&current.id==peer&&current.Send(message);
+            lock(gate)return peers.TryGetValue(peer,out var current)&&current.Send(message);
         }
-        public void Drop(int peer){lock(gate)if(current!=null&&current.id==peer)current.Close();}
+        public void Drop(int peer){lock(gate)if(peers.TryGetValue(peer,out var current))current.Close();}
         void Gone(Peer peer)
         {
-            lock(gate){if(current==peer)current=null;}
+            lock(gate)peers.Remove(peer.id);
             Post(new Notice(peer.id,"closed","Connection closed. The last table position is retained."));
         }
         public static byte[] ReadFrame(Stream stream)
@@ -84,7 +87,7 @@ namespace Ironclads
         }
         public void Dispose()
         {
-            running=false;listener?.Stop();lock(gate){connecting?.Close();current?.Close();current=null;}
+            running=false;listener?.Stop();lock(gate){connecting?.Close();foreach(var peer in peers.Values.ToArray())peer.Close();peers.Clear();}
         }
         sealed class Peer
         {

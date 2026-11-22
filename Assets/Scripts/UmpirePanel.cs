@@ -10,9 +10,11 @@ namespace Ironclads
         RuleChart chart;
         int tab;
         public void ShowTab(int value){tab=value;scroll=Vector2.zero;}
-        public void ShowSheet(bool niagara=false){sheet=Resources.Load<Texture2D>(niagara?"NiagaraSheet":"StonewallSheet");if(sheet==null){sheetOpen=false;scene.status="This optional user-supplied ship sheet is not bundled.";return;}sheetTitle=niagara?"USS NIAGARA / SUPPLIED 1863 CARD":"CSS STONEWALL / SUPPLIED SHIP SHEET";sheetZoom=niagara?.27f:.65f;sheetScroll=Vector2.zero;sheetOpen=true;}
+        public static Texture2D ShipSheet(bool niagara=false)=>niagara?Resources.Load<Texture2D>("NiagaraSheet"):(Resources.Load<Texture2D>("StonewallPhotoSheet")??Resources.Load<Texture2D>("StonewallSheet"));
+        float SheetFit()=>Mathf.Clamp(Mathf.Min(Mathf.Max(100,Screen.width-430)/(float)sheet.width,Mathf.Max(100,Screen.height-270)/(float)sheet.height),.15f,1.3f);
+        public void ShowSheet(bool niagara=false){sheet=ShipSheet(niagara);if(sheet==null){sheetOpen=false;scene.status="This optional user-supplied ship sheet is not bundled.";return;}sheetTitle=niagara?"USS NIAGARA / SUPPLIED 1863 CARD":"CSS STONEWALL / SUPPLIED SHIP SHEET";sheetZoom=SheetFit();sheetScroll=Vector2.zero;sheetOpen=true;}
         Vector2 scroll,sheetScroll;
-        GUIStyle title,sub,body,small,button,field,section,big,toggle;
+        GUIStyle title,sub,body,small,button,field,notesField,section,big,toggle;
         Texture2D panelTex,buttonTex,fieldTex,white;
         Texture2D sheet;
         string sheetTitle="CSS STONEWALL / SUPPLIED SHIP SHEET";
@@ -36,12 +38,20 @@ namespace Ironclads
             small=new GUIStyle(body){fontSize=11};
             section=new GUIStyle(body){fontSize=11,fontStyle=FontStyle.Bold,normal={textColor=gold},margin=new RectOffset(0,0,16,7)};
             big=new GUIStyle(body){fontSize=23,normal={textColor=Color.white}};
-            button=new GUIStyle(GUI.skin.button){fontSize=12,padding=new RectOffset(8,8,9,9),margin=new RectOffset(2,2,3,3),
+            button=new GUIStyle(GUI.skin.button){fontSize=12,wordWrap=true,padding=new RectOffset(8,8,9,9),margin=new RectOffset(2,2,3,3),
                 normal={background=buttonTex,textColor=ink},hover={background=buttonTex,textColor=gold},active={background=fieldTex,textColor=teal}};
             field=new GUIStyle(GUI.skin.textField){fontSize=13,padding=new RectOffset(8,8,6,6),normal={background=fieldTex,textColor=Color.white},focused={background=fieldTex,textColor=gold}};
+            notesField=new GUIStyle(field){wordWrap=true};
             toggle=new GUIStyle(GUI.skin.toggle){fontSize=12,normal={textColor=ink},onNormal={textColor=teal}};
-            sheet=Resources.Load<Texture2D>("StonewallSheet");
+            sheet=ShipSheet();
         }
+        void BeginPanelScroll()
+        {
+            scroll.x=0;
+            scroll=GUILayout.BeginScrollView(scroll,GUIStyle.none,GUI.skin.verticalScrollbar,GUILayout.ExpandHeight(true));
+            GUILayout.BeginVertical(GUILayout.Width(270));
+        }
+        void EndPanelScroll(){GUILayout.EndVertical();GUILayout.EndScrollView();}
         void Heading(string text)=>GUILayout.Label(text,section);
         bool Button(string text)=>GUILayout.Button(text,button);
         void Text(string text)=>GUILayout.Label(text,body);
@@ -54,6 +64,8 @@ namespace Ironclads
         void OnGUI()
         {
             if(scene==null||scene.view==null)return;if(title==null)Styles();if(chart==null)chart=GetComponent<RuleChart>();
+            if(scene.scenario.CloseAction){CloseActionGUI();return;}
+            if(scene.scenario.James){JamesGUI();return;}
             if(scene.scenario.DoB){if(scene.dawn==null||scene.vessels.Length!=7)scene.UpdateWorld();DawnGUI();return;}
             if(shownScenario!=scene.scenario.scenarioId){shownScenario=scene.scenario.scenarioId;SyncScenarioFields();}
             if(!scene.showOverlay){GUI.Label(new Rect(20,20,300,30),"H  •  Show umpire controls",body);return;}
@@ -67,6 +79,7 @@ namespace Ironclads
             string[] tabs={"Ships","Weather","Chart","Sources"};
             for(int i=0;i<tabs.Length;i++){GUI.color=i==tab?gold:Color.white;if(GUILayout.Button(tabs[i],button))tab=i;}GUI.color=Color.white;
             GUILayout.EndHorizontal();
+            if(Button(scene.soundEnabled?"Sea sounds: ON / click to mute":"Sea sounds: OFF / click to enable"))scene.SetSeaAudio(!scene.soundEnabled,scene.seaVolume);
             if(Button("Scenarios / shores & forts"))ShowTab(8);
             if(scene.scenario.Hampton&&Button("Union ships / Minnesota & wrecks"))ShowTab(10);
             if(scene.scenario.Hampton&&Button("Confederate support / Patrick Henry"))ShowTab(11);
@@ -74,9 +87,10 @@ namespace Ironclads
             if(Button("Gunnery tools / bearings & arcs"))ShowTab(4);
             if(Button("Fire batteries / smoke & sound"))ShowTab(5);
             if(Button(scene.network!=null&&scene.network.Active?"Multiplayer · "+(scene.network.IsHost?"HOST":"GUEST"):"Multiplayer · direct TCP/IP"))ShowTab(7);
-            scroll=GUILayout.BeginScrollView(scroll,false,false,GUILayout.ExpandHeight(true));
+            BeginPanelScroll();
             switch(tab){case 0:Vessels();break;case 1:GUI.enabled=ManageTable;Weather();GUI.enabled=true;break;case 2:Chart();break;case 3:Sources();break;case 4:Gunnery();break;case 5:FireBatteries();break;case 6:Engines();break;case 7:Multiplayer();break;case 8:Scenarios();break;case 9:MovementPanel();break;case 10:UnionSupport();break;case 11:PatrickHenryPanel();break;}
-            GUILayout.Space(18);GUILayout.EndScrollView();
+            ReleaseControls();
+            GUILayout.Space(18);EndPanelScroll();
             GUILayout.Label("RMB orbit  ·  Wheel zoom  ·  MMB pan\n1 / 2 focus  ·  Tab globe  ·  H hide UI  ·  v"+Application.version,small);
             GUILayout.EndArea();
             Header();
@@ -122,11 +136,11 @@ namespace Ironclads
                 GUILayout.BeginHorizontal();if(Button("↶  60°"))chart.Turn(-1);if(Button("60°  ↷"))chart.Turn(1);GUILayout.EndHorizontal();
                 GUILayout.BeginHorizontal();if(Button("Astern 1 hex"))chart.Move(-1);if(Button("Ahead 1 hex"))chart.Move(1);GUILayout.EndHorizontal();
                 GUILayout.Label("Shift + click the sea to place the selected ship.",small);
-                GUILayout.BeginHorizontal();col=GUILayout.TextField(col,2,field);row=GUILayout.TextField(row,2,field);
+                GUILayout.BeginHorizontal();col=GUILayout.TextField(col,4,field);row=GUILayout.TextField(row,4,field);
                 if(Button("Place")) {
-                    if(int.TryParse(col,out int c)&&int.TryParse(row,out int r)&&c>=1&&c<=41&&r>=1&&r<=37) {
+                    if(int.TryParse(col,out int c)&&int.TryParse(row,out int r)&&c>=RuleChart.FirstColumn(scene.scenario.Coastal)&&c<=RuleChart.LastColumn(scene.scenario.Coastal)&&r>=RuleChart.FirstRow(scene.scenario.Coastal)&&r<=RuleChart.LastRow(scene.scenario.Coastal)) {
                         int q=c-21;chart.Place(new Hex(q,r-19-Mathf.FloorToInt(q/2f)));
-                    } else scene.status="Use a local column 01–41 and row 01–37.";
+                    } else scene.status=$"Use column {RuleChart.FirstColumn(scene.scenario.Coastal)} to {RuleChart.LastColumn(scene.scenario.Coastal)} and row {RuleChart.FirstRow(scene.scenario.Coastal)} to {RuleChart.LastRow(scene.scenario.Coastal)}.";
                 }GUILayout.EndHorizontal();
             } else {
                 ship.heading=Slider("Heading",ship.heading,0,359,"°");
@@ -134,7 +148,7 @@ namespace Ironclads
                 GUILayout.Label($"East {ship.east:0} m  ·  North {ship.north:0} m",small);
                 GUILayout.BeginHorizontal();east=GUILayout.TextField(east,8,field);north=GUILayout.TextField(north,8,field);
                 if(Button("Set m")) {
-                    if(float.TryParse(east,NumberStyles.Float,CultureInfo.InvariantCulture,out float e)&&float.TryParse(north,NumberStyles.Float,CultureInfo.InvariantCulture,out float n)&&!float.IsNaN(e)&&!float.IsNaN(n)&&Mathf.Abs(e)<=20000&&Mathf.Abs(n)<=20000) {
+                    if(float.TryParse(east,NumberStyles.Float,CultureInfo.InvariantCulture,out float e)&&float.TryParse(north,NumberStyles.Float,CultureInfo.InvariantCulture,out float n)&&!float.IsNaN(e)&&!float.IsNaN(n)&&Mathf.Abs(e)<=scene.scenario.Limit&&Mathf.Abs(n)<=scene.scenario.Limit) {
                         chart.Remember();ship.east=e;ship.north=n;
                     }else scene.status="Coordinates must be finite meters within ±20,000.";
                 }GUILayout.EndHorizontal();
@@ -154,7 +168,7 @@ namespace Ironclads
             GUI.enabled=ManageTable;
             if(Button($"End turn {scene.scenario.turn}  →  +3 minutes"))chart.NextTurn();
             if(scene.scenario.Miniatures)Text("End turn applies ordered speeds and resets both movement rulers. Positions stay where you moved them.");
-            scene.scenario.umpireNotes=GUILayout.TextArea(scene.scenario.umpireNotes,4000,field,GUILayout.Height(64));
+            scene.scenario.umpireNotes=GUILayout.TextArea(scene.scenario.umpireNotes,4000,notesField,GUILayout.Width(270),GUILayout.Height(64));
             GUILayout.BeginHorizontal();if(Button("Undo placement"))chart.Undo();GUI.enabled=true;if(Button("Log positions"))chart.Export();GUILayout.EndHorizontal();
             SaveLoad();
         }
@@ -173,7 +187,13 @@ namespace Ironclads
             s.cloud=Slider("Cloud cover",s.cloud*100,0,100," %")/100;
             s.rain=Slider("Rain",s.rain*100,0,100," %")/100;
             s.visibilityKm=Slider("Visual visibility",s.visibilityKm,.5f,40," km");
-            scene.soundEnabled=GUILayout.Toggle(scene.soundEnabled,"Ocean & wind ambience",toggle);
+            bool weatherPermission=GUI.enabled;GUI.enabled=true;
+            Heading("SEA SOUNDS");
+            bool seaEnabled=GUILayout.Toggle(scene.soundEnabled,"Ocean & wind ambience",toggle);
+            float seaLevel=Slider("Sea volume",scene.seaVolume*100,0,100," %")/100;
+            if(seaEnabled!=scene.soundEnabled||Mathf.Abs(seaLevel-scene.seaVolume)>.0001f)scene.SetSeaAudio(seaEnabled,seaLevel);
+            GUILayout.Label("Local sound preference. Cannon reports have separate controls under Fire batteries.",small);
+            GUI.enabled=weatherPermission;
             GUILayout.Label("Weather is set by the umpire. Wave scale and fog are visual approximations; game visibility is a separate ruling.",small);
             Heading("SUN & SCENARIO TIME");
             date=GUILayout.TextField(date,field);
@@ -209,42 +229,14 @@ namespace Ironclads
             Heading("USING THE MAP");
             Text("Range is the shortest hex path, excluding the firing hex and including the target hex (rules p. 18).");
             Text("Placement and facing controls carry out your orders. You decide movement allowances, turning capacity, current, collisions, line of sight, fire and damage.");
-            Text("The local 41 × 37 chart has its own IDs. It does not reproduce printed mapboards I–IV or their shoals and boundaries.");
+            Text($"The local {RuleChart.Columns(scene.scenario.Coastal)} x {RuleChart.Rows(scene.scenario.Coastal)} chart has its own IDs. It does not reproduce printed mapboards I-IV or their shoals and boundaries.");
             if(scene.scenario.Hampton){Text("Hampton Roads: reconstructed shores and forts, approximate placement. Opening ship positions and weather are adjustable presets. No depth, grounding, terrain obstruction or shore fire is adjudicated automatically.");if(Button("Coastal overview"))CoastalView();return;}
             Heading("FERROL SCENARIO 4D");
             Text("The supplied rules include the three-ship breakout on 24 March 1865. This scene is your two-ship variant. Sacramento and the original board arrangement are not included.");
             GUI.enabled=ManageTable;if(Button("Use 4D wind / visibility as visual preset")){scene.scenario.windFrom=0;scene.scenario.visibilityKm=30*RuleChart.HexMeters/1000;scene.status="Wind FROM north; visual fog visibility set to 30 hexes (2.7432 km). Umpire decides actual sighting.";}GUI.enabled=true;
             if(Button("Take screenshot  ·  F12"))scene.Screenshot();
         }
-        void Multiplayer()
-        {
-            var session=scene.network;
-            Heading("ONE VS ONE · DIRECT TCP/IP");Text(session.ConnectionStatus);
-            if(session.Active) {
-                if(session.IsHost)Text($"Host IPv4: {session.HostAddresses}\nTCP port {session.Port}\nSession code: {session.SessionCode}");
-                if(session.LocalShip>=0)Text("Your ship: "+scene.scenario.ships[session.LocalShip].name);
-                if(session.LocalShip>=0&&Button("Inspect my ship")){chart.topDown=false;scene.Focus(session.LocalShip);}
-                if(Button(session.IsHost?"Stop hosting / return offline":"Disconnect / return offline"))session.Stop();
-                Text("Each player places, turns and fires their assigned ship. The host controls weather, time, shared notes, loading/resetting the table and undo. Views and measuring guides remain local.");
-            } else {
-                Heading("HOST A TABLE");
-                hostShip=GUILayout.SelectionGrid(hostShip,new[]{"Host: "+scene.scenario.ShortName(0),"Host: "+scene.scenario.ShortName(1)},1,button);
-                GUILayout.Label("TCP port",small);networkPort=GUILayout.TextField(networkPort,5,field);
-                GUILayout.Label("Session code (share with opponent)",small);networkCode=GUILayout.TextField(networkCode,64,field);
-                if(Button("New random session code"))networkCode=MultiplayerSession.NewCode();
-                if(Button("Host this table")) {
-                    if(int.TryParse(networkPort,out int port)&&port>=1&&port<=65535)session.Host(port,hostShip,networkCode);else scene.status="Enter a TCP port from 1 to 65535.";
-                }
-                Heading("JOIN A HOST");GUILayout.Label("Host IPv4 address",small);networkAddress=GUILayout.TextField(networkAddress,45,field);
-                if(Button("Join using IP / port / code above")) {
-                    if(int.TryParse(networkPort,out int port))session.Join(networkAddress.Trim(),port,networkCode);else scene.status="Enter the host's TCP port.";
-                }
-            }
-            Heading("CONNECTING THE TWO COMPUTERS");
-            Text("Use the host's LAN IPv4 address, TCP port (default 7777) and session code. Internet hosting requires a reachable/forwarded TCP port, or a VPN linking the computers. No lobby, relay or automatic port forwarding is used.");
-            Text("Direct TCP is unencrypted. Use a trusted LAN or VPN. Allow the host player through its firewall when hosting. 127.0.0.1 is only for testing two players on the same computer.");
-            Text("Multiplayer uses manual hex placement. Joining replaces your local table with the host's table. Disconnect retains the latest table and restores offline umpire control. Cannon triggers synchronize; smoke and sound are rendered locally.");
-        }
+        void Multiplayer()=>MultiplayerLobby();
         void Engines()
         {
             var exhaust=GetComponent<EngineExhaust>();
@@ -314,6 +306,7 @@ namespace Ironclads
             if(Button(scene.scenario.ShortName(1))){scene.selected=1;guns.minnesotaOrigin=false;guns.patrickOrigin=false;guns.preset=scene.scenario.Hampton?3:0;}
             GUILayout.EndHorizontal();
             Text("Firing ship: "+guns.FiringState.name);
+            BroadsideMeasurement();
             if(!scene.scenario.Miniatures&&!scene.scenario.Hampton&&scene.selected==1)for(int i=0;i<3;i++)if(Button((guns.preset==i?"• ":"")+GunneryTools.Presets[i])){guns.preset=i;guns.visible=true;chart.showArcs=false;}
             if(Button("Custom angle guide")){guns.preset=3;guns.visible=true;chart.showArcs=false;}
             if(guns.preset==3) {
@@ -355,7 +348,7 @@ namespace Ironclads
             if(Button("View Niagara's supplied 1863 card"))ShowSheet(true);
             if(Button("Open original Stonewall PDF"))OpenReference("Stonewall.pdf");
             if(Button("Open supplied rules PDF"))OpenReference("NEW_IRONCLADS_RULES.pdf");
-            if(Resources.Load<Texture2D>("StonewallSheet")==null)Text("Rulebook and ship-sheet scans are optional user-provided references and are not included in the public release.");
+            if(ShipSheet()==null)Text("Rulebook and ship-sheet scans are optional user-provided references and are not included in the public release.");
             Text("Stonewall's sheet supplies a 180° forward guide and 120° guides on each side. These are display guides; the umpire decides gun eligibility. The model's armored enclosures are fixed.");
             Heading("RECONSTRUCTION NOTES");
             Text("Procedural meshes use published dimensions, Niagara's 1863 refit photograph, and Stonewall's March 1865 Ferrol photograph. Rigging, hull lines, boats, deck fittings and exact gun mounts are approximate.");
@@ -376,13 +369,13 @@ namespace Ironclads
             bool previousEnabled=GUI.enabled;GUI.enabled=true;
             GUILayout.BeginHorizontal();
             if(Button("Save table"))try{scene.scenario.Save();scene.status="Saved: "+Scenario.SavePath;}catch(Exception e){Error(e);}
-            GUI.enabled=ManageTable;if(Button("Load table"))try{var loaded=Scenario.Load();chart.Remember();scene.scenario=loaded;if(scene.network!=null&&scene.network.Active&&!scene.scenario.Miniatures){scene.scenario.hexMode=true;chart.Snap();}date=loaded.utc;lat=loaded.latitude.ToString(CultureInfo.InvariantCulture);lon=loaded.longitude.ToString(CultureInfo.InvariantCulture);scene.Overview();scene.status="Saved table loaded.";}catch(Exception e){Error(e);}
+            GUI.enabled=ManageTable;if(Button("Load table"))try{var loaded=Scenario.Load();chart.Remember();scene.scenario=loaded;if(scene.network!=null&&scene.network.Active&&!scene.scenario.Miniatures&&!scene.scenario.DoB){scene.scenario.hexMode=true;chart.Snap();}date=loaded.utc;lat=loaded.latitude.ToString(CultureInfo.InvariantCulture);lon=loaded.longitude.ToString(CultureInfo.InvariantCulture);scene.Overview();scene.status="Saved table loaded.";}catch(Exception e){Error(e);}
             GUILayout.EndHorizontal();GUI.enabled=previousEnabled;
         }
         void ShipLabels()
         {
-            for(int i=0;i<2;i++) {
-                var s=scene.scenario.ships[i];Vector3 p=scene.view.WorldToScreenPoint(s.Position+Vector3.up*(scene.scenario.Hampton?(i==0?7:17):(i==0?58:34)));
+            for(int i=0;i<scene.scenario.ships.Length;i++) {
+                var s=scene.scenario.ships[i];Vector3 p=scene.view.WorldToScreenPoint(s.Position+Vector3.up*(scene.scenario.James?15:scene.scenario.Hampton?(i==0?7:17):(i==0?58:34)));
                 if(p.z<0||p.x<360||p.x>Screen.width-60)continue;
                 GUI.Label(new Rect(p.x-70,Screen.height-p.y-10,180,21),s.name,body);
             }
@@ -393,6 +386,7 @@ namespace Ironclads
             GUI.DrawTexture(new Rect(x,100,w,h),panelTex);
             GUILayout.BeginArea(new Rect(x+14,112,w-28,h-24));
             GUILayout.BeginHorizontal();GUILayout.Label(sheetTitle,section);
+            if(sheet!=null&&Button("Fit sheet")){sheetZoom=SheetFit();sheetScroll=Vector2.zero;}
             GUILayout.FlexibleSpace();if(Button("Close"))sheetOpen=false;GUILayout.EndHorizontal();
             sheetZoom=GUILayout.HorizontalSlider(sheetZoom,.15f,1.3f);
             sheetScroll=GUILayout.BeginScrollView(sheetScroll);

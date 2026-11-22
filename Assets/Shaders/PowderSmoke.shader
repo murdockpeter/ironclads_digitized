@@ -13,7 +13,7 @@ Shader "Ironclads/Powder Smoke" {
  v2f vert(appdata v){v2f o;o.pos=UnityObjectToClipPos(v.vertex);o.screen=ComputeScreenPos(o.pos);COMPUTE_EYEDEPTH(o.screen.z);o.uv=v.uv;o.color=v.color;UNITY_TRANSFER_FOG(o,o.pos);return o;}
  float4 frag(v2f i):SV_Target {
   float2 tile=min(floor(i.uv*2),1)*.5;float2 uv=frac(i.uv*2);
-  float2 curl=.023*float2(sin(uv.y*11+_Time.y*.61),cos(uv.x*13-_Time.y*.49));
+  float2 curl=.018*float2(sin(uv.y*11+_Time.y*.13),cos(uv.x*13-_Time.y*.11));
   float4 density=tex2D(_MainTex,tile+clamp(uv+curl,.004,.996)*.5);float2 xy=uv*2-1;float z=sqrt(saturate(1-dot(xy,xy)));
   float3 normal=normalize(mul((float3x3)unity_CameraToWorld,float3(xy,-z)));
   float lighting=.58+.42*saturate(dot(normal,_SunDirection));
