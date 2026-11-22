@@ -8,7 +8,7 @@ namespace Ironclads.Editor
 {
     public static class CloseActionBowExperimentReview
     {
-        const string Output="Artifacts/CloseAction/Bows3";
+        const string Output="Artifacts/CloseAction/Bows4";
         static void Check(bool okay,string message){if(!okay)throw new Exception("Bow experiment: "+message);Debug.Log("BOW EXPERIMENT PASS: "+message);}
         // Fast iteration for changes confined to the attached bow assembly. A clean
         // checkout still uses PrepareModels to regenerate the complete prototype cache.
@@ -32,7 +32,7 @@ namespace Ironclads.Editor
                     }finally{AssetDatabase.StopAssetEditing();}
                 }finally{PrefabUtility.UnloadPrefabContents(contents);UnityEngine.Object.DestroyImmediate(fresh);}
             }
-            AssetDatabase.SaveAssets();File.WriteAllText(folder+"/revision.txt","22");
+            AssetDatabase.SaveAssets();File.WriteAllText(folder+"/revision.txt","23");
             var counts=new System.Text.StringBuilder("type,vertices,meshes,triangles,guns\n");
             foreach(var p in CloseActionPrototypes.All){
                 var ship=AssetDatabase.LoadAssetAtPath<GameObject>(folder+"/"+p.key+".prefab");var filters=ship.GetComponentsInChildren<MeshFilter>(true);

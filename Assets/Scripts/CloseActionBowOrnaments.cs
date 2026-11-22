@@ -5,6 +5,9 @@ namespace Ironclads
     public static partial class Shipwright
     {
         static Material caGilt;
+        const float HeadRailStart=.14f;
+        // Compress the head's projection forward of the stem; hull-side stations stay fixed.
+        static float HeadStationZ(CloseActionSpec spec,float station)=>spec.Length*(station<=.5f?station:.5f+(station-.5f)*.85f);
         static float BowRichness(CloseActionSpec spec)=>spec.rate==120?1.2f:spec.rate==50?.82f:1;
         static Vector3 BowBezier(Vector3 a,Vector3 b,Vector3 c,Vector3 d,float t)
         {float u=1-t;return a*(u*u*u)+b*(3*u*u*t)+c*(3*u*t*t)+d*(t*t*t);}
@@ -13,12 +16,12 @@ namespace Ironclads
             float deck=CloseActionHullLines.Get(spec.Length,spec.Beam).DeckHeight(spec.Length*.5f),z=spec.Length*.585f;
             SailingBowspritFrame(spec,out var heel,out var end,out _,out _);
             float sparY=Mathf.LerpUnclamped(heel.y,end.y,(z-heel.z)/(end.z-heel.z));
-            return new Vector3(0,Mathf.Min(deck+1.6f,sparY-.65f-1.62f*BowRichness(spec)),z);
+            return new Vector3(0,Mathf.Min(deck+1.6f,sparY-.65f-1.62f*BowRichness(spec)),HeadStationZ(spec,.585f));
         }
         static Vector3 HeadKneePoint(CloseActionSpec spec,float t)
         {
             Vector3 figure=BowFigurePosition(spec);float rich=BowRichness(spec);
-            return BowBezier(new Vector3(0,.5f,spec.Length*.475f),new Vector3(0,2.6f,spec.Length*.49f),new Vector3(0,figure.y-2.8f*rich,spec.Length*.58f),figure+Vector3.up*(.35f*rich),t);
+            return BowBezier(new Vector3(0,.5f,spec.Length*.475f),new Vector3(0,2.6f,spec.Length*.49f),new Vector3(0,figure.y-2.8f*rich,HeadStationZ(spec,.58f)),figure+Vector3.up*(.35f*rich),t);
         }
         static Vector3 HeadKneeNormal(CloseActionSpec spec,float t)
         {return Vector3.Cross(Vector3.right,(HeadKneePoint(spec,Mathf.Min(1,t+.001f))-HeadKneePoint(spec,Mathf.Max(0,t-.001f))).normalized).normalized;}
@@ -61,14 +64,18 @@ namespace Ironclads
             float deck=CloseActionHullLines.Get(spec.Length,spec.Beam).DeckHeight(spec.Length*.5f);Vector3 crown=HeadKneePoint(spec,1);
             // Broad basket cheeks, a deep hollow in profile, and a steep gathered head:
             // the Fighting Sail cover supplies the silhouette, not measured offsets.
+            float t=Mathf.Lerp(HeadRailStart,1,f);
             Vector3 point=BowBezier(new Vector3(side*spec.Beam*(.30f+rail*.01f),CloseActionHullLines.Get(spec.Length,spec.Beam).DeckHeight(spec.Length*.34f)-.15f+rail*.75f,spec.Length*.34f),
-                new Vector3(side*spec.Beam*.25f,deck-2.65f+rail*.70f,spec.Length*.465f),new Vector3(side*spec.Beam*.16f,crown.y-4.5f+rail*.65f,spec.Length*.545f),
-                new Vector3(side*.22f,crown.y-.90f+rail*.475f,crown.z),f);
+                new Vector3(side*spec.Beam*.25f,deck-2.65f+rail*.70f,spec.Length*.465f),new Vector3(side*spec.Beam*.16f,crown.y-4.5f+rail*.65f,HeadStationZ(spec,.545f)),
+                new Vector3(side*.22f,crown.y-.90f+rail*.475f,crown.z),t);
             float low=spec.Length*.25f,high=spec.Length*.5f;
             if(point.z<SailingShellPoint(1,high,point.y,spec.Length,spec.Beam,spec.Deck).z){
                 for(int n=0;n<16;n++){float z=(low+high)*.5f;if(SailingShellPoint(1,z,point.y,spec.Length,spec.Beam,spec.Deck).z<point.z)low=z;else high=z;}
                 float hullWidth=SailingShellPoint(1,(low+high)*.5f,point.y,spec.Length,spec.Beam,spec.Deck).x;
-                point.x=side*Mathf.Max(Mathf.Abs(point.x),hullWidth+.06f);
+                float exterior=Mathf.Max(Mathf.Abs(point.x),hullWidth+.06f);
+                // Bury the shortened aft cap and ease the timber out through the cheek.
+                float emerge=Mathf.SmoothStep(0,1,f/.08f);
+                point.x=side*Mathf.Lerp(hullWidth-.25f*BowRichness(spec),exterior,emerge);
             }
             return point;
         }
@@ -80,7 +87,7 @@ namespace Ironclads
         }
         static Vector3 HeadGratingEdge(CloseActionSpec spec,float f)
         {
-            float z=Mathf.Lerp(spec.Length*.452f,spec.Length*.566f,f),low=0,high=1;
+            float z=Mathf.Lerp(spec.Length*.452f,HeadStationZ(spec,.566f),f),low=0,high=1;
             for(int n=0;n<20;n++){float mid=(low+high)*.5f;if(HeadRailPoint(spec,1,2,mid).z<z)low=mid;else high=mid;}
             Vector3 rail=HeadRailPoint(spec,1,2,(low+high)*.5f);
             return rail+new Vector3(-.13f,-.16f,0);
@@ -90,10 +97,10 @@ namespace Ironclads
             // Every transverse timber starts at the knee or buries into the bow cheek;
             // its outboard end carries the three rails instead of hanging beneath them.
             for(int side=-1;side<=1;side+=2)for(int n=3;n<=8;n++){
-                float f=n/9f;Vector3 lower=HeadRailPoint(spec,side,0,f),upper=HeadRailPoint(spec,side,2,f);
+                float f=(n/9f-HeadRailStart)/(1-HeadRailStart);Vector3 lower=HeadRailPoint(spec,side,0,f),upper=HeadRailPoint(spec,side,2,f);
                 float kneeT=HeadKneeAtZ(spec,lower.z);Vector3 seat=HeadKneePoint(spec,kneeT)-HeadKneeNormal(spec,kneeT)*HeadKneeDepth(spec,kneeT)*.45f;
                 seat.x=side*.18f*BowRichness(spec);
-                if(lower.z<spec.Length*.52f){
+                if(lower.z<HeadStationZ(spec,.52f)){
                     // Aft ribs land on the actual shell, not on the waterline heel of the knee.
                     float y=lower.y-.55f,low=spec.Length*.34f,high=spec.Length*.5f;
                     float target=Mathf.Min(lower.z-.25f,SailingShellPoint(side,high,y,spec.Length,spec.Beam,spec.Deck).z-.10f);
@@ -108,7 +115,7 @@ namespace Ironclads
                 SailingHeadTimber(framing,"Cheek and knee seated basket rib",Rib,.11f*BowRichness(spec),.085f*BowRichness(spec),caYellow,32);
             }
             var platform=new GameObject("Open beakhead grating").transform;platform.SetParent(root,false);
-            int bars=Mathf.CeilToInt(spec.Length*.114f/.24f);
+            int bars=Mathf.CeilToInt((HeadStationZ(spec,.566f)-spec.Length*.452f)/.24f);
             for(int n=0;n<=bars;n++){
                 Vector3 edge=HeadGratingEdge(spec,n/(float)bars);
                 Box(platform,"Transverse grating batten",new Vector3(0,edge.y,edge.z),new Vector3(edge.x*2,.07f,.065f),caOak);

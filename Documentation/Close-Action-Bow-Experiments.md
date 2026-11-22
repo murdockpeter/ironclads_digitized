@@ -4,7 +4,8 @@
 | --- | --- | --- | --- |
 | Bows 1.0 | `9aed352` | `bows-1.0` | Original baseline |
 | Bows 2.0 | `318c13c` | `bows-2.0` | First experiment, committed by user |
-| Bows 3 | Pending user commit | Not tagged yet | Fighting Sail cover experiment on `experiment/bows-3.0` |
+| Bows 3.0 | `579807e` | `bows-3.0` | Cover silhouette, committed by user |
+| Bows 4 | Pending user commit | Not tagged yet | Shorter head projection and seated rail tails on `experiment/bows-4.0` |
 
 ## Bows 1.0 rollback point
 
@@ -71,4 +72,24 @@ Model cache revision: 22. Build: `Builds/Windows-CloseAction-Bows3/Ironclads.exe
 
 Validated on 22 November 2026: all seven geometry review suites passed and the final build exited 0 (`Artifacts/Bows3-final.log`). The bow checks cover the deep rail hollow and raised head, broad forward shoulders, symmetry, separation of all three rails, solid rectangular rib faces, grating openings and fastening geometry. The original hull closure, knee joins, gun counts, gunport clearance, interiors, straight spars and headsails also passed. Fifty inspection views cover all ten prototypes, including a low quarter angle for comparison with the cover.
 
-The standalone check exited 0 with `ALL PASS` in `Artifacts/CloseAction/Bows3/Runtime/bows3-runtime.txt`; runtime screenshots are beside it. The preserved Bows 2 player assembly still matches `Artifacts/Bows-2.0/manifest.json`. On this branch, the normal Close Action delivery methods also target the Bows 3 directory. Current source edits are uncommitted; record the user's next commit and create its version tag before starting another attempt.
+The standalone check exited 0 with `ALL PASS` in `Artifacts/CloseAction/Bows3/Runtime/bows3-runtime.txt`; runtime screenshots are beside it. The preserved Bows 2 player assembly still matches `Artifacts/Bows-2.0/manifest.json`. On this branch, the normal Close Action delivery methods also target the Bows 3 directory. The user subsequently committed this pass; its checkpoint is recorded below.
+
+
+### Bows 3.0 committed checkpoint
+
+The user committed the cover-inspired pass as `579807e521af7b46a16f7e318b455f605780f435` - `2nd pass at the bow shaping.` The tree was clean before this refinement. Annotated local tag `bows-3.0` now fixes that commit on `experiment/bows-3.0`; the user also reports pushing that branch. The preserved player is `Builds/Windows-CloseAction-Bows3/Ironclads.exe`.
+
+Local backup: `Artifacts/Bows-3.0/source-579807e.zip`, `CloseActionModels/` (revision 22), `Previews/`, and `manifest.json` with the previous player's assembly hash. A separate checkout can be created with `git worktree add --detach ../ironclads-bows-3.0 bows-3.0`.
+
+## Bows 4 refinement: projection and rail tails
+
+Branch: `experiment/bows-4.0`, starting at Bows 3.0. The user requested about 15 percent less forward projection and shorter tube-like rail tails along the hull, and confirmed that the trimming applies to the headrail tails only.
+
+The knee's forward reach and figurehead mounting station move from 0.585 hull lengths to 0.57225, measured on the same centered hull coordinate system. Relative to the stem at 0.5 hull lengths, that changes the projection from 0.085 to 0.07225 hull lengths, exactly 85 percent of the previous distance. Forward rail controls, the grating end and gammoning attachment follow the same compression. The previous vertical sweep and basket width are retained.
+
+The aft rail tails are trimmed back, bringing their ends from station 0.34 to approximately 0.39 hull lengths. Their caps start inside the cheek planking and emerge smoothly into the exposed rails. The ribs retain their positions along the basket. Review rays check that all six shortened rail caps are seated inside the hull, alongside exterior molding and hull-join checks.
+
+Model revision: 23. Player version: 1.8.16-dev. Build: `Builds/Windows-CloseAction-Bows4/Ironclads.exe`; all Close Action delivery entry points on this branch use this separate directory. Launch with `./Start-Ironclads.ps1 -CloseAction`. Review images and reports: `Artifacts/CloseAction/Bows4/`. Build log: `Artifacts/Bows4-refit.log`. Previous players and review images remain available in their original directories. Source edits are uncommitted until the user chooses to checkpoint this refinement.
+
+
+Validated on 22 November 2026: the build exited 0 and all seven geometry review suites passed. The measured 15 percent projection check passed for all ten prototypes; all 60 rail-cap seating rays passed. Fifty inspection renders were saved. The standalone verification exited 0 with `ALL PASS` in `Artifacts/CloseAction/Bows4/Runtime/bows4-runtime.txt`, including the existing fleet, sails, weather, network and powder checks. The Bows 3 player assembly hash still matches the preserved manifest. Current source remains uncommitted on `experiment/bows-4.0`.

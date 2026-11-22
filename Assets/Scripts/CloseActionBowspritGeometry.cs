@@ -32,7 +32,7 @@ namespace Ironclads
                 Box(seating,"Bowsprit knighthead",foot+Vector3.up*.55f,new Vector3(.30f,1.25f,.36f),caOak);
                 Box(seating,"Knighthead cap",foot+Vector3.up*1.22f,new Vector3(.38f,.14f,.44f),Hull);
             }
-            float lashingZ=spec.Length*.54f,kneeT=HeadKneeAtZ(spec,lashingZ);
+            float lashingZ=HeadStationZ(spec,.54f),kneeT=HeadKneeAtZ(spec,lashingZ);
             Vector3 knee=(HeadKneePoint(spec,kneeT)+HeadKneeInside(spec,kneeT))*.5f;
             Vector3 spar=Vector3.LerpUnclamped(heel,end,(lashingZ-heel.z)/(end.z-heel.z));
             for(int turn=0;turn<8;turn++){

@@ -33,11 +33,19 @@ namespace Ironclads.Editor
                 float farthest=0;
                 foreach(var point in v)farthest=Mathf.Max(farthest,point.z);
                 Check(farthest<spec.Length*.60f,profile.key+" raised head remains within a tenth of hull length beyond stem");
+                float previousProjection=spec.Length*.085f;
+                Check(Mathf.Abs((farthest-spec.Length*.5f)/previousProjection-.85f)<.001f,profile.key+" head projection reduced by 15 percent from Bows 3");
                 var frames=root.Find("Attached bow assembly/Attached beakhead framing");
                 Check(frames!=null,profile.key+" separate attached headrail assembly");
+                var cheekShell=root.GetComponentsInChildren<MeshFilter>().Where(f=>f.transform.parent==root).ToArray();
+                for(int rail=0;rail<3;rail++)for(int side=-1;side<=1;side+=2){
+                    Vector3 seat=Shipwright.CloseActionHeadRailPoint(spec,side,rail,0);
+                    Check(seat.z>spec.Length*.38f,profile.key+" aft rail tail trimmed toward bow shoulder");
+                    Check(CloseActionInteriorReview.FrontHit(root,cheekShell,new Ray(seat,Vector3.right*side),1.25f),profile.key+" shortened rail cap seats inside planking / rail "+rail+" / side "+side);
+                }
                 Check(shell.SelectMany(f=>f.sharedMesh.vertices).Max(p=>p.z)<spec.Length*.507f,profile.key+" hull ends at its stem, behind projecting framework");
                 var gold=frames.GetComponentsInChildren<MeshFilter>().Where(f=>f.GetComponent<MeshRenderer>().sharedMaterial.name.Contains("gold bow carving"));
-                var points=gold.SelectMany(f=>f.sharedMesh.vertices.Select(p=>root.InverseTransformPoint(f.transform.TransformPoint(p)))).Where(p=>p.x>0&&p.z>spec.Length*.34f&&p.z<spec.Length*.49f&&p.y>spec.Deck+.1f).OrderBy(p=>p.z).ToArray();
+                var points=gold.SelectMany(f=>f.sharedMesh.vertices.Select(p=>root.InverseTransformPoint(f.transform.TransformPoint(p)))).Where(p=>p.x>0&&p.z>spec.Length*.425f&&p.z<spec.Length*.49f&&p.y>spec.Deck+.1f).OrderBy(p=>p.z).ToArray();
                 Check(points.Length>10,profile.key+" exterior head moldings available for checks");
                 for(int sample=0;sample<6;sample++){
                     Vector3 p=points[(points.Length-1)*sample/5];Check(!CloseActionInteriorReview.FrontHit(root,shell,new Ray(p+Vector3.right*.004f,Vector3.right),spec.Beam),profile.key+" decorative molding remains outside hull / sample "+sample);

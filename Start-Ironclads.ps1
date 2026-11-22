@@ -1,5 +1,6 @@
 param([switch]$Ferrol,[switch]$IronFire,[switch]$Ulsan,[switch]$PatrickHenry,[switch]$SuppliedModels,[switch]$James1865,[switch]$CloseAction)
 $ironcladsPlayer = Join-Path $PSScriptRoot 'Ironclads.exe'
+if (-not (Test-Path -LiteralPath $ironcladsPlayer)) { $ironcladsPlayer = Join-Path $PSScriptRoot 'Builds\Windows-CloseAction-Bows4\Ironclads.exe' }
 if (-not (Test-Path -LiteralPath $ironcladsPlayer)) { $ironcladsPlayer = Join-Path $PSScriptRoot 'Builds\Windows-CloseAction-Bows3\Ironclads.exe' }
 if (-not (Test-Path -LiteralPath $ironcladsPlayer)) { $ironcladsPlayer = Join-Path $PSScriptRoot 'Builds\Windows-CloseAction-Bows2\Ironclads.exe' }
 if (-not (Test-Path -LiteralPath $ironcladsPlayer)) { $ironcladsPlayer = Join-Path $PSScriptRoot 'Builds\Windows-CloseAction-HeadFraming\Ironclads.exe' }
