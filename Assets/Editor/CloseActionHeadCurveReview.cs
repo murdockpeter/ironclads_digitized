@@ -14,7 +14,7 @@ namespace Ironclads.Editor
                 Vector3 Heel(int n)=>(v[n*4]+v[n*4+1])*.5f;
                 Vector3 heel=Heel(0),crown=Heel(steps),lower=Heel(4)-heel,upper=crown-Heel(steps-4);
                 Check(crown.y-heel.y>spec.Deck*.85f,profile.key+" stem rises from near waterline to figurehead");
-                Check(lower.y/lower.z<1&&upper.y/upper.z>4,profile.key+" near-horizontal heel sweeps into steep crown");
+                Check(lower.y/lower.z>1&&upper.y/upper.z>4&&upper.y/upper.z>lower.y/lower.z,profile.key+" upright lower stem sweeps into a steeper crown");
                 for(int n=1;n<=steps;n++)Check(Heel(n).z>=Heel(n-1).z&&Heel(n).y>Heel(n-1).y,profile.key+" continuous forward and upward sweep");
                 var main=CloseActionSparReview.Straight(root.Find("Attached bow assembly/Rigid bowsprit assembly/Bowsprit").GetComponent<MeshFilter>(),root,.42f);Vector3 span=main.end-main.heel;
                 float clearance=float.PositiveInfinity;

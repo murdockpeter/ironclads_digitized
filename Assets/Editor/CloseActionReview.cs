@@ -14,7 +14,7 @@ namespace Ironclads.Editor
         public static void PrepareModels()
         {
             string folder="Assets/Resources/CloseActionModels";Directory.CreateDirectory(folder);AssetDatabase.Refresh();
-            if(File.Exists(folder+"/revision.txt")&&File.ReadAllText(folder+"/revision.txt")=="21"&&CloseActionPrototypes.All.All(p=>File.Exists(folder+"/"+p.key+".prefab")))return;
+            if(File.Exists(folder+"/revision.txt")&&File.ReadAllText(folder+"/revision.txt")=="22"&&CloseActionPrototypes.All.All(p=>File.Exists(folder+"/"+p.key+".prefab")))return;
             string absolute=Path.GetFullPath(folder);if(!absolute.StartsWith(Path.GetFullPath(Application.dataPath)+Path.DirectorySeparatorChar,StringComparison.OrdinalIgnoreCase))throw new Exception("Generated models must stay within Assets.");
             AssetDatabase.DeleteAsset(folder);Directory.CreateDirectory(folder);AssetDatabase.Refresh();
             var report=new StringBuilder("type,vertices,meshes,triangles,guns\n");
@@ -37,7 +37,7 @@ namespace Ironclads.Editor
                 PrefabUtility.SaveAsPrefabAsset(ship,folder+"/"+key+".prefab");}finally{AssetDatabase.StopAssetEditing();}
                 UnityEngine.Object.DestroyImmediate(ship);
             }
-            AssetDatabase.SaveAssets();File.WriteAllText(folder+"/revision.txt","21");Directory.CreateDirectory("Artifacts/CloseAction");File.WriteAllText("Artifacts/CloseAction/model-counts.csv",report.ToString());
+            AssetDatabase.SaveAssets();File.WriteAllText(folder+"/revision.txt","22");Directory.CreateDirectory("Artifacts/CloseAction");File.WriteAllText("Artifacts/CloseAction/model-counts.csv",report.ToString());
         }
         public static void Verify()
         {

@@ -32,7 +32,7 @@ namespace Ironclads.Editor
                 Check(cheek.z<spec.Length*.48f,profile.key+" rounded cheek stays aft of stem without projecting shelf");
                 float farthest=0;
                 foreach(var point in v)farthest=Mathf.Max(farthest,point.z);
-                Check(farthest<spec.Length*.575f,profile.key+" compact upward-sweeping head projection");
+                Check(farthest<spec.Length*.60f,profile.key+" raised head remains within a tenth of hull length beyond stem");
                 var frames=root.Find("Attached bow assembly/Attached beakhead framing");
                 Check(frames!=null,profile.key+" separate attached headrail assembly");
                 Check(shell.SelectMany(f=>f.sharedMesh.vertices).Max(p=>p.z)<spec.Length*.507f,profile.key+" hull ends at its stem, behind projecting framework");

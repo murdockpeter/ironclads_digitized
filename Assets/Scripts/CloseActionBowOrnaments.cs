@@ -10,7 +10,7 @@ namespace Ironclads
         {float u=1-t;return a*(u*u*u)+b*(3*u*u*t)+c*(3*u*t*t)+d*(t*t*t);}
         static Vector3 BowFigurePosition(CloseActionSpec spec)
         {
-            float deck=CloseActionHullLines.Get(spec.Length,spec.Beam).DeckHeight(spec.Length*.5f),z=spec.Length*.57f;
+            float deck=CloseActionHullLines.Get(spec.Length,spec.Beam).DeckHeight(spec.Length*.5f),z=spec.Length*.585f;
             SailingBowspritFrame(spec,out var heel,out var end,out _,out _);
             float sparY=Mathf.LerpUnclamped(heel.y,end.y,(z-heel.z)/(end.z-heel.z));
             return new Vector3(0,Mathf.Min(deck+1.6f,sparY-.65f-1.62f*BowRichness(spec)),z);
@@ -18,11 +18,11 @@ namespace Ironclads
         static Vector3 HeadKneePoint(CloseActionSpec spec,float t)
         {
             Vector3 figure=BowFigurePosition(spec);float rich=BowRichness(spec);
-            return BowBezier(new Vector3(0,.5f,spec.Length*.475f),new Vector3(0,1.1f,spec.Length*.495f),new Vector3(0,figure.y-3.6f*rich,spec.Length*.566f),figure+Vector3.up*(.35f*rich),t);
+            return BowBezier(new Vector3(0,.5f,spec.Length*.475f),new Vector3(0,2.6f,spec.Length*.49f),new Vector3(0,figure.y-2.8f*rich,spec.Length*.58f),figure+Vector3.up*(.35f*rich),t);
         }
         static Vector3 HeadKneeNormal(CloseActionSpec spec,float t)
         {return Vector3.Cross(Vector3.right,(HeadKneePoint(spec,Mathf.Min(1,t+.001f))-HeadKneePoint(spec,Mathf.Max(0,t-.001f))).normalized).normalized;}
-        static float HeadKneeDepth(CloseActionSpec spec,float t)=>Mathf.Lerp(1.1f,.8f,t)*BowRichness(spec);
+        static float HeadKneeDepth(CloseActionSpec spec,float t)=>Mathf.Lerp(.95f,.65f,t)*BowRichness(spec);
         static Vector3 HeadKneeInside(CloseActionSpec spec,float t)
         {
             Vector3 outer=HeadKneePoint(spec,t),inside=outer-HeadKneeNormal(spec,t)*HeadKneeDepth(spec,t);
@@ -34,28 +34,36 @@ namespace Ironclads
         }
         static void SailingHeadRailPlank(Transform root,CloseActionSpec spec,int side,int rail)
         {
-            const int steps=40;var vertices=new List<Vector3>();var triangles=new List<int>();
+            float rich=BowRichness(spec);
+            SailingHeadTimber(root,"Bent timber headrail",f=>HeadRailPoint(spec,side,rail,f),(.09f+rail*.015f)*rich,(.075f+rail*.015f)*rich,Hull,40);
+        }
+        static void SailingHeadTimber(Transform root,string name,System.Func<float,Vector3> point,float halfWidth,float halfDepth,Material material,int steps)
+        {
+            var vertices=new List<Vector3>();var triangles=new List<int>();Vector3 previousAcross=Vector3.zero;
             for(int n=0;n<=steps;n++){
-                float f=n/(float)steps;Vector3 p=HeadRailPoint(spec,side,rail,f);
-                Vector3 axis=(HeadRailPoint(spec,side,rail,Mathf.Min(1,f+.001f))-HeadRailPoint(spec,side,rail,Mathf.Max(0,f-.001f))).normalized;
-                Vector3 up=Vector3.ProjectOnPlane(Vector3.up,axis).normalized,across=Vector3.Cross(up,axis).normalized;
-                Vector3[] ring={p-across*.085f-up*.06f,p+across*.085f-up*.06f,p+across*.085f+up*.06f,p-across*.085f+up*.06f};
+                float f=n/(float)steps;Vector3 p=point(f);
+                Vector3 axis=(point(Mathf.Min(1,f+.001f))-point(Mathf.Max(0,f-.001f))).normalized;
+                Vector3 across=Vector3.ProjectOnPlane(previousAcross,axis);
+                if(across.sqrMagnitude<.000001f)across=Vector3.ProjectOnPlane(Mathf.Abs(axis.x)<.9f?Vector3.right:Vector3.forward,axis);
+                across.Normalize();previousAcross=across;Vector3 up=Vector3.Cross(axis,across).normalized;
+                Vector3[] ring={p-across*halfWidth-up*halfDepth,p+across*halfWidth-up*halfDepth,p+across*halfWidth+up*halfDepth,p-across*halfWidth+up*halfDepth};
                 for(int edge=0;edge<4;edge++){
                     vertices.Add(ring[edge]);vertices.Add(ring[(edge+1)%4]);
                     if(n<steps){int a=n*8+edge*2;triangles.AddRange(new[]{a,a+1,a+8,a+1,a+9,a+8});}
                 }
             }
             triangles.AddRange(new[]{0,4,2,0,6,4});int last=steps*8;triangles.AddRange(new[]{last,last+2,last+4,last,last+4,last+6});
-            Part("Bent timber headrail",root,Mesh("Rectangular swept headrail plank",vertices,triangles),Hull);
+            Part(name,root,Mesh("Rectangular swept head timber",vertices,triangles),material);
         }
+        public static Vector3 CloseActionHeadRailPoint(CloseActionSpec spec,int side,int rail,float f)=>HeadRailPoint(spec,side,rail,f);
         static Vector3 HeadRailPoint(CloseActionSpec spec,int side,int rail,float f)
         {
             float deck=CloseActionHullLines.Get(spec.Length,spec.Beam).DeckHeight(spec.Length*.5f);Vector3 crown=HeadKneePoint(spec,1);
-            // The main, middle and lower rails fan apart at the cheeks and gather at the head.
-            // Rail 2 supplies the edge of the working grating as well as the upper molding.
-            Vector3 point=BowBezier(new Vector3(side*spec.Beam*(.30f+rail*.01f),CloseActionHullLines.Get(spec.Length,spec.Beam).DeckHeight(spec.Length*.34f)-.85f+rail*.65f,spec.Length*.34f),
-                new Vector3(side*spec.Beam*.24f,deck-2.0f+rail*1.05f,spec.Length*.47f),new Vector3(side*.65f,crown.y-3.6f+rail*.95f,spec.Length*.56f),
-                new Vector3(side*.20f,crown.y-.75f+rail*.25f,crown.z),f);
+            // Broad basket cheeks, a deep hollow in profile, and a steep gathered head:
+            // the Fighting Sail cover supplies the silhouette, not measured offsets.
+            Vector3 point=BowBezier(new Vector3(side*spec.Beam*(.30f+rail*.01f),CloseActionHullLines.Get(spec.Length,spec.Beam).DeckHeight(spec.Length*.34f)-.15f+rail*.75f,spec.Length*.34f),
+                new Vector3(side*spec.Beam*.25f,deck-2.65f+rail*.70f,spec.Length*.465f),new Vector3(side*spec.Beam*.16f,crown.y-4.5f+rail*.65f,spec.Length*.545f),
+                new Vector3(side*.22f,crown.y-.90f+rail*.475f,crown.z),f);
             float low=spec.Length*.25f,high=spec.Length*.5f;
             if(point.z<SailingShellPoint(1,high,point.y,spec.Length,spec.Beam,spec.Deck).z){
                 for(int n=0;n<16;n++){float z=(low+high)*.5f;if(SailingShellPoint(1,z,point.y,spec.Length,spec.Beam,spec.Deck).z<point.z)low=z;else high=z;}
@@ -72,7 +80,7 @@ namespace Ironclads
         }
         static Vector3 HeadGratingEdge(CloseActionSpec spec,float f)
         {
-            float z=Mathf.Lerp(spec.Length*.452f,spec.Length*.545f,f),low=0,high=1;
+            float z=Mathf.Lerp(spec.Length*.452f,spec.Length*.566f,f),low=0,high=1;
             for(int n=0;n<20;n++){float mid=(low+high)*.5f;if(HeadRailPoint(spec,1,2,mid).z<z)low=mid;else high=mid;}
             Vector3 rail=HeadRailPoint(spec,1,2,(low+high)*.5f);
             return rail+new Vector3(-.13f,-.16f,0);
@@ -92,14 +100,15 @@ namespace Ironclads
                     for(int k=0;k<20;k++){float mid=(low+high)*.5f;if(SailingShellPoint(side,mid,y,spec.Length,spec.Beam,spec.Deck).z<target)low=mid;else high=mid;}
                     seat=SailingShellPoint(side,(low+high)*.5f,y,spec.Length,spec.Beam,spec.Deck)-Vector3.right*side*.12f;
                 }
-                Vector3 previous=seat;
-                for(int k=1;k<=12;k++){
-                    float u=k/12f;Vector3 next=BowBezier(seat,new Vector3(lower.x*.7f,seat.y,lower.z),lower,upper,u);
-                    SailingRod(framing,"Knee-seated head timber",previous,next,.10f,caOak,sides:7);previous=next;
+                Vector3 middle=HeadRailPoint(spec,side,1,f),control=2*middle-(lower+upper)*.5f;
+                Vector3 Rib(float u){
+                    if(u<=.5f)return BowBezier(seat,new Vector3(lower.x*.65f,seat.y,lower.z),lower-Vector3.up*.25f,lower,u*2);
+                    float t=(u-.5f)*2,v=1-t;return lower*(v*v)+control*(2*v*t)+upper*(t*t);
                 }
+                SailingHeadTimber(framing,"Cheek and knee seated basket rib",Rib,.11f*BowRichness(spec),.085f*BowRichness(spec),caYellow,32);
             }
             var platform=new GameObject("Open beakhead grating").transform;platform.SetParent(root,false);
-            int bars=Mathf.CeilToInt(spec.Length*.093f/.24f);
+            int bars=Mathf.CeilToInt(spec.Length*.114f/.24f);
             for(int n=0;n<=bars;n++){
                 Vector3 edge=HeadGratingEdge(spec,n/(float)bars);
                 Box(platform,"Transverse grating batten",new Vector3(0,edge.y,edge.z),new Vector3(edge.x*2,.07f,.065f),caOak);
@@ -124,20 +133,20 @@ namespace Ironclads
             for(int side=-1;side<=1;side+=2){
                 for(int rail=0;rail<3;rail++)SailingHeadRailPlank(framing,spec,side,rail);
                 for(int rail=0;rail<3;rail++)for(int n=0;n<32;n++){
-                    Vector3 a=HeadRailPoint(spec,side,rail,n/32f),b=HeadRailPoint(spec,side,rail,(n+1)/32f),offset=new Vector3(side*.09f,.045f,0);
-                    SailingRod(framing,"Gilded headrail molding",a+offset,b+offset,.028f,caGilt,sides:5);
+                    Vector3 a=HeadRailPoint(spec,side,rail,n/32f),b=HeadRailPoint(spec,side,rail,(n+1)/32f),offset=new Vector3(side*(.105f+rail*.015f)*rich,.065f*rich,0);
+                    SailingRod(framing,"Gilded headrail molding",a+offset,b+offset,.040f*rich,caGilt,sides:6);
                 }
                 for(int n=0;n<28;n++){
                     float a=Mathf.Lerp(.22f,1,n/28f),b=Mathf.Lerp(.22f,1,(n+1)/28f);
                     Vector3 pa=HeadKneePoint(spec,a),pb=HeadKneePoint(spec,b),na=HeadKneeNormal(spec,a),nb=HeadKneeNormal(spec,b);
-                    Vector3 p=pa-na*.08f+Vector3.right*side*.27f,q=pb-nb*.08f+Vector3.right*side*.27f;
-                    Vector3 topP=HeadKneeInside(spec,a)+na*.07f+Vector3.right*side*.27f,topQ=HeadKneeInside(spec,b)+nb*.07f+Vector3.right*side*.27f;
+                    Vector3 p=pa-na*.08f+Vector3.right*side*.215f*rich,q=pb-nb*.08f+Vector3.right*side*.215f*rich;
+                    Vector3 topP=HeadKneeInside(spec,a)+na*.07f+Vector3.right*side*.215f*rich,topQ=HeadKneeInside(spec,b)+nb*.07f+Vector3.right*side*.215f*rich;
                     Quad(head,"Painted carved trailboard",p,q,topQ,topP,spec.side==1?caBlue:Hull);
                     SailingRod(head,"Trailboard lower gold border",p+Vector3.right*side*.02f,q+Vector3.right*side*.02f,.045f,caGilt,sides:6);
                     SailingRod(head,"Trailboard upper gold border",topP+Vector3.right*side*.02f,topQ+Vector3.right*side*.02f,.045f,caGilt,sides:6);
                 }
                 for(int scroll=0;scroll<(spec.rate>=80?3:2);scroll++){
-                    float f=Mathf.Lerp(.3f,.96f,(scroll+1)/(spec.rate>=80?4f:3f));Vector3 center=(HeadKneePoint(spec,f)+HeadKneeInside(spec,f))*.5f+Vector3.right*side*.30f;
+                    float f=Mathf.Lerp(.3f,.96f,(scroll+1)/(spec.rate>=80?4f:3f));Vector3 center=(HeadKneePoint(spec,f)+HeadKneeInside(spec,f))*.5f+Vector3.right*side*.245f*rich;
                     BowScroll(head,center,side,.26f*rich);
                 }
             }
@@ -179,7 +188,7 @@ namespace Ironclads
         {
             const int steps=64;var v=new List<Vector3>();var t=new List<int>();
             for(int n=0;n<=steps;n++){
-                float f=n/(float)steps;Vector3 p=HeadKneePoint(spec,f),inside=HeadKneeInside(spec,f);float half=.25f*BowRichness(spec);
+                float f=n/(float)steps;Vector3 p=HeadKneePoint(spec,f),inside=HeadKneeInside(spec,f);float half=.20f*BowRichness(spec);
                 v.Add(p+Vector3.left*half);v.Add(p+Vector3.right*half);v.Add(inside+Vector3.right*half);v.Add(inside+Vector3.left*half);
                 if(n<steps)for(int edge=0;edge<4;edge++){int a=n*4+edge,b=n*4+(edge+1)%4;t.AddRange(new[]{a,b,a+4,b,b+4,a+4});}
             }

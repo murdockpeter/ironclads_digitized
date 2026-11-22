@@ -8,7 +8,7 @@ namespace Ironclads.Editor
 {
     public static class CloseActionBowExperimentReview
     {
-        const string Output="Artifacts/CloseAction/Bows2";
+        const string Output="Artifacts/CloseAction/Bows3";
         static void Check(bool okay,string message){if(!okay)throw new Exception("Bow experiment: "+message);Debug.Log("BOW EXPERIMENT PASS: "+message);}
         // Fast iteration for changes confined to the attached bow assembly. A clean
         // checkout still uses PrepareModels to regenerate the complete prototype cache.
@@ -21,7 +21,7 @@ namespace Ironclads.Editor
                 var fresh=Shipwright.CreateCloseActionShip(CloseActionScenario.BaseFleet[profile.representative],false);
                 try{
                     var old=contents.transform.Find("Attached bow assembly");
-                    var materials=old.GetComponentsInChildren<MeshRenderer>().Select(r=>r.sharedMaterial).GroupBy(m=>m.name).ToDictionary(g=>g.Key,g=>g.First());
+                    var materials=contents.GetComponentsInChildren<MeshRenderer>(true).Select(r=>r.sharedMaterial).GroupBy(m=>m.name).ToDictionary(g=>g.Key,g=>g.First());
                     var replacement=UnityEngine.Object.Instantiate(fresh.transform.Find("Attached bow assembly").gameObject,contents.transform,false);replacement.name="Attached bow assembly";
                     AssetDatabase.StartAssetEditing();try{
                         foreach(var filter in replacement.GetComponentsInChildren<MeshFilter>()){
@@ -32,7 +32,7 @@ namespace Ironclads.Editor
                     }finally{AssetDatabase.StopAssetEditing();}
                 }finally{PrefabUtility.UnloadPrefabContents(contents);UnityEngine.Object.DestroyImmediate(fresh);}
             }
-            AssetDatabase.SaveAssets();File.WriteAllText(folder+"/revision.txt","21");
+            AssetDatabase.SaveAssets();File.WriteAllText(folder+"/revision.txt","22");
             var counts=new System.Text.StringBuilder("type,vertices,meshes,triangles,guns\n");
             foreach(var p in CloseActionPrototypes.All){
                 var ship=AssetDatabase.LoadAssetAtPath<GameObject>(folder+"/"+p.key+".prefab");var filters=ship.GetComponentsInChildren<MeshFilter>(true);
@@ -51,6 +51,18 @@ namespace Ironclads.Editor
                 Check(grating!=null&&seating!=null,profile.key+" grating and bowsprit fastening present");
                 Check(root.GetComponentsInChildren<MeshFilter>().All(f=>f.sharedMesh.vertices.All(p=>float.IsFinite(p.x)&&float.IsFinite(p.y)&&float.IsFinite(p.z))),profile.key+" finite geometry");
                 Check(root.GetComponentsInChildren<GunMount>().Length==spec.rate,profile.key+" physical gun count retained");
+                Vector3 Rail(int side,int rail,float f)=>Shipwright.CloseActionHeadRailPoint(spec,side,rail,f);
+                float hollow=Enumerable.Range(15,71).Min(n=>Rail(1,2,n/100f).y);
+                Check(Rail(1,2,0).y>hollow+.65f&&Rail(1,2,1).y>hollow+1.5f,profile.key+" main rail has the cover's deep hollow and raised head");
+                Check(Rail(1,2,.65f).x>spec.Beam*.11f,profile.key+" open basket retains broad forward shoulders");
+                for(int n=0;n<=20;n++){
+                    float f=n/20f;var port=Rail(-1,2,f);var starboard=Rail(1,2,f);
+                    Check(Vector3.Distance(port,new Vector3(-starboard.x,starboard.y,starboard.z))<.001f,profile.key+" symmetric basket / section "+n);
+                    Check(Rail(1,2,f).y>Rail(1,1,f).y+.35f&&Rail(1,1,f).y>Rail(1,0,f).y+.35f,profile.key+" separate rails / section "+n);
+                }
+                var ribs=root.Find("Attached bow assembly/Attached beakhead framing").GetComponentsInChildren<MeshRenderer>();
+                Check(ribs.Any(r=>r.sharedMaterial.name.Contains("ochre gun strakes")),profile.key+" substantial painted basket ribs saved in model");
+                Check(ribs.Where(r=>r.sharedMaterial.name.Contains("ochre gun strakes")).All(r=>r.GetComponent<MeshFilter>().sharedMesh.normals.All(n=>float.IsFinite(n.x)&&float.IsFinite(n.y)&&float.IsFinite(n.z)&&n.sqrMagnitude>.5f)),profile.key+" rectangular ribs retain solid faces through their bends");
                 var filters=grating.GetComponentsInChildren<MeshFilter>();int gaps=0,hits=0;
                 float deck=CloseActionHullLines.Get(spec.Length,spec.Beam).DeckHeight(spec.Length*.5f);
                 // A dense ray grid distinguishes a lattice from a solid filled platform.
@@ -74,11 +86,11 @@ namespace Ironclads.Editor
                 foreach(var vessel in scene.vessels)vessel.gameObject.SetActive(vessel==root);
                 scene.scenario.closeAction.logs[index].sail=0;root.GetComponent<CloseActionVisual>().Refresh(scene.scenario.closeAction.logs[index],scene.scenario.ships[index].heading,300,12);
                 scene.target=root.TransformPoint(new Vector3(0,spec.Deck+.8f,spec.Length*.49f));scene.distance=spec.Length*.48f;
-                foreach(var angle in new[]{(90f,5f,"side"),(140f,25f,"quarter"),(90f,65f,"top"),(180f,6f,"front")}){
+                foreach(var angle in new[]{(90f,5f,"side"),(140f,25f,"quarter"),(130f,8f,"cover"),(90f,65f,"top"),(180f,6f,"front")}){
                     scene.yaw=scene.scenario.ships[index].heading+angle.Item1;scene.pitch=angle.Item2;scene.SetCamera();Capture(scene.view,Output+"/"+profile.key+"-"+angle.Item3+".png");
                 }
             }
-            File.WriteAllText(Output+"/verification.txt","PASS: all ten prototypes; finite geometry; original gun counts; grating timber and open holes; gammoning spans knee and bowsprit; side, quarter, top and front previews.\n");
+            File.WriteAllText(Output+"/verification.txt","PASS: all ten prototypes; cover-style deep rail hollow, raised head and broad basket shoulders; symmetric separated rails and painted ribs; finite geometry; original gun counts; open grating; knee-to-bowsprit gammoning; five inspection views per prototype.\n");
             EditorSceneManager.OpenScene("Assets/Scenes/Ferrol.unity",OpenSceneMode.Single);
         }
         static void Capture(Camera camera,string path)

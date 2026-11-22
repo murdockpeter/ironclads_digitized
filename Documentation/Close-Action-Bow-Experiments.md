@@ -1,5 +1,11 @@
 # Close Action bow experiments
 
+| Version | Commit | Local tag | Status |
+| --- | --- | --- | --- |
+| Bows 1.0 | `9aed352` | `bows-1.0` | Original baseline |
+| Bows 2.0 | `318c13c` | `bows-2.0` | First experiment, committed by user |
+| Bows 3 | Pending user commit | Not tagged yet | Fighting Sail cover experiment on `experiment/bows-3.0` |
+
 ## Bows 1.0 rollback point
 
 Recorded on 22 November 2026, before changing the bows. The working tree was clean.
@@ -47,4 +53,22 @@ Build with `Ironclads.Editor.ProjectBuilder.DeliverCloseActionBowExperiment`. Th
 
 Review output is under `Artifacts/CloseAction/Bows2/`: four inspection views per prototype and `verification.txt`. The inspection views furl sails to expose the framing. The first inspection exposed overly deep aft ribs; the final refit seats those ribs against the actual cheek surface, extends the grating aft to the head bulkhead, and moves the lashing forward onto the higher knee. Initial build output is in `Artifacts/Bows2-build.log`; final refit checks and build output are in `Artifacts/Bows2-refit.log`.
 
-Validated on 22 November 2026: the final Unity build exited 0; all seven geometry review suites passed across the ten prototypes; 40 inspection images were produced. The standalone verification exited 0 with `ALL PASS` in `Artifacts/CloseAction/Bows2/Runtime/bows2-runtime.txt`, including the existing network, weather, sail and powder-smoke checks. Runtime screenshots are beside that report. The preserved Bows 1.0 `Assembly-CSharp.dll` still matches the SHA-256 recorded in `Artifacts/Bows-1.0/manifest.json`. Source edits remain uncommitted on the experiment branch.
+Validated on 22 November 2026: the final Unity build exited 0; all seven geometry review suites passed across the ten prototypes; 40 inspection images were produced. The standalone verification exited 0 with `ALL PASS` in `Artifacts/CloseAction/Bows2/Runtime/bows2-runtime.txt`, including the existing network, weather, sail and powder-smoke checks. Runtime screenshots are beside that report. The preserved Bows 1.0 `Assembly-CSharp.dll` still matches the SHA-256 recorded in `Artifacts/Bows-1.0/manifest.json`.
+
+### Bows 2.0 committed checkpoint
+
+Before the next pass on 22 November 2026, the user committed the first experiment as `318c13cb16557cca25ffea14d57d8a1fd1ab7e17` — `1st pass at bow changes.` The tree was clean. Annotated local tag `bows-2.0` now fixes that commit on `experiment/bows-2.0`. Its player remains at `Builds/Windows-CloseAction-Bows2/Ironclads.exe`.
+
+Local rollback backup: `Artifacts/Bows-2.0/source-318c13c.zip`, `CloseActionModels/` (revision 21), and `Previews/`. A separate source checkout can be created with `git worktree add --detach ../ironclads-bows-2.0 bows-2.0`; copy that backup's model folder into the new checkout's `Assets/Resources/CloseActionModels` if needed. The Bows 1.0 tag and player are also retained.
+
+## Bows 3 experiment: Fighting Sail cover
+
+Branch: `experiment/bows-3.0`, starting at the Bows 2.0 checkpoint. The explicit visual target is the bow of the ship on the right of the Osprey Fighting Sail cover, PDF page 1 of the supplied local book. This pass emphasizes the basket's deep rail curves, broad forward shoulders, substantial rectangular ribs and a taller, narrower rising central stem. These are visual interpretations of a perspective painting, not traced construction offsets.
+
+All ten prototypes share the new shape with their existing dimensions and richness scaling. The grating follows the wider curved main rails. The transverse ribs now pass through the lower, middle and upper rails rather than merely ending at the main rail. Figurehead and trailboard placement follow the reshaped central knee; the rigid bowsprit frame retains its previous axis.
+
+Model cache revision: 22. Build: `Builds/Windows-CloseAction-Bows3/Ironclads.exe`, version 1.8.15-dev. Current launcher: `./Start-Ironclads.ps1 -CloseAction`. Use `Ironclads.Editor.CloseActionBowExperimentReview.RefitAndDeliver` to refit the attached assemblies and run the checks/build; a full clean rebuild uses `Ironclads.Editor.ProjectBuilder.DeliverCloseActionBowExperiment`. Review images and reports go to `Artifacts/CloseAction/Bows3/`, preserving the previous pass's output.
+
+Validated on 22 November 2026: all seven geometry review suites passed and the final build exited 0 (`Artifacts/Bows3-final.log`). The bow checks cover the deep rail hollow and raised head, broad forward shoulders, symmetry, separation of all three rails, solid rectangular rib faces, grating openings and fastening geometry. The original hull closure, knee joins, gun counts, gunport clearance, interiors, straight spars and headsails also passed. Fifty inspection views cover all ten prototypes, including a low quarter angle for comparison with the cover.
+
+The standalone check exited 0 with `ALL PASS` in `Artifacts/CloseAction/Bows3/Runtime/bows3-runtime.txt`; runtime screenshots are beside it. The preserved Bows 2 player assembly still matches `Artifacts/Bows-2.0/manifest.json`. On this branch, the normal Close Action delivery methods also target the Bows 3 directory. Current source edits are uncommitted; record the user's next commit and create its version tag before starting another attempt.
