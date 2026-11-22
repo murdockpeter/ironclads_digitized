@@ -25,6 +25,29 @@ namespace Ironclads
             SailingRod(rig,"Dolphin striker",strikerHead,strikerFoot,.09f,Wood,sides:8);
             for(int side=-1;side<=1;side+=2)SailingRod(rig,"Bowsprit bobstay",new Vector3(side*.65f,1.5f,spec.Length*.47f),end-above*.12f+Vector3.right*side*.10f,.032f,Rope,sides:6);
             SailingRod(rig,"Jibboom martingale",strikerFoot,boomEnd,.025f,Rope,sides:6);
+            var seating=new GameObject("Bowsprit seating and gammoning").transform;seating.SetParent(root,false);
+            var lines=CloseActionHullLines.Get(spec.Length,spec.Beam);
+            for(int side=-1;side<=1;side+=2){
+                Vector3 foot=new Vector3(side*.58f,lines.DeckHeight(heel.z)+1.05f,heel.z+.25f);
+                Box(seating,"Bowsprit knighthead",foot+Vector3.up*.55f,new Vector3(.30f,1.25f,.36f),caOak);
+                Box(seating,"Knighthead cap",foot+Vector3.up*1.22f,new Vector3(.38f,.14f,.44f),Hull);
+            }
+            float lashingZ=spec.Length*.54f,kneeT=HeadKneeAtZ(spec,lashingZ);
+            Vector3 knee=(HeadKneePoint(spec,kneeT)+HeadKneeInside(spec,kneeT))*.5f;
+            Vector3 spar=Vector3.LerpUnclamped(heel,end,(lashingZ-heel.z)/(end.z-heel.z));
+            for(int turn=0;turn<8;turn++){
+                float offset=(turn-3.5f)*.085f;Vector3 shift=axis*offset;
+                Vector3[] loop={spar+above*.40f+shift,spar+Vector3.right*.46f+shift,knee+Vector3.right*.32f+shift,knee-Vector3.up*.10f+shift,knee-Vector3.right*.32f+shift,spar-Vector3.right*.46f+shift};
+                for(int i=0;i<loop.Length;i++)SailingRod(seating,"Gammoning rope turn",loop[i],loop[(i+1)%loop.Length],.038f,Rope,sides:6);
+            }
+            // Short frapping turns bind the two sides midway down the lashing.
+            Vector3 bind=Vector3.Lerp(knee,spar,.65f);
+            for(int n=0;n<4;n++){
+                Vector3 p=bind+Vector3.up*(n*.08f);
+                SailingRod(seating,"Gammoning frapping",p+Vector3.left*.40f-axis*.37f,p+Vector3.right*.40f-axis*.37f,.035f,Rope,sides:6);
+                SailingRod(seating,"Gammoning frapping",p+Vector3.left*.40f+axis*.37f,p+Vector3.right*.40f+axis*.37f,.035f,Rope,sides:6);
+            }
+            Combine(seating,3);
         }
         static void SailingHeadsails(Transform mast,CloseActionSpec spec,float mastZ,float deck,float height)
         {

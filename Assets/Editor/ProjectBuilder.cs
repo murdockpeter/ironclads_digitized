@@ -16,6 +16,7 @@ namespace Ironclads.Editor
     {
         const string ScenePath="Assets/Scenes/Ferrol.unity";
         public static void Deliver(){Prepare();BuildWindows();}
+        public static void DeliverCloseActionBowExperiment(){PlayerSettings.bundleVersion="1.8.14-dev";CloseActionReview.PrepareModels();CloseActionBowExperimentReview.Run();CloseActionBowJoinReview.Run();CloseActionHeadCurveReview.Run();CloseActionInteriorReview.Run();CloseActionSparReview.Run();CloseActionHeadsailReview.Run();CloseActionHullReview.Run();IncludeShaders();BuildWindowsTo("Builds/Windows-CloseAction-Bows2");}
         public static void DeliverCloseAction(){PlayerSettings.bundleVersion="1.8.13-dev";CloseActionReview.PrepareModels();CloseActionSparReview.Run();CloseActionHeadsailReview.Run();CloseActionInteriorReview.Run();CloseActionHeadCurveReview.Run();CloseActionBowJoinReview.Run();IncludeShaders();PowderSmokeReview.Run();CloseActionReview.Verify();CloseActionDetailReview.Run();CloseActionHullReview.Run();BuildWindowsTo("Builds/Windows-CloseAction-HeadFraming");}
         public static void DeliverCloseActionPlayer(){PlayerSettings.bundleVersion="1.8.13-dev";IncludeShaders();BuildWindowsTo("Builds/Windows-CloseAction-HeadFraming");}
         public static void DeliverCloseActionSmokeScale(){PowderSmokeReview.Run();DeliverCloseActionPlayer();}
