@@ -42,6 +42,23 @@ namespace Ironclads
             s.waveHeight=0;scene.UpdateWorld();Check(scene.pantelleriaWash.HullContactCount==0&&scene.pantelleriaWash.SprayParticleCount==0,"calm stopped ships have no contact foam or spray");yield return Capture("hull-stopped-calm");
             for(int ship=0;ship<42;ship++)s.ships[ship].speed=speeds[ship];s.waveHeight=height;s.windFrom=wind;scene.UpdateWorld();Check(s.utc==clock,"sea effects leave operational clock unchanged");
         }
+        IEnumerator ReviewCanopus(MaritimeScene scene)
+        {
+            bool preference=PantelleriaModels.CanopusEnabled;string state=JsonUtility.ToJson(scene.scenario);var ocean=scene.vessels[1];
+            scene.SelectCanopusModel(true,false);Check(scene.vessels[0].GetComponent<CanopusReplacement>()!=null&&scene.vessels[1].GetComponent<CanopusReplacement>()==null,"Canopus replacement loads without changing Ocean");
+            scene.Focus(0);scene.target=scene.scenario.ships[0].Position+Vector3.up*10;scene.yaw=scene.scenario.ships[0].heading-90;scene.pitch=7;scene.distance=180;scene.SetCamera();scene.UpdateWorld();yield return new WaitForSeconds(.4f);yield return Capture("canopus-prototype-broadside");
+            scene.yaw=scene.scenario.ships[0].heading-45;scene.pitch=22;scene.distance=170;scene.SetCamera();yield return Capture("canopus-prototype-quarter");
+            scene.yaw=scene.scenario.ships[0].heading;scene.pitch=12;scene.distance=160;scene.SetCamera();yield return Capture("canopus-prototype-stern");
+            scene.yaw=scene.scenario.ships[0].heading+180;scene.pitch=12;scene.SetCamera();yield return Capture("canopus-prototype-bow");
+            scene.pitch=78;scene.yaw=scene.scenario.ships[0].heading;scene.SetCamera();yield return Capture("canopus-prototype-plan");
+            scene.pitch=20;scene.yaw=scene.scenario.ships[0].heading-65;scene.distance=185;scene.SetCamera();yield return Capture("canopus-prototype-comparison");
+            scene.SelectCanopusModel(false,false);yield return new WaitForSeconds(.3f);yield return Capture("canopus-previous-comparison");
+            Check(scene.vessels[0].GetComponent<CanopusReplacement>()==null,"previous model can be restored");scene.SelectCanopusModel(true,false);
+            Check(scene.vessels[1]==ocean&&JsonUtility.ToJson(scene.scenario)==state,"model swap preserves Ocean, clock, orders and game state");
+            var main=scene.vessels[0].GetComponentsInChildren<GunMount>().First(g=>g.GetComponentInParent<CruiserTurret>()!=null&&g.GetComponentInParent<CruiserTurret>().group==0);
+            scene.target=main.Muzzle;scene.distance=18;scene.pitch=5;scene.yaw=Mathf.Atan2(main.Direction.x,main.Direction.z)*Mathf.Rad2Deg+180;scene.SetCamera();yield return Capture("canopus-prototype-muzzle");
+            if(!preference)scene.SelectCanopusModel(false,false);
+        }
         IEnumerator Start()
         {
             var args=Environment.GetCommandLineArgs();int index=Array.IndexOf(args,"-verify-pantelleria");output=args[index+1];Directory.CreateDirectory(output);yield return new WaitForSeconds(1);
@@ -49,9 +66,10 @@ namespace Ironclads
             Check(scene.vessels.Length==42&&scene.network.PlayerCapacity==32,"42 models and 32-player lobby capacity");
             Check(scene.vessels.All(v=>v.GetComponent<NavalColours>()!=null)&&scene.vessels.Sum(v=>v.GetComponent<NavalColours>().GetComponentsInChildren<Renderer>(true).Count(r=>r.sharedMaterial.shader.name=="Ironclads/Naval Cloth"&&!v.GetComponent<NavalColours>().IsRigging(r.transform)))==84,"84 national ensigns and commissioning pennants");
             int savedRigging=NavalColours.RiggingMode;
+            if(PantelleriaModels.CanopusAvailable)yield return ReviewCanopus(scene);
             yield return ReviewWeather(scene);
             yield return ReviewSeas(scene);
-            Check(scene.vessels.All(v=>v.transform.Find(Shipwright.PantelleriaCloseDetailsName)!=null),"close-up fittings on all 42 ships");
+            Check(scene.vessels.All(v=>v.GetComponent<CanopusReplacement>()!=null?v.transform.Find("Fixed fittings")!=null&&v.transform.Find("Fixed fittings").GetComponentsInChildren<MeshFilter>().Length>0:v.transform.Find(Shipwright.PantelleriaCloseDetailsName)!=null),"close-up fittings geometry on all 42 ships including the replacement");
             scene.Focus(0);scene.target=scene.scenario.ships[0].Position+Quaternion.Euler(0,scene.scenario.ships[0].heading,0)*new Vector3(0,8,PantelleriaScenario.Ships[0].model.length*.19f);scene.distance=28;scene.pitch=32;scene.SetCamera();yield return Capture("bridge-fittings");
             scene.target=scene.scenario.ships[0].Position+Quaternion.Euler(0,scene.scenario.ships[0].heading,0)*new Vector3(0,5,PantelleriaScenario.Ships[0].model.length*.39f);scene.distance=22;scene.pitch=42;scene.SetCamera();yield return Capture("foredeck-fittings");
             scene.target=scene.scenario.ships[0].Position+Quaternion.Euler(0,scene.scenario.ships[0].heading,0)*new Vector3(1.5f,5.1f,PantelleriaScenario.Ships[0].model.length*.425f);scene.distance=6;scene.pitch=48;scene.SetCamera();yield return Capture("anchor-chain-detail");

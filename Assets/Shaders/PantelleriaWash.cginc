@@ -1,12 +1,16 @@
 // Surface-composited displacement-ship wash, not a recorded voyage track.
 float4 _PantelleriaWashPositions[42],_PantelleriaWashProfiles[42],_PantelleriaHullMotion[42],_PantelleriaWashHydro[42];
 int _PantelleriaWashCount;
+float _CanopusWaterlineWidths[21];float4 _CanopusWaterlineBounds;
 float washHash(float2 p){return frac(sin(dot(p,float2(127.1,311.7)))*43758.5453);}
 float washNoise(float2 p){float2 a=floor(p),b=frac(p);b=b*b*(3-2*b);return lerp(lerp(washHash(a),washHash(a+float2(1,0)),b.x),lerp(washHash(a+float2(0,1)),washHash(a+1),b.x),b.y);}
-float washWidth(float length,float beam,float z){return beam*.5*(.035+.965*pow(max(0,sin(saturate(z/length+.5)*UNITY_PI)),.55));}
+float washWidth(float length,float beam,float z,float seed,float direction){
+ if(seed<0){float actual=z*direction;if(actual<_CanopusWaterlineBounds.x||actual>_CanopusWaterlineBounds.y)return 0;float t=saturate((actual-_CanopusWaterlineBounds.x)/(_CanopusWaterlineBounds.y-_CanopusWaterlineBounds.x))*20;int i=min(19,(int)floor(t));return lerp(_CanopusWaterlineWidths[i],_CanopusWaterlineWidths[i+1],t-i)*beam*.5;}
+ return beam*.5*(.035+.965*pow(max(0,sin(saturate(z/length+.5)*UNITY_PI)),.55));
+}
 float2 washLocal(float2 offset,float4 state){return float2(offset.x*state.w-offset.y*state.z,dot(offset,state.zw));}
-float wakeRise(float2 p,float4 profile){
- float edge=washWidth(profile.x,profile.y,p.y),side=abs(p.x)-edge;
+float wakeRise(float2 p,float4 profile,float direction){
+ float edge=washWidth(profile.x,profile.y,p.y,profile.w,direction),side=abs(p.x)-edge;
  float front=smoothstep(.12,.38,p.y/profile.x)*(1-smoothstep(.48,.53,p.y/profile.x));
  float q=(side-1.2)/2.8;
  return exp(-q*q)*front*profile.z*.24;
@@ -16,7 +20,7 @@ float pantelleriaWakeHeight(float2 world){
  for(int ship=0;ship<clamp(_PantelleriaWashCount,0,42);ship++){
   float4 state=_PantelleriaWashPositions[ship],profile=_PantelleriaWashProfiles[ship];float2 offset=world-state.xy;
   if(dot(offset,offset)>profile.x*profile.x)continue;
-  height+=wakeRise(washLocal(offset,state),profile)*saturate(_PantelleriaWashHydro[ship].y/.28);
+  height+=wakeRise(washLocal(offset,state),profile,_PantelleriaWashHydro[ship].z)*saturate(_PantelleriaWashHydro[ship].y/.28);
  }
  return min(height,.35);
 }
@@ -25,7 +29,7 @@ float3 paintPantelleriaWash(float3 ocean,float3 world){
  for(int ship=0;ship<clamp(_PantelleriaWashCount,0,42);ship++) {
   float4 state=_PantelleriaWashPositions[ship],profile=_PantelleriaWashProfiles[ship],motion=_PantelleriaHullMotion[ship],hydro=_PantelleriaWashHydro[ship];float2 offset=world.xz-state.xy;
   if(dot(offset,offset)>profile.x*profile.x*4)continue;
-  float2 p=washLocal(offset,state);float edge=washWidth(profile.x,profile.y,p.y),side=abs(p.x)-edge;
+  float2 p=washLocal(offset,state);float edge=washWidth(profile.x,profile.y,p.y,profile.w,hydro.z),side=abs(p.x)-edge;
   float along=1-smoothstep(.46,.51,abs(p.y)/profile.x);
   float outside=smoothstep(-.10,.25,side)*along;
   float lineHeight=motion.x+motion.y*p.x+motion.z*p.y;

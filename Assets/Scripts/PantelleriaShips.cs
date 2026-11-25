@@ -8,6 +8,10 @@ namespace Ironclads
         // Detail pass 4: measured against the retained close-up fittings delivery.
         public static GameObject CreatePantelleriaShip(int index)
         {
+            var replacement=PantelleriaModels.TryCreate(index);return replacement!=null?replacement:CreatePantelleriaTemplate(index);
+        }
+        public static GameObject CreatePantelleriaTemplate(int index)
+        {
             Materials();var spec=PantelleriaScenario.Ships[index];var c=spec.model;var root=new GameObject(spec.name).transform;
             Color[] colors={new Color(.30f,.33f,.35f),new Color(.34f,.36f,.32f),new Color(.30f,.33f,.38f),new Color(.31f,.34f,.28f)};
             float deck=c.name=="Hood"||c.name=="Jemmapes"?3.2f:4.8f;

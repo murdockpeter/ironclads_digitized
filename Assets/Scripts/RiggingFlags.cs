@@ -26,9 +26,9 @@ namespace Ironclads
         void BuildRigging(float length,float deck,int ship)
         {
             DressingRoot=Group("Full dress decorative rigging");SignalRoot=Group("Decorative yardarm hoists");
-            var anchors=new[]{new Vector3(0,deck+2.2f,length*.46f),new Vector3(0,deck+22,length*.24f),new Vector3(0,deck+22,-length*.24f),new Vector3(0,deck+2.2f,-length*.46f)};
+            var anchors=new[]{new Vector3(0,staffDeckHeights.x+2.2f,length*.46f),foreRiggingTop,aftRiggingTop,new Vector3(0,staffDeckHeights.y+2.2f,-length*.46f)};
             for(int end=0;end<2;end++) {
-                var top=anchors[end==0?0:3];MakeRope(DressingRoot,"Dressing staff",new[]{new Vector3(top.x,deck+.02f,top.z),top},.055f,Shipwright.Iron);
+                var top=anchors[end==0?0:3];float foot=end==0?staffDeckHeights.x:staffDeckHeights.y;MakeRope(DressingRoot,"Dressing staff",new[]{new Vector3(top.x,foot+.02f,top.z),top},.055f,Shipwright.Iron);
             }
             int sequence=0;
             for(int span=0;span<3;span++) {
@@ -43,7 +43,8 @@ namespace Ironclads
             }
             sequence=0;
             foreach(int end in new[]{-1,1})foreach(int side in new[]{-1,1}) {
-                var bottom=new Vector3(side*3.2f,deck+.025f,end*length*.24f);var top=new Vector3(side*3.5f,deck+20,end*length*.24f);
+                var mast=end>0?foreRiggingTop:aftRiggingTop;
+                var bottom=new Vector3(side*3.2f,deck+.025f,mast.z);var top=new Vector3(side*3.5f,mast.y-2,mast.z);
                 MakeRope(SignalRoot,"Yardarm flag halyard",new[]{bottom,top},.018f,Shipwright.Rope);
                 for(int i=0;i<3;i++) {
                     int pattern=(ship*3+sequence*5+Nation)%16;

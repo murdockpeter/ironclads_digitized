@@ -37,6 +37,14 @@ namespace Ironclads
         string fleetId;
         public bool suppliedMonitor,suppliedVirginia;
         public void SelectSuppliedModels(bool monitor,bool virginia){suppliedMonitor=monitor&&SuppliedShips.Available(true);suppliedVirginia=virginia&&SuppliedShips.Available(false);UpdateWorld();status="Local ship appearance updated; table positions and orders retained.";}
+        public void SelectCanopusModel(bool prototype,bool persist=true)
+        {
+            PantelleriaModels.SelectCanopus(prototype,persist);if(!scenario.Pantelleria)return;
+            GetComponent<BatteryEffects>()?.Clear();GetComponent<EngineExhaust>()?.ResetFunnels();dawn?.ResetEffects();
+            var old=vessels[0];old.gameObject.SetActive(false);if(Application.isPlaying)Destroy(old.gameObject);else DestroyImmediate(old.gameObject);
+            vessels[0]=Shipwright.CreatePantelleriaShip(0).transform;vessels[0].SetParent(seaRoot,false);UpdateWorld();
+            status=prototype?"Canopus replacement prototype selected.":"Canopus previous model selected.";
+        }
         Transform monitorTurret;
         public HamptonTerrain terrain;
         public HamptonSupport support;
@@ -184,7 +192,7 @@ namespace Ironclads
                 if(scenario.Pantelleria)vessels[i].gameObject.SetActive(!scenario.pantelleria.sunk[i]);
                 if(scenario.CloseAction){vessels[i].gameObject.SetActive(!scenario.closeAction.logs[i].removed);vessels[i].GetComponent<CloseActionVisual>()?.Refresh(scenario.closeAction.logs[i],scenario.ships[i].heading,scenario.windFrom,scenario.windKnots);}
                 var s=scenario.ships[i];float time=Application.isPlaying?Time.time:15;
-                if(scenario.Pantelleria){var pose=PantelleriaHydrodynamics.Pose(s,PantelleriaScenario.Ships[i].model,time,scenario.waveHeight,scenario.windFrom);vessels[i].localPosition=s.Position+Vector3.up*pose.x;vessels[i].localRotation=Quaternion.Euler(pose.y,s.heading,pose.z);}
+                if(scenario.Pantelleria){var replacement=vessels[i].GetComponent<CanopusReplacement>();var pose=PantelleriaHydrodynamics.Pose(s,replacement!=null?replacement.MotionModel:PantelleriaScenario.Ships[i].model,time,scenario.waveHeight,scenario.windFrom);vessels[i].localPosition=s.Position+Vector3.up*pose.x;vessels[i].localRotation=Quaternion.Euler(pose.y,s.heading,pose.z);}
                 else {vessels[i].localPosition=s.Position+Vector3.up*WaveAt(s.Position,time)*.65f;vessels[i].localRotation=Quaternion.Euler(Mathf.Sin(time*.6f+i)*scenario.waveHeight*.65f,s.heading,Mathf.Sin(time*.83f+i*2)*scenario.waveHeight*1.25f);}
                 if(scenario.Pantelleria)vessels[i].GetComponent<NavalColours>()?.Refresh(s.heading,s.speed,scenario.windFrom,scenario.windKnots,time);
                 if(scenario.James)foreach(var turret in vessels[i].GetComponentsInChildren<JamesTurret>())turret.transform.localRotation=Quaternion.Euler(0,turret.group==0?s.turretHeading:s.aftTurretHeading,0);

@@ -63,11 +63,15 @@ namespace Ironclads
         readonly List<Material> ownedMaterials=new List<Material>();
         MaterialPropertyBlock properties;
         float phase;
-        public void Build(int nation,float length,float deck,int index)
+        Vector3 foreRiggingTop,aftRiggingTop;Vector2 staffDeckHeights;
+        public void Build(int nation,float length,float deck,int index,Vector3 foreTop=default,Vector3 aftTop=default,Vector2 staffDecks=default)
         {
             Nation=nation;phase=index*2.399963f;
-            Ensign=AddCloth("National naval ensign",new Vector3(0,deck+20.5f,-length*.24f),nation==0?4.6f:4.2f,nation==0?2.3f:2.8f,false);
-            Pennant=AddCloth("Commissioning masthead pennant",new Vector3(0,deck+23,length*.24f),8,.45f,true);
+            foreRiggingTop=foreTop==Vector3.zero?new Vector3(0,deck+22,length*.24f):foreTop;
+            aftRiggingTop=aftTop==Vector3.zero?new Vector3(0,deck+22,-length*.24f):aftTop;
+            staffDeckHeights=staffDecks==Vector2.zero?new Vector2(deck,deck):staffDecks;
+            Ensign=AddCloth("National naval ensign",aftRiggingTop-Vector3.up*1.5f,nation==0?4.6f:4.2f,nation==0?2.3f:2.8f,false);
+            Pennant=AddCloth("Commissioning masthead pennant",foreRiggingTop+Vector3.up,8,.45f,true);
             BuildRigging(length,deck,index);
         }
         Transform AddCloth(string name,Vector3 position,float length,float height,bool pennant,Texture2D pattern=null,int shape=-1,Vector3 hoistAxis=default,Transform parent=null)

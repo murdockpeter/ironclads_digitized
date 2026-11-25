@@ -4,6 +4,16 @@ Replace the common procedural hull templates with historically researched hull s
 
 The [ship tracker](Pantelleria-Hull-Research.csv) has one row per vessel. The [source register](Pantelleria-Hull-Sources.csv) records drawings, photographs and dimensional references. Use the [reference worksheet](Pantelleria-Hull-Reference-Template.md) to assemble the evidence for each model group and its individual ships.
 
+## Canopus replacement prototype
+
+The first [Canopus swap-in prefab](Canopus-Replacement-Prototype.md) uses an independent model and runtime attachment points. Its silhouette is researched; underwater sections remain inferred. This establishes a replacement-model workflow while historical verification continues.
+
+- [x] Deliver a Canopus-only replacement prefab with persistent meshes and materials.
+- [x] Record working dimensions, interpreted stations, source IDs and inferred regions in its sidecar and prototype guide.
+- [x] Provide a local comparison switch and retain the previous model as fallback.
+- [x] Bind gun mounts, turret pivots, exhaust, colours, weathering and hull contact to the replacement.
+- [ ] Replace inferred sections with verified lines and complete the dated configuration research.
+
 ## Existing materials
 
 - [x] Inventory all 42 ships and their 24 current model assignments from [the scenario roster](../Assets/Scripts/PantelleriaScenario.cs).
@@ -93,9 +103,9 @@ Each checkbox means the group's reference collection and sister-ship comparison 
 
 ## Modeling implementation TODO
 
-- [ ] Add a hull-definition format for sourced stations/offsets, deck contours, stem/stern shapes, freeboard and a defined reference waterline. Retain source IDs and inferred regions with the definition.
+- [ ] Capture sourced geometry in each replacement model, with a sidecar for dimensions, stations/offsets where available, source IDs, reference waterline and inferred regions. Use the Canopus prefab attachment contract as the first prototype.
 - [ ] Distinguish measured hull geometry from the scenario's game statistics. Preserve ship identities, orders, rule ratings and save compatibility while updating visual dimensions.
-- [ ] Build each pilot hull from its own definition, rather than further stretching the current common hull equation.
+- [ ] Build or import each pilot as an independent replacement model, preserving its own sourced hull form and a fallback to the current visual.
 - [ ] Position barbettes, casemates, funnels, superstructures, masts and boats against the verified plan. Check gun supports and trainable clearances after the hull change.
 - [ ] Replace the common analytic waterline-width approximation in wash/spray placement with interpolation from the researched hull stations.
 - [ ] Use sourced waterline length where appropriate for wake scaling; keep overall length available for model bounds and camera framing.

@@ -1,5 +1,7 @@
 # Ironclads — Ferrol & Hampton Roads
 
+**Canopus replacement prototype (1.10.15-dev, additional fittings).** An independent swap-in prefab for Canopus, with a class-specific silhouette, inferred underwater form, revised casemates and early-appearance upperworks. Compare it with the previous model in the Fleet controls; Ocean remains the original model. `./Start-Ironclads.ps1 -Pantelleria` selects the prototype build. [Model, sources and comparison](Documentation/Canopus-Replacement-Prototype.md).
+
 **Pantelleria historical hull research.** [TODO and research sequence](Documentation/Pantelleria-Historical-Hulls-TODO.md), [42-ship reference tracker](Documentation/Pantelleria-Hull-Research.csv), [source register](Documentation/Pantelleria-Hull-Sources.csv) and [reference worksheet](Documentation/Pantelleria-Hull-Reference-Template.md) for replacing the shared hull templates with historically researched shapes.
 
 **Pantelleria hull contact and seas (1.10.12-dev).** Wave-driven hull motion, crest-contact foam and brief impact droplets, finer near water, and speed/length-scaled displacement wash. Recessed gun bores and bridge-window trim finish the existing detailed models; individual hull/deck weathering remains. `./Start-Ironclads.ps1 -Pantelleria` selects this build. [Guide, references and validation](Documentation/Pantelleria-Seas.md).

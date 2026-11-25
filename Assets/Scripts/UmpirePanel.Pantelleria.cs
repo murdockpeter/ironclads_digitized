@@ -44,6 +44,7 @@ namespace Ironclads
             if(dChoice>=0&&divisions[dChoice]!=pantDivision)PantSelect(PantelleriaScenario.Members(divisions[dChoice])[0]);
             var members=PantelleriaScenario.Members(pantDivision);int ship=GUILayout.SelectionGrid(Array.IndexOf(members,scene.selected),members.Select(i=>PantelleriaScenario.Ships[i].name+(scene.scenario.pantelleria.sunk[i]?" [SUNK]":"")).ToArray(),1,button);if(ship>=0&&members[ship]!=scene.selected)PantSelect(members[ship]);
             var model=PantelleriaScenario.Ships[scene.selected].model;Text(model.name+" / main guns "+model.MainGuns+" / representative secondary "+model.secondary+"\n"+model.layout+(model.open?" / barbette":" / gunhouse")+" / detail pass 4 reconstruction");
+            if(scene.selected==0&&PantelleriaModels.CanopusAvailable){Text(PantelleriaModels.CanopusEnabled?"Canopus: early-configuration prototype":"Canopus: previous model");if(Button(PantelleriaModels.CanopusEnabled?"Compare with previous model":"Use Canopus prototype"))scene.SelectCanopusModel(!PantelleriaModels.CanopusEnabled);}
         }
         void PantDivisionOrders()
         {

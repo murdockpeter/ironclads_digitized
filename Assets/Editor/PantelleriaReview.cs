@@ -25,7 +25,7 @@ namespace Ironclads.Editor
             var comparison=new StringBuilder("ship,baseline_vertices,detail_vertices,vertex_ratio,baseline_meshes,detail_meshes,mesh_ratio,fittings_vertices,fittings_meshes\n");
             var budgets=new System.Collections.Generic.List<(bool ok,string message)>();
             for(int i=0;i<42;i++) {
-                var spec=PantelleriaScenario.Ships[i];var go=Shipwright.CreatePantelleriaShip(i);
+                var spec=PantelleriaScenario.Ships[i];var go=Shipwright.CreatePantelleriaTemplate(i);
                 try {
                     var fittings=go.transform.Find(Shipwright.PantelleriaCloseDetailsName);
                     Check(fittings!=null,"close-up fittings attached "+i);

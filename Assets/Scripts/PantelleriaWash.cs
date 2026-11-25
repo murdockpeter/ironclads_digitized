@@ -24,11 +24,12 @@ namespace Ironclads
             if(enabled)for(int ship=0;ship<42;ship++) {
                 var state=scene.scenario.ships[ship];float distance=Vector3.Distance(scene.view.transform.position,state.Position),strength=Strength(state.speed);
                 if(scene.scenario.pantelleria.sunk[ship]||distance>=1500||(strength==0&&scene.scenario.waveHeight==0))continue;
-                var model=PantelleriaScenario.Ships[ship].model;float sign=state.astern?-1:1,fade=Mathf.InverseLerp(1500,600,distance);
-                var forward=Quaternion.Euler(0,state.heading+(state.astern?180:0),0)*Vector3.forward;var vessel=scene.vessels[ship];
+                var vessel=scene.vessels[ship];var replacement=vessel.GetComponent<CanopusReplacement>();var model=replacement!=null?replacement.MotionModel:PantelleriaScenario.Ships[ship].model;float sign=state.astern?-1:1,fade=Mathf.InverseLerp(1500,600,distance);
+                if(replacement!=null)replacement.PushWaterline();
+                var forward=Quaternion.Euler(0,state.heading+(state.astern?180:0),0)*Vector3.forward;
                 int slot=HullContactCount++;
                 positions[slot]=new Vector4(state.east,state.north,forward.x,forward.z);
-                profiles[slot]=new Vector4(model.length,model.beam,strength*fade*(state.astern?.45f:1),ship*1.731f);
+                profiles[slot]=new Vector4(model.length,model.beam,strength*fade*(state.astern?.45f:1),replacement!=null?-1:ship*1.731f);
                 motions[slot]=new Vector4(vessel.localPosition.y,vessel.right.y*sign,vessel.forward.y*sign,fade);
                 hydro[slot]=new Vector4(PantelleriaHydrodynamics.WakeLength(state.speed),PantelleriaHydrodynamics.Froude(state.speed,model.length),sign,scene.scenario.waveHeight);
                 if(strength>0)ActiveCount++;
@@ -51,11 +52,11 @@ namespace Ironclads
         }
         void EmitSpray(MaritimeScene scene,int ship,float time,float sign,float fade)
         {
-            var state=scene.scenario.ships[ship];var model=PantelleriaScenario.Ships[ship].model;var vessel=scene.vessels[ship];
+            var state=scene.scenario.ships[ship];var vessel=scene.vessels[ship];var replacement=vessel.GetComponent<CanopusReplacement>();var model=replacement!=null?replacement.MotionModel:PantelleriaScenario.Ships[ship].model;
             var pose=PantelleriaHydrodynamics.Pose(state,model,time,scene.scenario.waveHeight,scene.scenario.windFrom);
             var wind=Quaternion.Euler(0,scene.scenario.windFrom+180,0)*Vector3.forward;
             for(int sample=0;sample<6;sample++) {
-                int side=sample%2==0?-1:1;float z=sign*model.length*(.27f+(sample/2)*.075f),width=PantelleriaHydrodynamics.HalfWidth(model.length,model.beam,z);
+                int side=sample%2==0?-1:1;float z=sign*model.length*(.27f+(sample/2)*.075f),width=replacement!=null?replacement.HalfWidth(z):PantelleriaHydrodynamics.HalfWidth(model.length,model.beam,z);
                 var point=vessel.TransformPoint(new Vector3(side*width,0,z));var wave=PantelleriaHydrodynamics.Sample(point,time,scene.scenario.waveHeight,scene.scenario.windFrom);
                 var outward=vessel.right*side;float exposure=.3f+.7f*Mathf.Max(0,Vector3.Dot(outward,-wind));
                 float impact=PantelleriaHydrodynamics.Impact(wave.x-point.y,wave.w-pose.w,scene.scenario.waveHeight)*exposure;

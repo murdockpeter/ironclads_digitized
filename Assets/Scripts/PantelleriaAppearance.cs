@@ -37,8 +37,8 @@ namespace Ironclads
                 if(shader=="Ironclads/Pantelleria Teak")renderer.GetComponent<MeshFilter>().sharedMesh.RecalculateTangents();
                 properties.SetFloat("_HullPass",renderer.GetComponentInParent<TurretAssembly>()==null?1:0);
                 properties.SetFloat("_FinishSeed",FinishSeed(ship));properties.SetVector("_WeatherProfile",WeatherProfile(ship));
-                var model=PantelleriaScenario.Ships[ship].model;
-                properties.SetFloat("_ShipLength",model.length);properties.SetFloat("_ShipBeam",model.beam);
+                var model=PantelleriaScenario.Ships[ship].model;bool replacement=root.GetComponent<CanopusReplacement>()!=null;
+                properties.SetFloat("_ShipLength",replacement?CanopusReplacement.Definition.loa:model.length);properties.SetFloat("_ShipBeam",replacement?CanopusReplacement.Definition.beam:model.beam);
                 renderer.SetPropertyBlock(properties);
             }
         }
