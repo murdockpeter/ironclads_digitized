@@ -1,0 +1,43 @@
+pass,ship,nation,division,class,vertices,meshes,modeled_guns,funnels
+12,Canopus,Britain,British 8th,Canopus,148788,948,22,2
+12,Ocean,Britain,British 8th,Canopus,148788,948,22,2
+12,Caesar,Britain,British 9th,Majestic,148786,952,22,2
+12,Illustrious,Britain,British 9th,Majestic,148786,952,22,2
+12,Renown,Britain,British 9th,Renown,145920,968,20,2
+12,Revenge,Britain,British 10th,Royal Sovereign,144948,944,20,2
+12,Royal Oak,Britain,British 10th,Royal Sovereign,144948,944,20,2
+12,Ramillies,Britain,British 10th,Royal Sovereign,144948,944,20,2
+12,Empress of India,Britain,British 11th,Royal Sovereign,144948,944,20,2
+12,Royal Sovereign,Britain,British 11th,Royal Sovereign,144948,944,20,2
+12,Hood,Britain,British 12th,Hood,146108,944,20,2
+12,Camperdown,Britain,British 12th,Admiral,137286,964,16,2
+12,Anson,Britain,British 12th,Admiral,137286,964,16,2
+12,Re Umberto,Italy,Italian 1st,Re Umberto,143912,948,18,3
+12,Sicilia,Italy,Italian 1st,Re Umberto,143912,948,18,3
+12,Sardegna,Italy,Italian 1st,Re Umberto,143912,948,18,3
+12,Ruggiero di Lauria,Italy,Italian 2nd,Ruggiero di Lauria,137098,932,16,2
+12,Andrea Doria,Italy,Italian 2nd,Ruggiero di Lauria,137098,932,16,2
+12,Francesco Morosini,Italy,Italian 2nd,Ruggiero di Lauria,137098,932,16,2
+12,Italia,Italy,Italian 3rd,Italia,149288,942,22,6
+12,Lepanto,Italy,Italian 3rd,Italia,149288,942,22,6
+12,St. Louis,France,French 1st,Charlemagne,145634,964,20,2
+12,Gaulois,France,French 1st,Charlemagne,145634,964,20,2
+12,Charlemagne,France,French 1st,Charlemagne,145634,964,20,2
+12,Bouvet,France,French 3rd,Bouvet,148508,1162,18,2
+12,Charles Martel,France,French 3rd,Charles Martel,148098,1166,18,2
+12,Jauréguiberry,France,French 3rd,Jauréguiberry,148068,1166,18,2
+12,Brennus,France,French 3rd,Brennus,144562,948,19,2
+12,Amiral Tréhouart,France,French 5th,Bouvines,134426,956,16,2
+12,Bouvines,France,French 5th,Bouvines,134426,956,16,2
+12,Valmy,France,French 5th,Jemmapes,130090,940,12,2
+12,Jemmapes,France,French 5th,Jemmapes,130090,940,12,2
+12,Terrible,France,French 7th,Terrible,126808,946,12,2
+12,Marceau,France,French 7th,Marceau,149572,1146,26,3
+12,Imperator Aleksandr II,Russia,Russian 3rd,Imperator Aleksandr II,139318,864,20,2
+12,Dvenadtsat' Apostolov,Russia,Russian 3rd,Dvenadtsat' Apostolov,134264,966,14,2
+12,Tri Sviatitelia,Russia,Russian 3rd,Tri Sviatitelia,143082,968,18,2
+12,Rostislav,Russia,Russian 3rd,Rostislav,140214,990,18,2
+12,Ekaterina II,Russia,Russian 4th,Ekaterina II,141420,1069,19,2
+12,Chesma,Russia,Russian 4th,Ekaterina II,141420,1069,19,2
+12,Sinop,Russia,Russian 4th,Ekaterina II,141420,1069,19,2
+12,Georgii Pobedonosets,Russia,Russian 4th,Georgii Pobedonosets,141896,1069,19,2

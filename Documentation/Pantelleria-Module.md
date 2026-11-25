@@ -1,4 +1,4 @@
-# Pantelleria — 1901, dressed rigging (1.10.7-dev)
+# Pantelleria — 1901, hull contact and seas (1.10.12-dev)
 
 Launch the additional module with:
 
@@ -6,7 +6,7 @@ Launch the additional module with:
 .\Start-Ironclads.ps1 -Pantelleria
 ```
 
-Latest player: `Builds/Windows-Pantelleria-Rigging/Ironclads.exe -pantelleria`. [Dressing lines and yardarm hoists](Pantelleria-Rigging-Flags.md) add decorative animated flags, with display controls under Weather. The [polish pass](Pantelleria-Polish.md), [gun-mount repair](Pantelleria-Gun-Mounts.md), [third detail pass](Pantelleria-Detail3.md) and animated national colours remain. The scenario is available from Scenarios and the Ulsan/Close Action module controls in this build. All existing modules, including the private Breakout campaign desk, remain available.
+Latest player: `Builds/Windows-Pantelleria-Seas/Ironclads.exe -pantelleria`. The [hull-contact and seas pass](Pantelleria-Seas.md) adds wave-driven hull motion, crest foam and droplets, finer near water and displacement wash. The [individual weathering pass](Pantelleria-Weathering.md) remains. The [fourth detail pass](Pantelleria-Detail4.md), [close-up fittings pass](Pantelleria-Fittings.md), [second visual polish](Pantelleria-Polish2.md), [dressing lines and yardarm hoists](Pantelleria-Rigging-Flags.md), [gun-mount repair](Pantelleria-Gun-Mounts.md), [third detail pass](Pantelleria-Detail3.md) and animated national colours remain. The scenario is available from Scenarios and the Ulsan/Close Action module controls in this build. All existing modules, including the private Breakout campaign desk, remain available.
 
 ## Scenario and opening
 
@@ -64,7 +64,7 @@ The first upgrade's measured per-ship averages were **2.23× vertices and 2.08×
 
 The second upgrade is measured against the [retained first-detail baseline](Pantelleria-Detail1-Baseline.csv), rather than the original simple models. [Second-detail comparison](Pantelleria-Detail2-Comparison.csv) records each ship's new counts and ratios: averages **2.25× vertices and 1.98× render meshes** over detail pass 1. Individual vertex ratios are 2.15–2.31×; mesh ratios are 1.86–2.10×. Gun counts, muzzle groups, trainable assemblies, ship dimensions, table rules and protocol remain unchanged. Additional fittings represent plausible period equipment; exact class/refit placements remain provisional.
 
-Latest build: `Builds/Windows-Pantelleria-Rigging/Ironclads.exe -pantelleria`, version 1.10.7-dev. The launcher prefers this build when present. All ships retain [animated national ensigns and commissioning pennants](Pantelleria-Flags.md), with wind/ship-velocity response and animation while the game clock is paused. Extra dressing/hoist flags are a local decorative display, not an encoded command. Earlier players remain available and can stay open; save their table before closing and load that same Pantelleria slot in the new player. These players share the existing save location.
+Latest build: `Builds/Windows-Pantelleria-Seas/Ironclads.exe -pantelleria`, version 1.10.12-dev. The launcher prefers this build when present. All ships retain [animated national ensigns and commissioning pennants](Pantelleria-Flags.md), with wind/ship-velocity response and animation while the game clock is paused. Extra dressing/hoist flags are a local decorative display, not an encoded command. Earlier players remain available and can stay open; save their table before closing and load that same Pantelleria slot in the new player. These players share the existing save location.
 
 Ocean normals now filter wave frequencies smaller than a screen pixel, and camera depth precision increases with overview distance to reduce striped water at fleet scale.
 
@@ -110,8 +110,8 @@ The underlying transport's former eight-peer cap has been raised to 31 guests. A
 Unity 6000.2.12f1:
 
 ```powershell
-& 'C:\Program Files\Unity\Hub\Editor\6000.2.12f1\Editor\Unity.exe' -batchmode -quit -projectPath (Get-Location).Path -executeMethod Ironclads.Editor.ProjectBuilder.DeliverPantelleriaRigging -logFile Artifacts/Pantelleria/build-rigging.log
-.\Tools\Verify-Pantelleria.ps1 -BuildDirectory Builds/Windows-Pantelleria-Rigging -OutputDirectory Artifacts/Pantelleria/Rigging
+& 'C:\Program Files\Unity\Hub\Editor\6000.2.12f1\Editor\Unity.exe' -batchmode -nographics -quit -projectPath (Get-Location).Path -executeMethod Ironclads.Editor.ProjectBuilder.DeliverPantelleriaSeas -logFile Artifacts/Pantelleria/build-seas-finish.log
+.\Tools\Verify-Pantelleria.ps1 -BuildDirectory Builds/Windows-Pantelleria-Seas -OutputDirectory Artifacts/Pantelleria/Seas
 ```
 
 Editor checks cover national counts, all opening bearings/ranges, every model/battery/funnel, detail budgets against preserved mesh/vertex baselines, 42-ship persistence, result/orders serialization, final-slot protocol bounds and existing-module parsing. The original delivery also passed ten simultaneous loopback peers and three-player live lobby verification; the detail build retains protocol 10.

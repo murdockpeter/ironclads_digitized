@@ -24,6 +24,11 @@ namespace Ironclads.Editor
         public static void DeliverPantelleriaMounts(){PantelleriaReview.Run();PlayerSettings.bundleVersion="1.10.5-dev";IncludeShaders();BuildWindowsTo("Builds/Windows-Pantelleria-Mounts");}
         public static void DeliverPantelleriaPolish(){PantelleriaReview.Run();PlayerSettings.bundleVersion="1.10.6-dev";IncludeShaders();BuildWindowsTo("Builds/Windows-Pantelleria-Polish");}
         public static void DeliverPantelleriaRigging(){PantelleriaReview.Run();PlayerSettings.bundleVersion="1.10.7-dev";IncludeShaders();BuildWindowsTo("Builds/Windows-Pantelleria-Rigging");}
+        public static void DeliverPantelleriaPolish2(){PantelleriaReview.Run();PlayerSettings.bundleVersion="1.10.8-dev";IncludeShaders();BuildWindowsTo("Builds/Windows-Pantelleria-Polish2");}
+        public static void DeliverPantelleriaFittings(){PantelleriaReview.Run();PlayerSettings.bundleVersion="1.10.9-dev";IncludeShaders();BuildWindowsTo("Builds/Windows-Pantelleria-Fittings");}
+        public static void DeliverPantelleriaDetail4(){PantelleriaReview.Run();PlayerSettings.bundleVersion="1.10.10-dev";IncludeShaders();BuildWindowsTo("Builds/Windows-Pantelleria-Detail4");}
+        public static void DeliverPantelleriaWeathering(){PantelleriaReview.Run();PlayerSettings.bundleVersion="1.10.11-dev";IncludeShaders();BuildWindowsTo("Builds/Windows-Pantelleria-Weathering");}
+        public static void DeliverPantelleriaSeas(){PantelleriaReview.Run();PlayerSettings.bundleVersion="1.10.12-dev";IncludeShaders();BuildWindowsTo("Builds/Windows-Pantelleria-Seas");}
         public static void DeliverBreakoutCampaign(){BreakoutCampaignReview.Run();PlayerSettings.bundleVersion="1.9.0-dev";IncludeShaders();BuildWindowsTo("Builds/Windows-BreakoutCampaign");}
         public static void DeliverBreakoutGeography(){BreakoutCampaignReview.Run();CampaignGeographyReview.Run();PlayerSettings.bundleVersion="1.9.2-dev";IncludeShaders();BuildWindowsTo("Builds/Windows-CampaignGeography");}
         public static void DeliverCloseActionBowExperiment(){PlayerSettings.bundleVersion="1.8.16-dev";CloseActionReview.PrepareModels();CloseActionBowExperimentReview.Run();CloseActionBowJoinReview.Run();CloseActionHeadCurveReview.Run();CloseActionInteriorReview.Run();CloseActionSparReview.Run();CloseActionHeadsailReview.Run();CloseActionHullReview.Run();IncludeShaders();BuildWindowsTo("Builds/Windows-CloseAction-Bows4");}
@@ -105,7 +110,8 @@ namespace Ironclads.Editor
             var settings=AssetDatabase.LoadAllAssetsAtPath("ProjectSettings/GraphicsSettings.asset").FirstOrDefault();
             if(settings==null)throw new Exception("Graphics settings asset missing.");
             var serialized=new SerializedObject(settings);var shaders=serialized.FindProperty("m_AlwaysIncludedShaders");
-            foreach(string name in new[]{"Ironclads/Stern Lettering","Ironclads/Close Action Canvas","Ironclads/Ocean","Ironclads/Sky","Ironclads/Atmosphere","Ironclads/Weather Sprite","Ironclads/Powder Smoke","Ironclads/Chart","Ironclads/Coastal Ground","Ironclads/Worked Iron","Ironclads/Cruiser Finish","Ironclads/Supplied Ship","Ironclads/Naval Cloth","Ironclads/Pantelleria Surface","Standard"}) {
+            for(int i=shaders.arraySize-1;i>=0;i--)if(shaders.GetArrayElementAtIndex(i).objectReferenceValue==null)shaders.DeleteArrayElementAtIndex(i);
+            foreach(string name in new[]{"Ironclads/Stern Lettering","Ironclads/Close Action Canvas","Ironclads/Ocean","Ironclads/Sky","Ironclads/Atmosphere","Ironclads/Weather Sprite","Ironclads/Powder Smoke","Ironclads/Chart","Ironclads/Coastal Ground","Ironclads/Worked Iron","Ironclads/Cruiser Finish","Ironclads/Supplied Ship","Ironclads/Naval Cloth","Ironclads/Pantelleria Surface","Ironclads/Pantelleria Teak","Standard"}) {
                 var shader=Shader.Find(name);if(shader==null)throw new Exception("Missing shader "+name);
                 if(ShaderUtil.ShaderHasError(shader))throw new Exception("Shader compilation failed: "+name);
                 bool found=false;for(int i=0;i<shaders.arraySize;i++)if(shaders.GetArrayElementAtIndex(i).objectReferenceValue==shader)found=true;

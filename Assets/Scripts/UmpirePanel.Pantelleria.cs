@@ -27,7 +27,7 @@ namespace Ironclads
             if(pantTab<3||pantTab==4)PantShipPicker();
             switch(pantTab){case 0:PantDivisionOrders();break;case 1:DawnMovement();break;case 2:PantTargetPicker();DawnGunnery(true);break;case 3:PantWeather();break;case 4:PantResults();break;case 5:MultiplayerLobby();break;case 6:PantBriefing();break;}
             if(!scene.scenario.Pantelleria){ReleaseControls();EndPanelScroll();GUILayout.EndArea();return;}
-            ReleaseControls();GUILayout.Space(12);EndPanelScroll();GUILayout.Label("WASD / MMB pan · RMB orbit · wheel zoom\nShift-click: placement · H: hide controls\nDetail pass 3 / v"+Application.version,small);GUILayout.EndArea();
+            ReleaseControls();GUILayout.Space(12);EndPanelScroll();GUILayout.Label("WASD / MMB pan · RMB orbit · wheel zoom\nShift-click: placement · H: hide controls\nDetail pass 4 / v"+Application.version,small);GUILayout.EndArea();
             float x=352,w=Screen.width-x-22;GUI.DrawTexture(new Rect(x,18,w,82),panelTex);var spec=PantelleriaScenario.Ships[scene.selected];
             GUI.Label(new Rect(x+14,24,w-28,20),"PANTELLERIA / 21 ANGLO-ITALIAN vs 21 FRANCO-RUSSIAN / 42 SHIPS",sub);
             GUI.Label(new Rect(x+14,45,w-28,28),spec.name+" / "+spec.model.name,big);
@@ -43,7 +43,7 @@ namespace Ironclads
             int dChoice=GUILayout.SelectionGrid(Array.IndexOf(divisions,pantDivision),divisions.Select(d=>PantelleriaScenario.Divisions[d]).ToArray(),2,button);
             if(dChoice>=0&&divisions[dChoice]!=pantDivision)PantSelect(PantelleriaScenario.Members(divisions[dChoice])[0]);
             var members=PantelleriaScenario.Members(pantDivision);int ship=GUILayout.SelectionGrid(Array.IndexOf(members,scene.selected),members.Select(i=>PantelleriaScenario.Ships[i].name+(scene.scenario.pantelleria.sunk[i]?" [SUNK]":"")).ToArray(),1,button);if(ship>=0&&members[ship]!=scene.selected)PantSelect(members[ship]);
-            var model=PantelleriaScenario.Ships[scene.selected].model;Text(model.name+" / main guns "+model.MainGuns+" / representative secondary "+model.secondary+"\n"+model.layout+(model.open?" / barbette":" / gunhouse")+" / detail pass 3 reconstruction");
+            var model=PantelleriaScenario.Ships[scene.selected].model;Text(model.name+" / main guns "+model.MainGuns+" / representative secondary "+model.secondary+"\n"+model.layout+(model.open?" / barbette":" / gunhouse")+" / detail pass 4 reconstruction");
         }
         void PantDivisionOrders()
         {

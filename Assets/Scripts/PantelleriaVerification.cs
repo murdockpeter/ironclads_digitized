@@ -15,6 +15,33 @@ namespace Ironclads
         void Log(string message,string trace,LogType type){if(type==LogType.Error||type==LogType.Exception||type==LogType.Assert)errors.Add(message+"\n"+trace);}
         void Check(bool ok,string message){if(!ok)errors.Add(message);}
         IEnumerator Capture(string name){yield return null;yield return new WaitForEndOfFrame();ScreenCapture.CaptureScreenshot(Path.Combine(output,name+".png"));yield return null;}
+        IEnumerator ReviewWeather(MaritimeScene scene)
+        {
+            float rain=scene.scenario.rain;string clock=scene.scenario.utc;
+            Check(Enumerable.Range(0,42).Select(PantelleriaAppearance.FinishSeed).Distinct().Count()==42,"all ships retain unique finish seeds");
+            foreach(int ship in new[]{0,1}) {
+                scene.scenario.rain=0;scene.Focus(ship);
+                scene.target=scene.scenario.ships[ship].Position+Quaternion.Euler(0,scene.scenario.ships[ship].heading,0)*new Vector3(0,6,PantelleriaScenario.Ships[ship].model.length*.39f);
+                scene.pitch=35;scene.distance=30;scene.SetCamera();scene.UpdateWorld();yield return new WaitForSeconds(.7f);yield return Capture("weathered-deck-dry-"+ship);
+                var deck=scene.vessels[ship].GetComponentsInChildren<MeshRenderer>().First(r=>r.sharedMaterial.shader.name=="Ironclads/Pantelleria Teak");var properties=new MaterialPropertyBlock();deck.GetPropertyBlock(properties);
+                Check(properties.GetFloat("_FinishSeed")==PantelleriaAppearance.FinishSeed(ship),"runtime deck retains stable seed "+ship);
+                if(ship==0){scene.scenario.rain=1;scene.UpdateWorld();Check(Shader.GetGlobalFloat("_PantelleriaRain")==1,"rain drives exposed finish wetness");yield return new WaitForSeconds(.3f);yield return Capture("weathered-deck-wet-0");}
+            }
+            scene.scenario.rain=rain;scene.UpdateWorld();Check(scene.scenario.utc==clock,"finish previews do not advance game clock");
+        }
+        IEnumerator ReviewSeas(MaritimeScene scene)
+        {
+            var s=scene.scenario;float height=s.waveHeight,wind=s.windFrom;var speeds=s.ships.Select(ship=>ship.speed).ToArray();
+            string clock=s.utc;scene.Focus(0);scene.pitch=12;scene.distance=190;scene.SetCamera();s.waveHeight=3;s.windFrom=s.ships[0].heading;scene.UpdateWorld();
+            int before=scene.pantelleriaWash.TotalSprayEmitted;yield return new WaitForSeconds(6);yield return Capture("hull-head-sea");
+            Check(scene.pantelleriaWash.TotalSprayEmitted>before&&scene.pantelleriaWash.SprayParticleCount<=500,"rough head sea produces bounded crest-impact droplets");
+            Check(scene.NearOceanSurface.sharedMesh.vertexCount==769*769,"fine near-water mesh active");
+            s.windFrom=s.ships[0].heading+90;scene.UpdateWorld();yield return new WaitForSeconds(1);yield return Capture("hull-beam-sea");
+            s.windFrom=s.ships[0].heading+180;scene.UpdateWorld();yield return new WaitForSeconds(1);yield return Capture("hull-following-sea");
+            foreach(var ship in s.ships)ship.speed=0;scene.UpdateWorld();Check(scene.pantelleriaWash.ActiveCount==0&&scene.pantelleriaWash.HullContactCount>0,"stopped hulls retain wave contact without movement wake");yield return Capture("hull-stopped-rough");
+            s.waveHeight=0;scene.UpdateWorld();Check(scene.pantelleriaWash.HullContactCount==0&&scene.pantelleriaWash.SprayParticleCount==0,"calm stopped ships have no contact foam or spray");yield return Capture("hull-stopped-calm");
+            for(int ship=0;ship<42;ship++)s.ships[ship].speed=speeds[ship];s.waveHeight=height;s.windFrom=wind;scene.UpdateWorld();Check(s.utc==clock,"sea effects leave operational clock unchanged");
+        }
         IEnumerator Start()
         {
             var args=Environment.GetCommandLineArgs();int index=Array.IndexOf(args,"-verify-pantelleria");output=args[index+1];Directory.CreateDirectory(output);yield return new WaitForSeconds(1);
@@ -22,6 +49,13 @@ namespace Ironclads
             Check(scene.vessels.Length==42&&scene.network.PlayerCapacity==32,"42 models and 32-player lobby capacity");
             Check(scene.vessels.All(v=>v.GetComponent<NavalColours>()!=null)&&scene.vessels.Sum(v=>v.GetComponent<NavalColours>().GetComponentsInChildren<Renderer>(true).Count(r=>r.sharedMaterial.shader.name=="Ironclads/Naval Cloth"&&!v.GetComponent<NavalColours>().IsRigging(r.transform)))==84,"84 national ensigns and commissioning pennants");
             int savedRigging=NavalColours.RiggingMode;
+            yield return ReviewWeather(scene);
+            yield return ReviewSeas(scene);
+            Check(scene.vessels.All(v=>v.transform.Find(Shipwright.PantelleriaCloseDetailsName)!=null),"close-up fittings on all 42 ships");
+            scene.Focus(0);scene.target=scene.scenario.ships[0].Position+Quaternion.Euler(0,scene.scenario.ships[0].heading,0)*new Vector3(0,8,PantelleriaScenario.Ships[0].model.length*.19f);scene.distance=28;scene.pitch=32;scene.SetCamera();yield return Capture("bridge-fittings");
+            scene.target=scene.scenario.ships[0].Position+Quaternion.Euler(0,scene.scenario.ships[0].heading,0)*new Vector3(0,5,PantelleriaScenario.Ships[0].model.length*.39f);scene.distance=22;scene.pitch=42;scene.SetCamera();yield return Capture("foredeck-fittings");
+            scene.target=scene.scenario.ships[0].Position+Quaternion.Euler(0,scene.scenario.ships[0].heading,0)*new Vector3(1.5f,5.1f,PantelleriaScenario.Ships[0].model.length*.425f);scene.distance=6;scene.pitch=48;scene.SetCamera();yield return Capture("anchor-chain-detail");
+            scene.target=scene.scenario.ships[0].Position+Quaternion.Euler(0,scene.scenario.ships[0].heading,0)*new Vector3(PantelleriaScenario.Ships[0].model.beam*.28f,8.1f,8);scene.distance=12;scene.pitch=65;scene.SetCamera();yield return Capture("boat-floorboards");
             foreach(int mode in new[]{2,1,0}) {
                 NavalColours.SelectRiggingMode(mode,false);scene.Focus(0);scene.pitch=22;scene.UpdateWorld();scene.SetCamera();
                 int expectedFlags=84+42*(mode==2?NavalColours.DressFlagCount:mode==1?NavalColours.SignalFlagCount:0);
@@ -30,6 +64,11 @@ namespace Ironclads
                 if(mode==2){scene.yaw+=120;scene.SetCamera();yield return Capture("rigging-full-dress-reverse");}
             }
             NavalColours.SelectRiggingMode(savedRigging,false);
+            scene.Focus(0);scene.SetCamera();scene.UpdateWorld();var wash=scene.pantelleriaWash;int movingWash=wash.ActiveCount;Check(movingWash>0,"nearby moving fleet has surface wash");
+            var speeds=scene.scenario.ships.Select(ship=>ship.speed).ToArray();foreach(var ship in scene.scenario.ships)ship.speed=0;scene.UpdateWorld();Check(wash.ActiveCount==0,"stopped fleet hides all wash");for(int ship=0;ship<speeds.Length;ship++)scene.scenario.ships[ship].speed=speeds[ship];
+            scene.scenario.pantelleria.sunk[0]=true;scene.UpdateWorld();Check(wash.ActiveCount==movingWash-1,"sunk ship hides its wash");scene.scenario.pantelleria.sunk[0]=false;scene.UpdateWorld();
+            scene.pitch=38;scene.SetCamera();yield return new WaitForSeconds(.3f);yield return Capture("bow-stern-wash");
+            bool wasAstern=scene.scenario.ships[0].astern;scene.scenario.ships[0].astern=true;scene.UpdateWorld();yield return Capture("astern-wash");scene.scenario.ships[0].astern=wasAstern;scene.UpdateWorld();
             var flagClock=scene.scenario.Date;
             foreach(int ship in new[]{0,13,21,34}) {
                 scene.Focus(ship);scene.UpdateWorld();var colours=scene.vessels[ship].GetComponent<NavalColours>();
@@ -62,7 +101,7 @@ namespace Ironclads
             int openShip=Array.FindIndex(PantelleriaScenario.Ships,ship=>ship.model.open);Check(openShip>=0,"open-barbette camera sample exists");scene.Focus(openShip);scene.target=scene.scenario.ships[openShip].Position+Quaternion.Euler(0,scene.scenario.ships[openShip].heading,0)*new Vector3(0,7.1f,PantelleriaScenario.Ships[openShip].model.length*.34f);scene.distance=16;scene.pitch=12;scene.SetCamera();yield return Capture("open-carriage-side");scene.yaw+=120;scene.SetCamera();yield return Capture("open-carriage-reverse");
             var panel=GetComponent<UmpirePanel>();panel.ShowPantelleriaTab(2);scene.Focus(24);yield return Capture("gunnery");panel.ShowPantelleriaTab(4);yield return Capture("result-ledger");
             File.WriteAllText(Path.Combine(output,"fleet-roundtrip.json"),JsonUtility.ToJson(scene.scenario,true));
-            scene.StartUlsan();Check(scene.vessels.Length==7&&naval.Move(6,30),"Ulsan switches back and moves last cruiser");scene.StartJames();Check(scene.vessels.Length==6,"Stonewall switches back");scene.StartScenario(false);Check(scene.vessels.Length==2,"Ferrol switches back");scene.StartPantelleria();Check(scene.vessels.Length==42,"Pantelleria restores after module switching");
+            scene.StartUlsan();Check(scene.vessels.Length==7&&naval.Move(6,30),"Ulsan switches back and moves last cruiser");Check(scene.NearOceanSurface.sharedMesh.vertexCount==257*257&&Shader.GetGlobalFloat("_PantelleriaSea")==0,"legacy water mesh and sea path restore outside Pantelleria");scene.StartJames();Check(scene.vessels.Length==6,"Stonewall switches back");scene.StartScenario(false);Check(scene.vessels.Length==2,"Ferrol switches back");scene.StartPantelleria();Check(scene.vessels.Length==42,"Pantelleria restores after module switching");
             File.WriteAllText(Path.Combine(output,"runtime-verification.txt"),errors.Count==0?"PASS: all 42 ships and 14 divisions move; plot/apply orders; atomic group rejection; clock, bridge pivots, results and save/load; all fleet funnels; national salvos; sunk-state controls; existing scenario switching. No logged runtime errors.":"FAIL:\n"+string.Join("\n",errors));Application.Quit(errors.Count==0?0:1);
         }
     }

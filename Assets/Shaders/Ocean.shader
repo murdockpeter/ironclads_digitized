@@ -18,9 +18,12 @@ Shader "Ironclads/Ocean"
    sampler2D _NormalTex;
    float _WaveHeight, _SeaTime, _WindSpeed;
    float4 _Wind, _SunDirection, _SunColor, _SkyTint;
+   #include "PantelleriaSea.cginc"
+   #include "PantelleriaWash.cginc"
    struct appdata { float4 vertex:POSITION; };
    struct v2f { float4 pos:SV_POSITION; float3 world:TEXCOORD0; UNITY_FOG_COORDS(1) };
    float wave(float2 p) {
+    if(_PantelleriaSea>.5)return pantelleriaSeaSample(p).x+pantelleriaWakeHeight(p);
     float2 d = normalize(_Wind.xy + .00001);
     return _WaveHeight * (.32*sin(dot(p,d)*.14+_SeaTime*1.2) + .14*sin(dot(p,float2(d.y,-d.x))*.29+_SeaTime*1.7) + .04*sin(p.x*.73+p.y*.6+_SeaTime*2.3));
    }
@@ -29,6 +32,7 @@ Shader "Ironclads/Ocean"
     // The outer ocean has kilometre-scale cells: displacing those cells with short
     // waves produces broad false ridges. Only the near, finely sampled patch moves.
     float displacement=1-smoothstep(1200,2400,distance(w,_WorldSpaceCameraPos));
+    if(_PantelleriaSea>.5&&_PantelleriaFinePatch<.5)displacement=0;
     w.y += wave(w.xz)*displacement; o.world=w; o.pos=mul(UNITY_MATRIX_VP,float4(w,1));
     UNITY_TRANSFER_FOG(o,o.pos); return o;
    }
@@ -42,6 +46,7 @@ Shader "Ironclads/Ocean"
     float2 slope=_WaveHeight*(wind*.0448*cos(dot(p,wind)*.14+_SeaTime*1.2)*exp(-pow(footprint*.14,2))
       +across*.0406*cos(dot(p,across)*.29+_SeaTime*1.7)*exp(-pow(footprint*.29,2))
       +float2(.0292,.024)*cos(p.x*.73+p.y*.6+_SeaTime*2.3)*exp(-pow(footprint*.95,2)));
+    if(_PantelleriaSea>.5)slope=pantelleriaSeaSlope(p,footprint);
     float dx=slope.x,dz=slope.y;
     float2 a=tex2D(_NormalTex,p*.024+wind*_SeaTime*.006).rg*2-1;
     float2 b=tex2D(_NormalTex,float2(p.y,-p.x)*.061-wind*_SeaTime*.009).rg*2-1;
@@ -55,6 +60,7 @@ Shader "Ironclads/Ocean"
     float3 col=lerp(sea,reflection,fresnel)+spec*_SunColor.rgb;
     float foam=smoothstep(.45,.8,length(float2(dx,dz)))*saturate((_WindSpeed-20)/25);
     col=lerp(col,_SkyTint.rgb*.8,foam*.6);
+    col=paintPantelleriaWash(col,i.world);
     fixed4 c=fixed4(col,1); UNITY_APPLY_FOG(i.fogCoord,c); return c;
    }
    ENDCG

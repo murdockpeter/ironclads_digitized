@@ -32,6 +32,11 @@ Shader "Ironclads/Naval Cloth"
     float3 normal=normalize(cross(ddy(i.world),ddx(i.world)));
     float lighting=.62+.38*abs(dot(normal,normalize(_WorldSpaceLightPos0.xyz)));
     fixed4 colour=tex2D(_MainTex,i.uv);colour.rgb*=lighting;
+    float footprint=max(fwidth(i.uv.x),fwidth(i.uv.y));
+    float weave=(sin(i.uv.x*560)*sin(i.uv.y*310))*.018*(1-saturate(footprint*300));
+    float border=min(min(i.uv.x,1-i.uv.x),min(i.uv.y,1-i.uv.y));
+    float hem=1-smoothstep(.008,.008+max(footprint,.001),border);
+    colour.rgb*=1+weave-hem*.07;
     UNITY_APPLY_FOG(i.fogCoord,colour);return colour;
    }
    ENDCG

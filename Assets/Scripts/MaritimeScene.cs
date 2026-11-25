@@ -31,6 +31,7 @@ namespace Ironclads
         }
         void UpdateSeaAudio(){if(ambience!=null)ambience.volume=soundEnabled&&!globeMode?Mathf.Clamp01(.28f+scenario.windKnots*.007f)*seaVolume:0;}
         GameObject nearOcean;
+        public MeshFilter NearOceanSurface=>nearOcean.GetComponent<MeshFilter>();
         Transform farOcean;
         bool initialized;
         string fleetId;
@@ -40,6 +41,7 @@ namespace Ironclads
         public HamptonTerrain terrain;
         public HamptonSupport support;
         public PantelleriaCoast pantelleriaCoast;
+        public PantelleriaWash pantelleriaWash;
         public Transform Vessel(int i)=>scenario.Hampton&&i==2?support?.minnesota:scenario.Hampton&&i==3?support?.patrickHenry:vessels[i];
         public CloseActionTable closeAction;
         public void StartCloseAction(int variant=0){if(network!=null&&!network.CanManage)return;GetComponent<RuleChart>()?.Remember();scenario=CloseActionScenario.Create(variant);selected=0;animateTime=false;if(closeAction==null){closeAction=gameObject.AddComponent<CloseActionTable>();closeAction.scene=this;}closeAction.Bind(true);Overview();status="Close Action / Nelson vs Brueys: review scattering and opening sail before plotting.";}
@@ -145,6 +147,7 @@ namespace Ironclads
             EnsureFleet();terrain?.Position(scenario);
             if(farOcean!=null)farOcean.localScale=scenario.Pantelleria?new Vector3(8,1,8):Vector3.one;
             pantelleriaCoast?.Refresh(this);
+            if(scenario.Pantelleria&&pantelleriaWash==null)pantelleriaWash=gameObject.AddComponent<PantelleriaWash>();
             support?.Refresh();
             if(monitorTurret!=null)monitorTurret.localRotation=Quaternion.Euler(0,scenario.ships[0].turretHeading,0);
             Vector3 localSun=Navigation.SunDirection(scenario.Date,scenario.latitude,scenario.longitude);
@@ -158,6 +161,7 @@ namespace Ironclads
             Vector3 wind=Quaternion.Euler(0,scenario.windFrom+180,0)*Vector3.forward;
             Shader.SetGlobalVector("_SunDirection",localSun);Shader.SetGlobalColor("_SunColor",sunColor*strength);
             Shader.SetGlobalColor("_SkyTint",haze);Shader.SetGlobalFloat("_SeaTime",Application.isPlaying?Time.time:15);
+            PantelleriaAppearance.RefreshWeather(scenario);
             Shader.SetGlobalVector("_Wind",new Vector4(wind.x,wind.z,0,0));Shader.SetGlobalFloat("_WindSpeed",scenario.windKnots);
             oceanMaterial.SetFloat("_WaveHeight",scenario.waveHeight);skyMaterial.SetFloat("_Cloud",scenario.cloud);
             sun.color=sunColor;sun.intensity=strength*1.3f;
@@ -180,12 +184,13 @@ namespace Ironclads
                 if(scenario.Pantelleria)vessels[i].gameObject.SetActive(!scenario.pantelleria.sunk[i]);
                 if(scenario.CloseAction){vessels[i].gameObject.SetActive(!scenario.closeAction.logs[i].removed);vessels[i].GetComponent<CloseActionVisual>()?.Refresh(scenario.closeAction.logs[i],scenario.ships[i].heading,scenario.windFrom,scenario.windKnots);}
                 var s=scenario.ships[i];float time=Application.isPlaying?Time.time:15;
-                vessels[i].localPosition=s.Position+Vector3.up*WaveAt(s.Position,time)*.65f;
-                vessels[i].localRotation=Quaternion.Euler(Mathf.Sin(time*.6f+i)*scenario.waveHeight*.65f,s.heading,Mathf.Sin(time*.83f+i*2)*scenario.waveHeight*1.25f);
+                if(scenario.Pantelleria){var pose=PantelleriaHydrodynamics.Pose(s,PantelleriaScenario.Ships[i].model,time,scenario.waveHeight,scenario.windFrom);vessels[i].localPosition=s.Position+Vector3.up*pose.x;vessels[i].localRotation=Quaternion.Euler(pose.y,s.heading,pose.z);}
+                else {vessels[i].localPosition=s.Position+Vector3.up*WaveAt(s.Position,time)*.65f;vessels[i].localRotation=Quaternion.Euler(Mathf.Sin(time*.6f+i)*scenario.waveHeight*.65f,s.heading,Mathf.Sin(time*.83f+i*2)*scenario.waveHeight*1.25f);}
                 if(scenario.Pantelleria)vessels[i].GetComponent<NavalColours>()?.Refresh(s.heading,s.speed,scenario.windFrom,scenario.windKnots,time);
                 if(scenario.James)foreach(var turret in vessels[i].GetComponentsInChildren<JamesTurret>())turret.transform.localRotation=Quaternion.Euler(0,turret.group==0?s.turretHeading:s.aftTurretHeading,0);
                 if(scenario.DoB)foreach(var turret in vessels[i].GetComponentsInChildren<CruiserTurret>())turret.transform.localRotation=Quaternion.Euler(0,turret.group==0?s.turretHeading:s.aftTurretHeading,0);
             }
+            pantelleriaWash?.Refresh(this);
             var emission=rain.emission;emission.rateOverTime=scenario.rain*2000;
             rain.transform.position=view.transform.position+Vector3.up*48;
             rain.transform.rotation=Quaternion.Euler(90,0,0);
@@ -194,6 +199,7 @@ namespace Ironclads
         }
         public float WaveAt(Vector3 p,float t)
         {
+            if(scenario.Pantelleria)return PantelleriaHydrodynamics.Sample(p,t,scenario.waveHeight,scenario.windFrom).x;
             Vector3 d=Quaternion.Euler(0,scenario.windFrom+180,0)*Vector3.forward;
             return scenario.waveHeight*(.32f*Mathf.Sin((p.x*d.x+p.z*d.z)*.14f+t*1.2f)+.14f*Mathf.Sin((p.x*d.z-p.z*d.x)*.29f+t*1.7f)+.04f*Mathf.Sin(p.x*.73f+p.z*.6f+t*2.3f));
         }
