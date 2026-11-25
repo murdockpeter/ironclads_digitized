@@ -1,0 +1,43 @@
+﻿ship_id,code_index,nationality,ship,current_model_variant,priority,evidence_coverage,historical_model_status,historical_class_and_aliases,profile_source_ids,deck_plan_source_ids,body_lines_or_offsets_source_ids,dimension_source_ids,photo_source_ids,configuration_source_ids,reproduction_terms_source_ids,reference_worksheet,notes
+PANT-00,0,Britain,Canopus,Canopus,P1,inventory only,not started,,,,,,,,,,Verify individual configuration and hull sharing; current assignment is an implementation group.
+PANT-01,1,Britain,Ocean,Canopus,P2,inventory only,not started,,,,,,,,,,Verify individual configuration and hull sharing; current assignment is an implementation group.
+PANT-02,2,Britain,Caesar,Majestic,P2,inventory only,not started,,,,,,,,,,Verify individual configuration and hull sharing; current assignment is an implementation group.
+PANT-03,3,Britain,Illustrious,Majestic,P2,inventory only,not started,,,,,,,,,,Verify individual configuration and hull sharing; current assignment is an implementation group.
+PANT-04,4,Britain,Renown,Renown,P2,inventory only,not started,,,,,,,,,,Verify individual configuration and hull sharing; current assignment is an implementation group.
+PANT-05,5,Britain,Revenge,Royal Sovereign,P2,inventory only,not started,,,,,,,,,,Verify individual configuration and hull sharing; current assignment is an implementation group.
+PANT-06,6,Britain,Royal Oak,Royal Sovereign,P2,inventory only,not started,,,,,,,,,,Verify individual configuration and hull sharing; current assignment is an implementation group.
+PANT-07,7,Britain,Ramillies,Royal Sovereign,P2,inventory only,not started,,,,,,,,,,Verify individual configuration and hull sharing; current assignment is an implementation group.
+PANT-08,8,Britain,Empress of India,Royal Sovereign,P2,inventory only,not started,,,,,,,,,,Verify individual configuration and hull sharing; current assignment is an implementation group.
+PANT-09,9,Britain,Royal Sovereign,Royal Sovereign,P2,inventory only,not started,,,,,,,,,,Verify individual configuration and hull sharing; current assignment is an implementation group.
+PANT-10,10,Britain,Hood,Hood,P2,inventory only,not started,,,,,,,,,,Verify individual configuration and hull sharing; current assignment is an implementation group.
+PANT-11,11,Britain,Camperdown,Admiral,P2,inventory only,not started,,,,,,,,,,Verify individual configuration and hull sharing; current assignment is an implementation group.
+PANT-12,12,Britain,Anson,Admiral,P2,inventory only,not started,,,,,,,,,,Verify individual configuration and hull sharing; current assignment is an implementation group.
+PANT-13,13,Italy,Re Umberto,Re Umberto,P1,inventory only,not started,,,,,,,,,,Verify individual configuration and hull sharing; current assignment is an implementation group.
+PANT-14,14,Italy,Sicilia,Re Umberto,P2,inventory only,not started,,,,,,,,,,Verify individual configuration and hull sharing; current assignment is an implementation group.
+PANT-15,15,Italy,Sardegna,Re Umberto,P2,inventory only,not started,,,,,,,,,,Verify individual configuration and hull sharing; current assignment is an implementation group.
+PANT-16,16,Italy,Ruggiero di Lauria,Ruggiero di Lauria,P2,inventory only,not started,,,,,,,,,,Verify individual configuration and hull sharing; current assignment is an implementation group.
+PANT-17,17,Italy,Andrea Doria,Ruggiero di Lauria,P2,inventory only,not started,,,,,,,,,,Verify individual configuration and hull sharing; current assignment is an implementation group.
+PANT-18,18,Italy,Francesco Morosini,Ruggiero di Lauria,P2,inventory only,not started,,,,,,,,,,Verify individual configuration and hull sharing; current assignment is an implementation group.
+PANT-19,19,Italy,Italia,Italia,P2,inventory only,not started,,,,,,,,,,Verify individual configuration and hull sharing; current assignment is an implementation group.
+PANT-20,20,Italy,Lepanto,Italia,P2,inventory only,not started,,,,,,,,,,Verify individual configuration and hull sharing; current assignment is an implementation group.
+PANT-21,21,France,St. Louis,Charlemagne,P2,inventory only,not started,,,,,,,,,,Verify individual configuration and hull sharing; current assignment is an implementation group.
+PANT-22,22,France,Gaulois,Charlemagne,P2,inventory only,not started,,,,,,,,,,Verify individual configuration and hull sharing; current assignment is an implementation group.
+PANT-23,23,France,Charlemagne,Charlemagne,P2,inventory only,not started,,,,,,,,,,Verify individual configuration and hull sharing; current assignment is an implementation group.
+PANT-24,24,France,Bouvet,Bouvet,P1,inventory only,not started,,,,,,,,,,Verify individual configuration and hull sharing; current assignment is an implementation group.
+PANT-25,25,France,Charles Martel,Charles Martel,P2,inventory only,not started,,,,,,,,,,Verify individual configuration and hull sharing; current assignment is an implementation group.
+PANT-26,26,France,Jauréguiberry,Jauréguiberry,P2,inventory only,not started,,,,,,,,,,Verify individual configuration and hull sharing; current assignment is an implementation group.
+PANT-27,27,France,Brennus,Brennus,P2,inventory only,not started,,,,,,,,,,Verify individual configuration and hull sharing; current assignment is an implementation group.
+PANT-28,28,France,Amiral Tréhouart,Bouvines,P2,inventory only,not started,,,,,,,,,,Verify individual configuration and hull sharing; current assignment is an implementation group.
+PANT-29,29,France,Bouvines,Bouvines,P2,inventory only,not started,,,,,,,,,,Verify individual configuration and hull sharing; current assignment is an implementation group.
+PANT-30,30,France,Valmy,Jemmapes,P2,inventory only,not started,,,,,,,,,,Verify individual configuration and hull sharing; current assignment is an implementation group.
+PANT-31,31,France,Jemmapes,Jemmapes,P2,inventory only,not started,,,,,,,,,,Verify individual configuration and hull sharing; current assignment is an implementation group.
+PANT-32,32,France,Terrible,Terrible,P2,inventory only,not started,,,,,,,,,,Verify individual configuration and hull sharing; current assignment is an implementation group.
+PANT-33,33,France,Marceau,Marceau,P2,inventory only,not started,,,,,,,,,,Verify individual configuration and hull sharing; current assignment is an implementation group.
+PANT-34,34,Russia,Imperator Aleksandr II,Imperator Aleksandr II,P2,inventory only,not started,,,,,,,,,,Verify individual configuration and hull sharing; current assignment is an implementation group.
+PANT-35,35,Russia,Dvenadtsat' Apostolov,Dvenadtsat' Apostolov,P2,inventory only,not started,,,,,,,,,,Verify individual configuration and hull sharing; current assignment is an implementation group.
+PANT-36,36,Russia,Tri Sviatitelia,Tri Sviatitelia,P1,inventory only,not started,,,,,,,,,,Verify individual configuration and hull sharing; current assignment is an implementation group.
+PANT-37,37,Russia,Rostislav,Rostislav,P2,inventory only,not started,,,,,,,,,,Verify individual configuration and hull sharing; current assignment is an implementation group.
+PANT-38,38,Russia,Ekaterina II,Ekaterina II,P2,inventory only,not started,,,,,,,,,,Verify individual configuration and hull sharing; current assignment is an implementation group.
+PANT-39,39,Russia,Chesma,Ekaterina II,P2,inventory only,not started,,,,,,,,,,Verify individual configuration and hull sharing; current assignment is an implementation group.
+PANT-40,40,Russia,Sinop,Ekaterina II,P2,inventory only,not started,,,,,,,,,,Verify individual configuration and hull sharing; current assignment is an implementation group.
+PANT-41,41,Russia,Georgii Pobedonosets,Georgii Pobedonosets,P2,inventory only,not started,,,,,,,,,,Verify individual configuration and hull sharing; current assignment is an implementation group.

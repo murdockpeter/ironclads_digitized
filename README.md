@@ -1,5 +1,7 @@
 # Ironclads — Ferrol & Hampton Roads
 
+**Pantelleria historical hull research.** [TODO and research sequence](Documentation/Pantelleria-Historical-Hulls-TODO.md), [42-ship reference tracker](Documentation/Pantelleria-Hull-Research.csv), [source register](Documentation/Pantelleria-Hull-Sources.csv) and [reference worksheet](Documentation/Pantelleria-Hull-Reference-Template.md) for replacing the shared hull templates with historically researched shapes.
+
 **Pantelleria hull contact and seas (1.10.12-dev).** Wave-driven hull motion, crest-contact foam and brief impact droplets, finer near water, and speed/length-scaled displacement wash. Recessed gun bores and bridge-window trim finish the existing detailed models; individual hull/deck weathering remains. `./Start-Ironclads.ps1 -Pantelleria` selects this build. [Guide, references and validation](Documentation/Pantelleria-Seas.md).
 
 **Pantelleria rigging flags (1.10.7-dev).** Animated full-dress strings with 26 extra flags/pennants per ship, or twelve flags on yardarm hoists. Choose **Weather → Rigging flags**; colours-only remains available. Displays are decorative and do not issue game orders. Existing ship geometry and supported mounts remain. [Guide and period references](Documentation/Pantelleria-Rigging-Flags.md).

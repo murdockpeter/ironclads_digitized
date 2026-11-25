@@ -1,5 +1,7 @@
 # Pantelleria — 1901, hull contact and seas (1.10.12-dev)
 
+Historical hull replacement is tracked in the [research TODO](Pantelleria-Historical-Hulls-TODO.md) and [per-ship reference tracker](Pantelleria-Hull-Research.csv). The current 24 model variants are implementation groups to verify against drawings and individual ship configurations.
+
 Launch the additional module with:
 
 ```powershell
