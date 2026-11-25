@@ -12,6 +12,7 @@ namespace Ironclads
             var s=scene.scenario;var ship=s.ships[scene.selected];var guns=scene.GetComponent<GunneryTools>();var effects=scene.GetComponent<BatteryEffects>();
             GUI.DrawTexture(new Rect(0,0,330,Screen.height),panelTex);GUILayout.BeginArea(new Rect(20,15,290,Screen.height-30));
             GUILayout.Label("IRONCLADS",title);GUILayout.Label("STONEWALL AT THE GATES / 28 MAR 1865",sub);
+            if(Button("Breakout! / 3D campaign desk (Dec 1864)")){BreakoutDesk.Show(scene);GUILayout.EndArea();return;}
             GUILayout.BeginHorizontal();if(Button("Fleet view")){chart.topDown=false;scene.Overview();}if(Button(scene.globeMode?"Return to sea":"World globe"))scene.ToggleGlobe();GUILayout.EndHorizontal();
             if(Button(scene.soundEnabled?"Sea sounds: ON / mute":"Sea sounds: OFF / enable"))scene.SetSeaAudio(!scene.soundEnabled,scene.seaVolume);
             if(scene.network.Active&&Button("Lobby / control requests ("+scene.network.Lobby.requests.Length+")"))ShowJamesTab(5);

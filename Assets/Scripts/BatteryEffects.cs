@@ -41,6 +41,7 @@ namespace Ironclads
         public GunMount[] Battery(int ship,int side)
         {
             var result=new List<GunMount>();
+            if(scene.scenario.Pantelleria&&ship>=0&&ship<42&&scene.scenario.pantelleria.sunk[ship])return result.ToArray();
             if(ship<0||ship>=scene.scenario.ShipSlots||(ship==2&&!scene.scenario.Hampton&&!scene.scenario.DoB&&!scene.scenario.James&&!scene.scenario.CloseAction)||scene.Vessel(ship)==null)return result.ToArray();
             int port=0,starboard=0;
             var mounted=scene.Vessel(ship).GetComponentsInChildren<GunMount>();System.Array.Sort(mounted,(a,b)=>b.transform.localPosition.z.CompareTo(a.transform.localPosition.z));

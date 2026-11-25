@@ -7,6 +7,8 @@ namespace Ironclads
     {
         void Scenarios()
         {
+            if(Button("Pantelleria / 42 battleships (1901)")){scene.StartPantelleria();return;}
+            if(Button("Breakout! / 3D campaign desk (Dec 1864)")){BreakoutDesk.Show(scene);return;}
             if(Button("Close Action / Nelson vs Brueys"))scene.StartCloseAction();
             Heading("CHOOSE YOUR SEA TABLE");
             Text("Starting a scenario resets the shared table. Save your current positions first if you want to return to them.");

@@ -1,0 +1,34 @@
+James River campaign basemap
+{
+  "source": "Cached GSHHG 2.3.7 full-resolution coastlines; USGS NHD high-resolution river-area polygons; USGS 3DEP bare-earth elevation",
+  "coastlineLicense": "GSHHG LGPL-3.0-or-later",
+  "hydrographyLicense": "USGS public domain",
+  "elevationLicense": "USGS public domain",
+  "historicalNote": "Modern geographic data, not an 1864 shoreline or navigational/bathymetric chart. Modern channel cuts and reclamation may be present. Station anchors are approximate umpire presets, not surveyed historical positions.",
+  "originLatitude": 37.2,
+  "originLongitude": -76.7,
+  "terrainSpacingMeters": 250,
+  "riverFeatureCount": 256,
+  "shoreCoordinates": 282009,
+  "elevationNoDataCells": 0
+}
+
+GSHHG notices and LGPL/GPL license texts accompany this directory. The cached full-resolution GSHHG input is clipped and differenced against USGS NHD polygons by Tools/build-campaign-geography.py; the derived source geometry and USGS query features are included alongside this notice. Rebuild with that script and Tools/triangulate-campaign-geography.cjs.
+
+Sources:
+https://github.com/GenericMappingTools/gshhg-gmt/releases/tag/2.3.7
+https://hydro.nationalmap.gov/arcgis/rest/services/nhd/MapServer/9
+https://elevation.nationalmap.gov/arcgis/rest/services/3DEPElevation/ImageServer
+https://dwr.virginia.gov/place/deep-bottom/
+
+Exact build-time requests:
+[
+  {
+    "url": "https://hydro.nationalmap.gov/arcgis/rest/services/nhd/MapServer/9/query?f=geojson&where=FTYPE+IN+%28460%2C312%2C336%29&geometry=-77.6%2C36.75%2C-75.8%2C37.65&geometryType=esriGeometryEnvelope&inSR=4326&spatialRel=esriSpatialRelIntersects&outSR=4326&outFields=OBJECTID%2CGNIS_NAME%2CFTYPE%2CPERMANENT_IDENTIFIER&returnGeometry=true&orderByFields=OBJECTID&resultOffset=0&resultRecordCount=1000",
+    "file": "nhd-area-0.geojson"
+  },
+  {
+    "url": "https://elevation.nationalmap.gov/arcgis/rest/services/3DEPElevation/ImageServer/exportImage?f=image&bbox=-77.6%2C36.75%2C-75.8%2C37.65&bboxSR=4326&imageSR=4326&size=1025%2C641&format=tiff&pixelType=F32&renderingRule=%7B%22rasterFunction%22%3A+%22None%22%7D&adjustAspectRatio=false&interpolation=RSP_BilinearInterpolation",
+    "file": "3dep-campaign.tif"
+  }
+]

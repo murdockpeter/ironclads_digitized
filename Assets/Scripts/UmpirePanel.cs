@@ -63,10 +63,11 @@ namespace Ironclads
         void Error(Exception e){scene.status=e.Message;}
         void OnGUI()
         {
+            if(BreakoutDesk.IsOpen(scene))return;
             if(scene==null||scene.view==null)return;if(title==null)Styles();if(chart==null)chart=GetComponent<RuleChart>();
             if(scene.scenario.CloseAction){CloseActionGUI();return;}
             if(scene.scenario.James){JamesGUI();return;}
-            if(scene.scenario.DoB){if(scene.dawn==null||scene.vessels.Length!=7)scene.UpdateWorld();DawnGUI();return;}
+            if(scene.scenario.DoB){if(scene.dawn==null||scene.vessels.Length!=scene.scenario.ShipSlots)scene.UpdateWorld();if(scene.scenario.Pantelleria)PantelleriaGUI();else DawnGUI();return;}
             if(shownScenario!=scene.scenario.scenarioId){shownScenario=scene.scenario.scenarioId;SyncScenarioFields();}
             if(!scene.showOverlay){GUI.Label(new Rect(20,20,300,30),"H  •  Show umpire controls",body);return;}
             GUI.DrawTexture(new Rect(0,0,330,Screen.height),panelTex);
@@ -368,8 +369,8 @@ namespace Ironclads
         {
             bool previousEnabled=GUI.enabled;GUI.enabled=true;
             GUILayout.BeginHorizontal();
-            if(Button("Save table"))try{scene.scenario.Save();scene.status="Saved: "+Scenario.SavePath;}catch(Exception e){Error(e);}
-            GUI.enabled=ManageTable;if(Button("Load table"))try{var loaded=Scenario.Load();chart.Remember();scene.scenario=loaded;if(scene.network!=null&&scene.network.Active&&!scene.scenario.Miniatures&&!scene.scenario.DoB){scene.scenario.hexMode=true;chart.Snap();}date=loaded.utc;lat=loaded.latitude.ToString(CultureInfo.InvariantCulture);lon=loaded.longitude.ToString(CultureInfo.InvariantCulture);scene.Overview();scene.status="Saved table loaded.";}catch(Exception e){Error(e);}
+            if(Button("Save table"))try{scene.scenario.Save();scene.status="Saved: "+scene.scenario.TableSavePath;}catch(Exception e){Error(e);}
+            GUI.enabled=ManageTable;if(Button("Load table"))try{var loaded=Scenario.Load(scene.scenario.Pantelleria);chart.Remember();scene.scenario=loaded;if(scene.network!=null&&scene.network.Active&&!scene.scenario.Miniatures&&!scene.scenario.DoB){scene.scenario.hexMode=true;chart.Snap();}date=loaded.utc;lat=loaded.latitude.ToString(CultureInfo.InvariantCulture);lon=loaded.longitude.ToString(CultureInfo.InvariantCulture);scene.Overview();scene.status="Saved table loaded.";}catch(Exception e){Error(e);}
             GUILayout.EndHorizontal();GUI.enabled=previousEnabled;
         }
         void ShipLabels()

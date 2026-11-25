@@ -1,0 +1,43 @@
+pass,ship,nation,division,class,vertices,meshes,modeled_guns,funnels
+2,Canopus,Britain,British 8th,Canopus,10990,97,22,2
+2,Ocean,Britain,British 8th,Canopus,10990,97,22,2
+2,Caesar,Britain,British 9th,Majestic,10990,97,22,2
+2,Illustrious,Britain,British 9th,Majestic,10990,97,22,2
+2,Renown,Britain,British 9th,Renown,10670,97,20,2
+2,Revenge,Britain,British 10th,Royal Sovereign,10590,93,20,2
+2,Royal Oak,Britain,British 10th,Royal Sovereign,10590,93,20,2
+2,Ramillies,Britain,British 10th,Royal Sovereign,10590,93,20,2
+2,Empress of India,Britain,British 11th,Royal Sovereign,10590,93,20,2
+2,Royal Sovereign,Britain,British 11th,Royal Sovereign,10590,93,20,2
+2,Hood,Britain,British 12th,Hood,10654,93,20,2
+2,Camperdown,Britain,British 12th,Admiral,9622,89,16,2
+2,Anson,Britain,British 12th,Admiral,9622,89,16,2
+2,Re Umberto,Italy,Italian 1st,Re Umberto,10398,93,18,3
+2,Sicilia,Italy,Italian 1st,Re Umberto,10398,93,18,3
+2,Sardegna,Italy,Italian 1st,Re Umberto,10398,93,18,3
+2,Ruggiero di Lauria,Italy,Italian 2nd,Ruggiero di Lauria,9638,89,16,2
+2,Andrea Doria,Italy,Italian 2nd,Ruggiero di Lauria,9638,89,16,2
+2,Francesco Morosini,Italy,Italian 2nd,Ruggiero di Lauria,9638,89,16,2
+2,Italia,Italy,Italian 3rd,Italia,11774,93,22,6
+2,Lepanto,Italy,Italian 3rd,Italia,11774,93,22,6
+2,St. Louis,France,French 1st,Charlemagne,10670,97,20,2
+2,Gaulois,France,French 1st,Charlemagne,10670,97,20,2
+2,Charlemagne,France,French 1st,Charlemagne,10670,97,20,2
+2,Bouvet,France,French 3rd,Bouvet,10734,125,18,2
+2,Charles Martel,France,French 3rd,Charles Martel,10734,125,18,2
+2,Jauréguiberry,France,French 3rd,Jauréguiberry,10734,125,18,2
+2,Brennus,France,French 3rd,Brennus,10474,93,19,2
+2,Amiral Tréhouart,France,French 5th,Bouvines,9382,93,16,2
+2,Bouvines,France,French 5th,Bouvines,9382,93,16,2
+2,Valmy,France,French 5th,Jemmapes,8630,89,12,2
+2,Jemmapes,France,French 5th,Jemmapes,8630,89,12,2
+2,Terrible,France,French 7th,Terrible,8558,89,12,2
+2,Marceau,France,French 7th,Marceau,12126,125,26,3
+2,Imperator Aleksandr II,Russia,Russian 3rd,Imperator Aleksandr II,10110,79,20,2
+2,Dvenadtsat' Apostolov,Russia,Russian 3rd,Dvenadtsat' Apostolov,9214,93,14,2
+2,Tri Sviatitelia,Russia,Russian 3rd,Tri Sviatitelia,10238,97,18,2
+2,Rostislav,Russia,Russian 3rd,Rostislav,10038,97,18,2
+2,Ekaterina II,Russia,Russian 4th,Ekaterina II,10398,113,19,2
+2,Chesma,Russia,Russian 4th,Ekaterina II,10398,113,19,2
+2,Sinop,Russia,Russian 4th,Ekaterina II,10398,113,19,2
+2,Georgii Pobedonosets,Russia,Russian 4th,Georgii Pobedonosets,10398,113,19,2

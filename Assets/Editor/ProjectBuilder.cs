@@ -16,6 +16,16 @@ namespace Ironclads.Editor
     {
         const string ScenePath="Assets/Scenes/Ferrol.unity";
         public static void Deliver(){Prepare();BuildWindows();}
+        public static void DeliverPantelleria(){PantelleriaReview.Run();PantelleriaReview.VerifyTransportCapacity();PlayerSettings.bundleVersion="1.10.0-dev";IncludeShaders();BuildWindowsTo("Builds/Windows-Pantelleria");}
+        public static void DeliverPantelleriaDetail(){PantelleriaReview.Run();PlayerSettings.bundleVersion="1.10.1-dev";IncludeShaders();BuildWindowsTo("Builds/Windows-Pantelleria-Detail1");}
+        public static void DeliverPantelleriaDetail2(){PantelleriaReview.Run();PlayerSettings.bundleVersion="1.10.2-dev";IncludeShaders();BuildWindowsTo("Builds/Windows-Pantelleria-Detail2");}
+        public static void DeliverPantelleriaFlags(){PantelleriaReview.Run();PlayerSettings.bundleVersion="1.10.3-dev";IncludeShaders();BuildWindowsTo("Builds/Windows-Pantelleria-Flags");}
+        public static void DeliverPantelleriaDetail3(){PantelleriaReview.Run();PlayerSettings.bundleVersion="1.10.4-dev";IncludeShaders();BuildWindowsTo("Builds/Windows-Pantelleria-Detail3");}
+        public static void DeliverPantelleriaMounts(){PantelleriaReview.Run();PlayerSettings.bundleVersion="1.10.5-dev";IncludeShaders();BuildWindowsTo("Builds/Windows-Pantelleria-Mounts");}
+        public static void DeliverPantelleriaPolish(){PantelleriaReview.Run();PlayerSettings.bundleVersion="1.10.6-dev";IncludeShaders();BuildWindowsTo("Builds/Windows-Pantelleria-Polish");}
+        public static void DeliverPantelleriaRigging(){PantelleriaReview.Run();PlayerSettings.bundleVersion="1.10.7-dev";IncludeShaders();BuildWindowsTo("Builds/Windows-Pantelleria-Rigging");}
+        public static void DeliverBreakoutCampaign(){BreakoutCampaignReview.Run();PlayerSettings.bundleVersion="1.9.0-dev";IncludeShaders();BuildWindowsTo("Builds/Windows-BreakoutCampaign");}
+        public static void DeliverBreakoutGeography(){BreakoutCampaignReview.Run();CampaignGeographyReview.Run();PlayerSettings.bundleVersion="1.9.2-dev";IncludeShaders();BuildWindowsTo("Builds/Windows-CampaignGeography");}
         public static void DeliverCloseActionBowExperiment(){PlayerSettings.bundleVersion="1.8.16-dev";CloseActionReview.PrepareModels();CloseActionBowExperimentReview.Run();CloseActionBowJoinReview.Run();CloseActionHeadCurveReview.Run();CloseActionInteriorReview.Run();CloseActionSparReview.Run();CloseActionHeadsailReview.Run();CloseActionHullReview.Run();IncludeShaders();BuildWindowsTo("Builds/Windows-CloseAction-Bows4");}
         public static void DeliverCloseAction(){PlayerSettings.bundleVersion="1.8.16-dev";CloseActionReview.PrepareModels();CloseActionSparReview.Run();CloseActionHeadsailReview.Run();CloseActionInteriorReview.Run();CloseActionHeadCurveReview.Run();CloseActionBowJoinReview.Run();IncludeShaders();PowderSmokeReview.Run();CloseActionReview.Verify();CloseActionDetailReview.Run();CloseActionHullReview.Run();BuildWindowsTo("Builds/Windows-CloseAction-Bows4");}
         public static void DeliverCloseActionPlayer(){PlayerSettings.bundleVersion="1.8.16-dev";IncludeShaders();BuildWindowsTo("Builds/Windows-CloseAction-Bows4");}
@@ -95,7 +105,7 @@ namespace Ironclads.Editor
             var settings=AssetDatabase.LoadAllAssetsAtPath("ProjectSettings/GraphicsSettings.asset").FirstOrDefault();
             if(settings==null)throw new Exception("Graphics settings asset missing.");
             var serialized=new SerializedObject(settings);var shaders=serialized.FindProperty("m_AlwaysIncludedShaders");
-            foreach(string name in new[]{"Ironclads/Stern Lettering","Ironclads/Close Action Canvas","Ironclads/Ocean","Ironclads/Sky","Ironclads/Atmosphere","Ironclads/Weather Sprite","Ironclads/Powder Smoke","Ironclads/Chart","Ironclads/Coastal Ground","Ironclads/Worked Iron","Ironclads/Cruiser Finish","Ironclads/Supplied Ship","Standard"}) {
+            foreach(string name in new[]{"Ironclads/Stern Lettering","Ironclads/Close Action Canvas","Ironclads/Ocean","Ironclads/Sky","Ironclads/Atmosphere","Ironclads/Weather Sprite","Ironclads/Powder Smoke","Ironclads/Chart","Ironclads/Coastal Ground","Ironclads/Worked Iron","Ironclads/Cruiser Finish","Ironclads/Supplied Ship","Ironclads/Naval Cloth","Ironclads/Pantelleria Surface","Standard"}) {
                 var shader=Shader.Find(name);if(shader==null)throw new Exception("Missing shader "+name);
                 if(ShaderUtil.ShaderHasError(shader))throw new Exception("Shader compilation failed: "+name);
                 bool found=false;for(int i=0;i<shaders.arraySize;i++)if(shaders.GetArrayElementAtIndex(i).objectReferenceValue==shader)found=true;

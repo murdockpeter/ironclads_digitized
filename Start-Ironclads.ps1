@@ -1,5 +1,17 @@
-param([switch]$Ferrol,[switch]$IronFire,[switch]$Ulsan,[switch]$PatrickHenry,[switch]$SuppliedModels,[switch]$James1865,[switch]$CloseAction)
+param([switch]$Ferrol,[switch]$IronFire,[switch]$Ulsan,[switch]$PatrickHenry,[switch]$SuppliedModels,[switch]$James1865,[switch]$CloseAction,[switch]$Campaign,[switch]$Pantelleria)
 $ironcladsPlayer = Join-Path $PSScriptRoot 'Ironclads.exe'
+if($Pantelleria){
+    $ironcladsPlayer=$null
+    foreach($pantelleriaBuild in @('Windows-Pantelleria-Rigging','Windows-Pantelleria-Polish','Windows-Pantelleria-Mounts','Windows-Pantelleria-Detail3','Windows-Pantelleria-Flags','Windows-Pantelleria-Detail2','Windows-Pantelleria-Detail1','Windows-Pantelleria')){
+        $pantelleriaCandidate=Join-Path $PSScriptRoot ('Builds\'+$pantelleriaBuild+'\Ironclads.exe')
+        if(Test-Path -LiteralPath $pantelleriaCandidate){$ironcladsPlayer=$pantelleriaCandidate;break}
+    }
+    if(-not $ironcladsPlayer){throw 'Pantelleria build missing. Build with Ironclads.Editor.ProjectBuilder.DeliverPantelleriaRigging.'}
+}
+if($Campaign){$ironcladsPlayer=Join-Path $PSScriptRoot 'Builds\Windows-CampaignGeography\Ironclads.exe';if(-not(Test-Path -LiteralPath $ironcladsPlayer)){$ironcladsPlayer=Join-Path $PSScriptRoot 'Builds\Windows-BreakoutCampaign\Ironclads.exe'};if(-not(Test-Path -LiteralPath $ironcladsPlayer)){throw 'Campaign build missing. Build with Ironclads.Editor.ProjectBuilder.DeliverBreakoutGeography.'}}
+if (-not (Test-Path -LiteralPath $ironcladsPlayer)) { $ironcladsPlayer = Join-Path $PSScriptRoot 'Builds\Windows-Pantelleria\Ironclads.exe' }
+if (-not (Test-Path -LiteralPath $ironcladsPlayer)) { $ironcladsPlayer = Join-Path $PSScriptRoot 'Builds\Windows-CampaignGeography\Ironclads.exe' }
+if (-not (Test-Path -LiteralPath $ironcladsPlayer)) { $ironcladsPlayer = Join-Path $PSScriptRoot 'Builds\Windows-BreakoutCampaign\Ironclads.exe' }
 if (-not (Test-Path -LiteralPath $ironcladsPlayer)) { $ironcladsPlayer = Join-Path $PSScriptRoot 'Builds\Windows-CloseAction-Bows4\Ironclads.exe' }
 if (-not (Test-Path -LiteralPath $ironcladsPlayer)) { $ironcladsPlayer = Join-Path $PSScriptRoot 'Builds\Windows-CloseAction-Bows3\Ironclads.exe' }
 if (-not (Test-Path -LiteralPath $ironcladsPlayer)) { $ironcladsPlayer = Join-Path $PSScriptRoot 'Builds\Windows-CloseAction-Bows2\Ironclads.exe' }
@@ -23,8 +35,9 @@ if (-not (Test-Path -LiteralPath $ironcladsPlayer)) { $ironcladsPlayer = Join-Pa
 if (-not (Test-Path -LiteralPath $ironcladsPlayer)) { $ironcladsPlayer = Join-Path $PSScriptRoot 'Builds\Windows-Multiplayer\Ironclads.exe' }
 if (-not (Test-Path -LiteralPath $ironcladsPlayer)) { throw 'Builds\Windows-Multiplayer\Ironclads.exe is missing. Build with Ironclads.Editor.ProjectBuilder.DeliverLobby.' }
 $ironcladsArguments = @('-screen-fullscreen','0','-screen-width','1600','-screen-height','1000')
-if($CloseAction){$ironcladsArguments+="-close-action"}elseif($James1865){$ironcladsArguments+='-james-1865'}elseif($Ulsan){$ironcladsArguments+='-ulsan'}elseif($SuppliedModels){$ironcladsArguments+='-hampton-roads';$ironcladsArguments+='-supplied-models'}elseif($PatrickHenry){$ironcladsArguments+='-hampton-roads';$ironcladsArguments+='-patrick-henry'}elseif(-not $Ferrol){$ironcladsArguments+='-hampton-roads'}
-if($IronFire -and -not $CloseAction -and -not $Ulsan -and -not $James1865){$ironcladsArguments+='-iron-fire'}
+if($Campaign){$ironcladsArguments+='-breakout-campaign'}
+if($Pantelleria){$ironcladsArguments+="-pantelleria"}elseif($CloseAction){$ironcladsArguments+="-close-action"}elseif($James1865){$ironcladsArguments+='-james-1865'}elseif($Ulsan){$ironcladsArguments+='-ulsan'}elseif($SuppliedModels){$ironcladsArguments+='-hampton-roads';$ironcladsArguments+='-supplied-models'}elseif($PatrickHenry){$ironcladsArguments+='-hampton-roads';$ironcladsArguments+='-patrick-henry'}elseif(-not $Ferrol -and -not $Campaign){$ironcladsArguments+='-hampton-roads'}
+if($IronFire -and -not $CloseAction -and -not $Ulsan -and -not $James1865 -and -not $Pantelleria){$ironcladsArguments+='-iron-fire'}
 # Restore optional private references only from this local checkout, after public builds.
 $ironcladsLocalReferences = Join-Path $PSScriptRoot 'Assets\StreamingAssets\References'
 if (Test-Path -LiteralPath $ironcladsLocalReferences) {

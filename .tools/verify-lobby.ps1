@@ -1,4 +1,4 @@
-﻿param([string]$BuildDirectory='Builds\Windows-Multiplayer',[ValidateSet('james','ferrol','hampton','ironfire','ulsan')][string]$Mode='james',[int]$Guests=6)
+﻿param([string]$BuildDirectory='Builds\Windows-Multiplayer',[ValidateSet('james','ferrol','hampton','ironfire','ulsan','pantelleria')][string]$Mode='james',[int]$Guests=6)
 $ErrorActionPreference='Stop'
 if($Guests -lt 2 -or $Guests -gt 6){throw 'Guests must be from 2 to 6.'}
 if($Mode -ne 'james' -and $Mode -ne 'ulsan' -and $Guests -gt 2){throw 'Use two guests for the two-ship regression scenarios.'}

@@ -34,12 +34,13 @@ namespace Ironclads
         }
         IEnumerator Host()
         {
-            if(mode=="james")scene.StartJames();else if(mode=="ulsan")scene.StartUlsan();else {scene.StartScenario(mode=="hampton"||mode=="ironfire");if(mode=="ironfire"){scene.scenario.rulesetId="iron-fire";scene.scenario.hexMode=false;}}
+            if(mode=="james")scene.StartJames();else if(mode=="ulsan")scene.StartUlsan();else if(mode=="pantelleria")scene.StartPantelleria();else {scene.StartScenario(mode=="hampton"||mode=="ironfire");if(mode=="ironfire"){scene.scenario.rulesetId="iron-fire";scene.scenario.hexMode=false;}}
             Check(net.Host(port,-1,"LOBBYTEST01",true),"host startup");Check(!net.CanControl(0),"umpire must assign a ship before controlling it");File.WriteAllText(FileAt("host-ready.txt"),"ready");
             yield return Wait(()=>net.Lobby.players.Count(p=>p.connected)==count+1,"all guests connected");
             Check(!net.StartMatch(),"start before readiness accepted");
             yield return Wait(()=>net.Lobby.requests.Length==count,"initial control requests");
             foreach(var request in net.Lobby.requests.ToArray())Check(net.DecideRequest(request.id,true),"initial request approval");
+            if(mode=="pantelleria")Check(net.AssignShip(41,Player(1)),"assign final fleet slot");
             Check(net.Lobby.owners.Take(count).Distinct().Count()==count,"one commander per ship");scene.scenario.umpireNotes="ready";
             yield return Wait(()=>net.Lobby.players.All(p=>p.ready),"players ready");Check(net.StartMatch(),"start match");scene.scenario.windKnots=17;scene.scenario.windFrom=35;chart.NextTurn();scene.scenario.umpireNotes="orders";
             yield return Wait(()=>Enumerable.Range(1,count).All(i=>Mathf.Abs(scene.scenario.State(i-1).engineLoad-i*.1f)<.001f&&scene.scenario.State(i-1).turretHeading==72+i),"simultaneous ship orders");
@@ -48,7 +49,8 @@ namespace Ironclads
                 if(scene.scenario.Miniatures||scene.scenario.DoB)Check(s.east==i*300+12.25f&&s.heading==61.25f&&s.speed==4&&s.orderedSpeed==5&&s.movementUsed==.5f,"exact movement "+i);
                 else Check(RuleChart.At(s.Position).Equals(new Hex(i*2,2)),"hex position "+i);
             }
-            int shots=Enumerable.Range(0,count).Sum(i=>GetComponent<BatteryEffects>().Battery(i,2).Length);
+            if(mode=="pantelleria")yield return Wait(()=>scene.scenario.ships[41].east==125.25f&&scene.scenario.ships[41].dobOrderedHeading==57,"last fleet slot command and plotted course");
+            int shots=Enumerable.Range(0,count).Sum(i=>GetComponent<BatteryEffects>().Battery(i,2).Length)+(mode=="pantelleria"?GetComponent<BatteryEffects>().Battery(41,2).Length:0);
             yield return Wait(()=>GetComponent<BatteryEffects>().ShotsFired==shots,"all salvos on host");scene.scenario.umpireNotes="request-denied";
             yield return Wait(()=>net.Lobby.requests.Any(r=>r.player==Player(1)&&r.ship==1),"first takeover request");
             var first=net.Lobby.requests.First(r=>r.player==Player(1)&&r.ship==1);net.DecideRequest(first.id,false);Check(net.OwnerFor(1)==Player(2),"decline changed owner");scene.scenario.umpireNotes="denied";
@@ -94,6 +96,7 @@ namespace Ironclads
             if(scene.scenario.Miniatures||scene.scenario.DoB){s.east=cmd.east;s.north=cmd.north;s.heading=cmd.heading;s.speed=4;s.orderedSpeed=5;s.movementUsed=.5f;}
             else {scene.selected=role-1;chart.Place(new Hex(role*2,2));s.heading=60;}
             s.turretHeading=72+role;s.aftTurretHeading=190+role;s.engineLoad=role*.1f;net.SubmitShip(role-1);Check(net.RequestFire(role-1,2),"assigned salvo");
+            if(scene.scenario.Pantelleria){Check(scene.scenario.ships.Length==42,"client loaded all 42 ships");if(role==1){Check(net.CanControl(41),"control final fleet slot");var last=scene.scenario.ships[41];last.east=125.25f;last.north=-75.5f;last.dobOrderedHeading=57;net.SubmitShip(41);Check(net.RequestFire(41,2),"final fleet slot salvo");}else Check(!net.CanControl(41)&&!net.RequestFire(41,2),"reject unauthorized final slot command");}
             int oldEpoch=net.Lobby.epochs[1];
             if(role==1&&count==6)yield return Probe(true);
             yield return Wait(()=>scene.scenario.umpireNotes=="request-denied","takeover phase");

@@ -1,0 +1,4 @@
+Pantelleria module shoreline: GSHHG 2.3.7, Paul Wessel and Walter H. F. Smith, LGPL-3.0-or-later.
+Source: https://github.com/GenericMappingTools/gshhg-gmt/releases/tag/2.3.7
+Reuses Artifacts/Coastline/GSHHS_shp/f/GSHHS_f_L1.*. Crop: 11.0–12.9 E, 36.45–37.7 N. Processing: Tools/build-pantelleria-coast.py and Tools/triangulate-pantelleria-coast.cjs.
+Derived clipped source is Pantelleria-source.geojson. Existing LGPL/GPL texts accompany this directory. Land is displayed as a flat platform, not reconstructed elevation, bathymetry or a 1901 shoreline.

@@ -1,0 +1,43 @@
+pass,ship,nation,division,class,vertices,meshes,modeled_guns,funnels
+3,Canopus,Britain,British 8th,Canopus,24684,189,22,2
+3,Ocean,Britain,British 8th,Canopus,24684,189,22,2
+3,Caesar,Britain,British 9th,Majestic,24660,189,22,2
+3,Illustrious,Britain,British 9th,Majestic,24660,189,22,2
+3,Renown,Britain,British 9th,Renown,24092,193,20,2
+3,Revenge,Britain,British 10th,Royal Sovereign,23552,185,20,2
+3,Royal Oak,Britain,British 10th,Royal Sovereign,23552,185,20,2
+3,Ramillies,Britain,British 10th,Royal Sovereign,23552,185,20,2
+3,Empress of India,Britain,British 11th,Royal Sovereign,23552,185,20,2
+3,Royal Sovereign,Britain,British 11th,Royal Sovereign,23552,185,20,2
+3,Hood,Britain,British 12th,Hood,24068,185,20,2
+3,Camperdown,Britain,British 12th,Admiral,21798,187,16,2
+3,Anson,Britain,British 12th,Admiral,21798,187,16,2
+3,Re Umberto,Italy,Italian 1st,Re Umberto,23568,189,18,3
+3,Sicilia,Italy,Italian 1st,Re Umberto,23568,189,18,3
+3,Sardegna,Italy,Italian 1st,Re Umberto,23568,189,18,3
+3,Ruggiero di Lauria,Italy,Italian 2nd,Ruggiero di Lauria,21812,181,16,2
+3,Andrea Doria,Italy,Italian 2nd,Ruggiero di Lauria,21812,181,16,2
+3,Francesco Morosini,Italy,Italian 2nd,Ruggiero di Lauria,21812,181,16,2
+3,Italia,Italy,Italian 3rd,Italia,26224,189,22,6
+3,Lepanto,Italy,Italian 3rd,Italia,26224,189,22,6
+3,St. Louis,France,French 1st,Charlemagne,24096,188,20,2
+3,Gaulois,France,French 1st,Charlemagne,24096,188,20,2
+3,Charlemagne,France,French 1st,Charlemagne,24096,188,20,2
+3,Bouvet,France,French 3rd,Bouvet,24324,232,18,2
+3,Charles Martel,France,French 3rd,Charles Martel,24316,232,18,2
+3,Jauréguiberry,France,French 3rd,Jauréguiberry,24320,232,18,2
+3,Brennus,France,French 3rd,Brennus,23631,186,19,2
+3,Amiral Tréhouart,France,French 5th,Bouvines,21246,183,16,2
+3,Bouvines,France,French 5th,Bouvines,21246,183,16,2
+3,Valmy,France,French 5th,Jemmapes,19952,185,12,2
+3,Jemmapes,France,French 5th,Jemmapes,19952,185,12,2
+3,Terrible,France,French 7th,Terrible,19518,185,12,2
+3,Marceau,France,French 7th,Marceau,26118,248,26,3
+3,Imperator Aleksandr II,Russia,Russian 3rd,Imperator Aleksandr II,22670,166,20,2
+3,Dvenadtsat' Apostolov,Russia,Russian 3rd,Dvenadtsat' Apostolov,21094,188,14,2
+3,Tri Sviatitelia,Russia,Russian 3rd,Tri Sviatitelia,23356,184,18,2
+3,Rostislav,Russia,Russian 3rd,Rostislav,22932,188,18,2
+3,Ekaterina II,Russia,Russian 4th,Ekaterina II,23118,210,19,2
+3,Chesma,Russia,Russian 4th,Ekaterina II,23118,210,19,2
+3,Sinop,Russia,Russian 4th,Ekaterina II,23118,210,19,2
+3,Georgii Pobedonosets,Russia,Russian 4th,Georgii Pobedonosets,23094,210,19,2

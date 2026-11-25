@@ -43,7 +43,7 @@ namespace Ironclads
             float order=Slider("Plotted speed",ship.orderedSpeed,0,35," kn");bool astern=GUILayout.Toggle(ship.astern,"Movement astern",toggle);
             if(heading!=ship.heading||speed!=ship.speed||order!=ship.orderedSpeed||astern!=ship.astern){ship.heading=heading;ship.speed=speed;ship.orderedSpeed=order;ship.astern=astern;scene.network?.SubmitShip(scene.selected);}
             if(Button("Use plotted speed as effective speed")){chart.Remember();ship.speed=ship.orderedSpeed;scene.network?.SubmitShip(scene.selected);}
-            Text($"Reference maximum: {UlsanScenario.Ships[scene.selected].maxSpeed:0.0} kn · size B/Medium\nTime moved {ship.dobMovedSeconds:0.0} s / {s.dobTurnSeconds} s\nRemaining {naval.Remaining(scene.selected):0.0} s / {UlsanScenario.Distance(ship.speed,naval.Remaining(scene.selected))/1852:0.000} nmi");
+            Text($"Reference maximum: {DawnFleet.Speed(s,scene.selected):0.0} kn · size B/Medium\nTime moved {ship.dobMovedSeconds:0.0} s / {s.dobTurnSeconds} s\nRemaining {naval.Remaining(scene.selected):0.0} s / {UlsanScenario.Distance(ship.speed,naval.Remaining(scene.selected))/1852:0.000} nmi");
             GUILayout.BeginHorizontal();if(Button("Move 30 s"))naval.Move(scene.selected,30);if(Button("Move 60 s"))naval.Move(scene.selected,60);GUILayout.EndHorizontal();
             if(Button("Move remaining turn allowance"))naval.Move(scene.selected,naval.Remaining(scene.selected));
             Heading("ADVANCE THEN PIVOT AT BRIDGE");hardRudder=GUILayout.Toggle(hardRudder,"Hard rudder · 200 yd advance",toggle);turnDegrees=Slider("Turn angle",turnDegrees,1,45,"°");
@@ -60,18 +60,20 @@ namespace Ironclads
             Text("Changing the interval resets movement rulers. Ending a turn retains positions. Plotting, detection, combat, torpedoes, damage and victory remain manual.");
         }
         void SetDawnInterval(int seconds){chart.Remember();scene.scenario.dobTurnSeconds=seconds;foreach(var ship in scene.scenario.ships)ship.dobMovedSeconds=0;}
-        void DawnGunnery()
+        void DawnGunnery(bool skipTargetPicker=false)
         {
             var table=scene.dawn;var ship=scene.scenario.ships[scene.selected];var effects=GetComponent<BatteryEffects>();
-            Heading("TARGET & RANGE RULER");table.target=GUILayout.SelectionGrid(table.target,DawnNames,2,button);
+            Heading("TARGET & RANGE RULER");if(!skipTargetPicker)table.target=GUILayout.SelectionGrid(table.target,DawnNames,2,button);
             Vector3 delta=scene.scenario.ships[table.target].Position-ship.Position;
             Text($"{ship.name} → {scene.scenario.ships[table.target].name}\n{delta.magnitude/.9144f:0} yards / {delta.magnitude/914.4f:0.00} kyd\n{delta.magnitude/1852:0.000} nautical miles\n{delta.magnitude/(250*.9144f):0.00} tabletop inches at 250 yd/in\nBearing {GunneryTools.Bearing(delta):0.0}° true · relative {Mathf.DeltaAngle(ship.heading,GunneryTools.Bearing(delta)):+0.0;-0.0;0}°");
             table.measure=GUILayout.Toggle(table.measure,"Show range / bearing line",toggle);table.arcVisible=GUILayout.Toggle(table.arcVisible,"Show custom gun-angle aid",toggle);
             table.arcCenter=Slider("Sector center from bow",table.arcCenter,-180,180,"°");table.arcWidth=Slider("Sector width",table.arcWidth,1,360,"°");table.arcKyd=Slider("Sector reach",table.arcKyd,1,25," kyd");
             BroadsideMeasurement();
             Heading("VISUAL BATTERY SALVOS");GUI.enabled=table.Own(scene.selected)&&!scene.globeMode&&!effects.firing[scene.selected];
-            if(UlsanScenario.Ships[scene.selected].twinTurrets){float f=Slider("Forward turret bearing from bow",ship.turretHeading,0,359,"°"),a=Slider("After turret bearing from bow",ship.aftTurretHeading,0,359,"°");if(f!=ship.turretHeading||a!=ship.aftTurretHeading){ship.turretHeading=f;ship.aftTurretHeading=a;scene.network?.SubmitShip(scene.selected);}if(Button("Fire forward twin 8-inch turret")){scene.UpdateWorld();effects.Fire(scene.selected,0);}if(Button("Fire after twin 8-inch turret")){scene.UpdateWorld();effects.Fire(scene.selected,3);}}
-            if(scene.selected<2){if(Button("Fire bow six-inch pivot"))effects.Fire(scene.selected,0);if(Button("Fire stern six-inch pivot"))effects.Fire(scene.selected,3);}
+            if(DawnFleet.HasEndTurrets(scene.scenario,scene.selected))foreach(int group in new[]{0,3})if(Array.Exists(scene.Vessel(scene.selected).GetComponentsInChildren<CruiserTurret>(),t=>t.group==group)) {
+                float current=group==0?ship.turretHeading:ship.aftTurretHeading;float chosen=Slider(group==0?"Forward battery bearing":"After battery bearing",current,0,359,"?");if(chosen!=current){if(group==0)ship.turretHeading=chosen;else ship.aftTurretHeading=chosen;scene.network?.SubmitShip(scene.selected);}if(Button(group==0?"Fire forward modeled main battery":"Fire after modeled main battery")){scene.UpdateWorld();effects.Fire(scene.selected,group);}
+            }
+            if(!scene.scenario.Pantelleria&&scene.selected<2){if(Button("Fire bow six-inch pivot"))effects.Fire(scene.selected,0);if(Button("Fire stern six-inch pivot"))effects.Fire(scene.selected,3);}
             if(Button("Fire PORT modeled battery"))effects.Fire(scene.selected,-1);if(Button("Fire STARBOARD modeled battery"))effects.Fire(scene.selected,1);if(Button("All modeled guns · display"))effects.Fire(scene.selected,2);GUI.enabled=true;
             effects.cannonSound=GUILayout.Toggle(effects.cannonSound,"Cannon reports",toggle);effects.volume=Slider("Cannon volume",effects.volume,0,1);if(Button("Clear smoke / stop salvos"))effects.Clear();
             Text("Measuring sectors do not verify weapon-specific firing arcs. Rotating turrets and effects are visual; loading, ammunition, torpedo attacks, hits and damage remain umpire rulings.");
@@ -91,6 +93,7 @@ namespace Ironclads
         void DawnNetwork()=>MultiplayerLobby();
         void DawnModules()
         {
+            if(Button("Pantelleria / 42 battleships (1901)")){scene.StartPantelleria();return;}
             if(Button("Close Action / Nelson vs Brueys"))scene.StartCloseAction();
             Heading("SCENARIO MODULES");GUI.enabled=ManageTable;if(Button("Reset Ulsan · printed seven-cruiser setup"))scene.StartUlsan();if(Button("Hampton Roads")){scene.StartScenario(true);ShowTab(8);}if(Button("Ferrol")){scene.StartScenario(false);ShowTab(8);}GUI.enabled=true;
             Heading("SUPPLIED BOOKS / REFERENCES");Text("Dawn of the Battleship v1.1 (17 Feb 2023); Dawn of the Rising Sun scenario pp.49–51 and annex configurations. Initial courses 090° / 125°, 10 knots; 400/500 yd column spacing; Rossia 195° from Izumo at 8.5 kyd. This is the base scenario; optional distant protected-cruiser reinforcements are not deployed.");

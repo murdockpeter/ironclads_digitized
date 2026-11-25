@@ -95,6 +95,7 @@ namespace Ironclads
         void LateUpdate()=>Refresh();
         public void Refresh()
         {
+            if(BreakoutDesk.IsOpen(scene))return;
             if(scene==null||scene.seaRoot==null)return;if(grid==null)Build();if(gridCoastal!=scene.scenario.Coastal)RebuildGrid();
             if(scene.scenario.DoB||scene.scenario.CloseAction){grid.SetActive(false);rangeLine.gameObject.SetActive(false);foreach(var line in rings)line.gameObject.SetActive(false);foreach(var line in headings)line.gameObject.SetActive(false);foreach(var line in arcs)line.gameObject.SetActive(false);scene.view.orthographic=false;return;}
             Shader.SetGlobalFloat("_ChartWaveHeight",scene.scenario.waveHeight);
@@ -162,6 +163,7 @@ namespace Ironclads
         }
         void OnGUI()
         {
+            if(BreakoutDesk.IsOpen(scene))return;
             if(scene==null||scene.scenario.CloseAction||scene.scenario.DoB||scene.scenario.Miniatures||scene.globeMode||!scene.showOverlay||!showGrid||!showLabels||scene.distance<220)return;
             if(label==null)label=new GUIStyle(GUI.skin.label){fontSize=10,alignment=TextAnchor.MiddleCenter,normal={textColor=new Color(.67f,.85f,.83f,.65f)}};
             Hex near=At(scene.target);int radius=Mathf.Clamp(Mathf.CeilToInt(scene.distance/HexMeters),4,25);

@@ -31,6 +31,7 @@ namespace Ironclads
         }
         void UpdateSeaAudio(){if(ambience!=null)ambience.volume=soundEnabled&&!globeMode?Mathf.Clamp01(.28f+scenario.windKnots*.007f)*seaVolume:0;}
         GameObject nearOcean;
+        Transform farOcean;
         bool initialized;
         string fleetId;
         public bool suppliedMonitor,suppliedVirginia;
@@ -38,10 +39,12 @@ namespace Ironclads
         Transform monitorTurret;
         public HamptonTerrain terrain;
         public HamptonSupport support;
+        public PantelleriaCoast pantelleriaCoast;
         public Transform Vessel(int i)=>scenario.Hampton&&i==2?support?.minnesota:scenario.Hampton&&i==3?support?.patrickHenry:vessels[i];
         public CloseActionTable closeAction;
         public void StartCloseAction(int variant=0){if(network!=null&&!network.CanManage)return;GetComponent<RuleChart>()?.Remember();scenario=CloseActionScenario.Create(variant);selected=0;animateTime=false;if(closeAction==null){closeAction=gameObject.AddComponent<CloseActionTable>();closeAction.scene=this;}closeAction.Bind(true);Overview();status="Close Action / Nelson vs Brueys: review scattering and opening sail before plotting.";}
         public DawnNavalTable dawn;
+        public void StartPantelleria(){if(network!=null&&!network.CanManage)return;GetComponent<RuleChart>()?.Remember();scenario=PantelleriaScenario.Create();selected=0;animateTime=false;Overview();dawn.measure=false;status="Pantelleria / 14 February 1901 / fictional 42-battleship fleet action. Review the editable division-column preset and 15-knot opening.";}
         public void StartUlsan(){if(network!=null&&!network.CanManage)return;GetComponent<RuleChart>()?.Remember();scenario=UlsanScenario.Create();selected=0;animateTime=false;Overview();status="Ulsan — 14 August 1904, 05:20 scenario time. Seven-cruiser setup loaded.";}
         public void StartScenario(bool hampton)
         {
@@ -60,10 +63,11 @@ namespace Ironclads
             GetComponent<BatteryEffects>()?.Clear();GetComponent<EngineExhaust>()?.ResetFunnels();
             foreach(var vessel in vessels)if(vessel!=null){vessel.gameObject.SetActive(false);if(Application.isPlaying)Destroy(vessel.gameObject);else DestroyImmediate(vessel.gameObject);}
             vessels=new Transform[scenario.ships.Length];
-            for(int i=0;i<vessels.Length;i++){vessels[i]=(scenario.CloseAction?Shipwright.CreateCloseActionShip(CloseActionScenario.Spec(scenario,i)):scenario.James?Shipwright.CreateJamesShip(i):scenario.DoB?Shipwright.CreateCruiser(i):scenario.Hampton?(i==0?(suppliedMonitor?Shipwright.CreateSuppliedHybrid(true):Shipwright.CreateMonitor()):(suppliedVirginia?Shipwright.CreateSuppliedHybrid(false):Shipwright.CreateVirginia())):Shipwright.Create(i==1)).transform;vessels[i].SetParent(seaRoot,false);}
+            for(int i=0;i<vessels.Length;i++){vessels[i]=(scenario.CloseAction?Shipwright.CreateCloseActionShip(CloseActionScenario.Spec(scenario,i)):scenario.James?Shipwright.CreateJamesShip(i):scenario.Pantelleria?Shipwright.CreatePantelleriaShip(i):scenario.DoB?Shipwright.CreateCruiser(i):scenario.Hampton?(i==0?(suppliedMonitor?Shipwright.CreateSuppliedHybrid(true):Shipwright.CreateMonitor()):(suppliedVirginia?Shipwright.CreateSuppliedHybrid(false):Shipwright.CreateVirginia())):Shipwright.Create(i==1)).transform;vessels[i].SetParent(seaRoot,false);}
             selected=Mathf.Clamp(selected,0,vessels.Length-1);
             if(scenario.DoB&&dawn==null){dawn=gameObject.AddComponent<DawnNavalTable>();dawn.scene=this;}
-            dawn?.ResetEffects();
+            dawn?.ResetEffects();if(scenario.DoB&&dawn!=null)dawn.target=scenario.Pantelleria?21:3;
+            if(scenario.Pantelleria&&pantelleriaCoast==null)pantelleriaCoast=gameObject.AddComponent<PantelleriaCoast>();
             monitorTurret=scenario.Hampton?vessels[0].GetComponentInChildren<TurretAssembly>().transform:null;
             if(scenario.Coastal&&terrain==null){terrain=gameObject.AddComponent<HamptonTerrain>();terrain.Build(seaRoot);}
             if(scenario.Hampton&&support==null){support=gameObject.AddComponent<HamptonSupport>();support.scene=this;support.Build();}
@@ -83,7 +87,7 @@ namespace Ironclads
             oceanMaterial.SetTexture("_NormalTex",WorldBuilder.WaterNormals());
             skyMaterial=new Material(Shader.Find("Ironclads/Sky"));RenderSettings.skybox=skyMaterial;
             nearOcean=WorldBuilder.Ocean(seaRoot,oceanMaterial,2400,256,0);
-            WorldBuilder.Ocean(seaRoot,oceanMaterial,120000,128,-2.8f);
+            farOcean=WorldBuilder.Ocean(seaRoot,oceanMaterial,120000,128,-2.8f).transform;
             EnsureFleet();
             rain=WorldBuilder.Particles(seaRoot,"Rain",true);
             globe=WorldBuilder.Globe(globeRoot).transform;
@@ -93,7 +97,7 @@ namespace Ironclads
             markerMat.EnableKeyword("_EMISSION");markerMat.SetColor("_EmissionColor",new Color(1,.4f,.05f));marker.GetComponent<Renderer>().sharedMaterial=markerMat;
             sun=new GameObject("Geographic sunlight").AddComponent<Light>();sun.type=LightType.Directional;sun.shadows=LightShadows.Soft;sun.shadowBias=.035f;
             RenderSettings.sun=sun;
-            view=new GameObject("Umpire camera").AddComponent<Camera>();view.tag="MainCamera";view.nearClipPlane=.3f;view.farClipPlane=70000;
+            view=new GameObject("Umpire camera").AddComponent<Camera>();view.tag="MainCamera";view.nearClipPlane=.3f;view.farClipPlane=scenario.Pantelleria?400000:70000;
             view.fieldOfView=48;view.allowHDR=true;view.gameObject.AddComponent<AudioListener>();
             view.gameObject.AddComponent<SeaAudioOutput>();
             view.depthTextureMode|=DepthTextureMode.Depth;
@@ -116,8 +120,10 @@ namespace Ironclads
             if(Application.isPlaying&&Array.IndexOf(Environment.GetCommandLineArgs(),"-verify-lobby")>=0)gameObject.AddComponent<LobbyVerification>();
             if(Application.isPlaying&&Array.IndexOf(Environment.GetCommandLineArgs(),"-verify-runtime")>=0)gameObject.AddComponent<RuntimeVerification>();
             if(Application.isPlaying&&Array.IndexOf(Environment.GetCommandLineArgs(),"-verify-james")>=0)gameObject.AddComponent<JamesVerification>();
+            if(Application.isPlaying&&Array.IndexOf(Environment.GetCommandLineArgs(),"-verify-campaign")>=0)gameObject.AddComponent<CampaignVerification>();
             if(Application.isPlaying&&Array.IndexOf(Environment.GetCommandLineArgs(),"-verify-hampton")>=0)gameObject.AddComponent<HamptonVerification>();
             if(Application.isPlaying&&Array.IndexOf(Environment.GetCommandLineArgs(),"-verify-ulsan")>=0)gameObject.AddComponent<UlsanVerification>();
+            if(Application.isPlaying&&Array.IndexOf(Environment.GetCommandLineArgs(),"-verify-pantelleria")>=0)gameObject.AddComponent<PantelleriaVerification>();
             if(!scenario.Hampton&&!scenario.DoB)Overview();
             UpdateWorld();SetCamera();
         }
@@ -137,6 +143,8 @@ namespace Ironclads
         {
             if(!initialized)return;
             EnsureFleet();terrain?.Position(scenario);
+            if(farOcean!=null)farOcean.localScale=scenario.Pantelleria?new Vector3(8,1,8):Vector3.one;
+            pantelleriaCoast?.Refresh(this);
             support?.Refresh();
             if(monitorTurret!=null)monitorTurret.localRotation=Quaternion.Euler(0,scenario.ships[0].turretHeading,0);
             Vector3 localSun=Navigation.SunDirection(scenario.Date,scenario.latitude,scenario.longitude);
@@ -164,15 +172,17 @@ namespace Ironclads
             RenderSettings.ambientEquatorColor=globeMode?new Color(.015f,.015f,.02f):haze*.43f;
             RenderSettings.ambientGroundColor=globeMode?Color.black:new Color(.065f,.09f,.10f)*(.1f+.9f*daylight);
             RenderSettings.fog=!globeMode;RenderSettings.fogColor=haze;
-            RenderSettings.fogDensity=1.52f/(scenario.visibilityKm*1000);
+            RenderSettings.fogDensity=1.52f/(scenario.visibilityKm*1000);if(scenario.Pantelleria)RenderSettings.fogDensity=Mathf.Min(RenderSettings.fogDensity,.45f/Mathf.Max(distance,1));
             seaRoot.gameObject.SetActive(!globeMode);globeRoot.gameObject.SetActive(globeMode);
             view.clearFlags=globeMode?CameraClearFlags.SolidColor:CameraClearFlags.Skybox;view.backgroundColor=new Color(.002f,.004f,.010f);
             marker.localPosition=Navigation.GlobePoint(scenario.latitude,scenario.longitude)*101.3f;
             for(int i=0;i<scenario.ships.Length;i++) {
+                if(scenario.Pantelleria)vessels[i].gameObject.SetActive(!scenario.pantelleria.sunk[i]);
                 if(scenario.CloseAction){vessels[i].gameObject.SetActive(!scenario.closeAction.logs[i].removed);vessels[i].GetComponent<CloseActionVisual>()?.Refresh(scenario.closeAction.logs[i],scenario.ships[i].heading,scenario.windFrom,scenario.windKnots);}
                 var s=scenario.ships[i];float time=Application.isPlaying?Time.time:15;
                 vessels[i].localPosition=s.Position+Vector3.up*WaveAt(s.Position,time)*.65f;
                 vessels[i].localRotation=Quaternion.Euler(Mathf.Sin(time*.6f+i)*scenario.waveHeight*.65f,s.heading,Mathf.Sin(time*.83f+i*2)*scenario.waveHeight*1.25f);
+                if(scenario.Pantelleria)vessels[i].GetComponent<NavalColours>()?.Refresh(s.heading,s.speed,scenario.windFrom,scenario.windKnots,time);
                 if(scenario.James)foreach(var turret in vessels[i].GetComponentsInChildren<JamesTurret>())turret.transform.localRotation=Quaternion.Euler(0,turret.group==0?s.turretHeading:s.aftTurretHeading,0);
                 if(scenario.DoB)foreach(var turret in vessels[i].GetComponentsInChildren<CruiserTurret>())turret.transform.localRotation=Quaternion.Euler(0,turret.group==0?s.turretHeading:s.aftTurretHeading,0);
             }
@@ -190,6 +200,7 @@ namespace Ironclads
         void Update()
         {
             if(!initialized)return;
+            if(BreakoutDesk.IsOpen(this))return;
             if(scenario.Miniatures||scenario.DoB||scenario.James||scenario.CloseAction)animateTime=false;
             if(network!=null&&network.Active){animateTime=false;if(!scenario.Miniatures&&!scenario.DoB)scenario.hexMode=true;}
             if(Input.GetKeyDown(KeyCode.Tab)) ToggleGlobe();
@@ -209,7 +220,7 @@ namespace Ironclads
                 }
                 float scroll=Input.mouseScrollDelta.y;
                 if(globeMode)globeDistance=Mathf.Clamp(globeDistance*Mathf.Exp(-scroll*.10f),115,600);
-                else distance=Mathf.Clamp(distance*Mathf.Exp(-scroll*.12f),18,scenario.DoB||scenario.CloseAction?80000:scenario.Coastal?45000:12000);
+                else distance=Mathf.Clamp(distance*Mathf.Exp(-scroll*.12f),18,scenario.Pantelleria?180000:scenario.DoB||scenario.CloseAction?80000:scenario.Coastal?45000:12000);
                 if(!globeMode) {
                     Vector3 right=Quaternion.Euler(0,yaw,0)*Vector3.right,forward=Quaternion.Euler(0,yaw,0)*Vector3.forward;
                     if(Input.GetMouseButton(2))target-=right*Input.GetAxisRaw("Mouse X")*distance*.025f+forward*Input.GetAxisRaw("Mouse Y")*distance*.025f;
@@ -229,7 +240,7 @@ namespace Ironclads
                 view.nearClipPlane=.1f;view.farClipPlane=1200;
             } else {
                 view.transform.position=target+Quaternion.Euler(pitch,yaw,0)*new Vector3(0,0,-distance);
-                view.transform.LookAt(target);view.nearClipPlane=.3f;view.farClipPlane=70000;
+                view.transform.LookAt(target);view.nearClipPlane=Mathf.Max(.3f,distance*.001f);view.farClipPlane=scenario.Pantelleria?400000:70000;
                 nearOcean.transform.position=new Vector3(Mathf.Round(target.x/100)*100,0,Mathf.Round(target.z/100)*100);
             }
         }
@@ -237,7 +248,7 @@ namespace Ironclads
         {
             if(scenario.CloseAction){globeMode=false;selected=i;target=scenario.ships[i].Position+Vector3.up*19;distance=scenario.Length(i)*2.3f;pitch=18;yaw=scenario.ships[i].heading-65;UpdateWorld();SetCamera();return;}
             if(scenario.James){globeMode=false;selected=i;target=scenario.ships[i].Position+Vector3.up*3;distance=scenario.Length(i)*1.7f;pitch=20;yaw=scenario.ships[i].heading-65;UpdateWorld();SetCamera();return;}
-            if(scenario.DoB){globeMode=false;selected=i;target=scenario.ships[i].Position+Vector3.up*8;distance=UlsanScenario.Ships[i].length*1.6f;pitch=17;yaw=scenario.ships[i].heading-65;UpdateWorld();SetCamera();return;}
+            if(scenario.DoB){globeMode=false;selected=i;target=scenario.ships[i].Position+Vector3.up*8;distance=scenario.Length(i)*1.6f;pitch=17;yaw=scenario.ships[i].heading-65;UpdateWorld();SetCamera();return;}
             globeMode=false;selected=i;target=scenario.ships[i].Position+Vector3.up*(i==0?10:6);
             if(scenario.Hampton)target=scenario.ships[i].Position+Vector3.up*(i==0?1.8f:3);
             distance=scenario.Hampton?(i==0?85:125):i==0?160:100;pitch=scenario.Hampton?20:15;yaw=scenario.ships[i].heading-65;
@@ -281,9 +292,11 @@ namespace Ironclads
         IEnumerator Start()
         {
             string[] args=Environment.GetCommandLineArgs();
+            if(Array.IndexOf(args,"-breakout-campaign")>=0)BreakoutDesk.Show(this);
             if(Array.IndexOf(args,"-close-action")>=0)StartCloseAction();
             else if(Array.IndexOf(args,"-james-1865")>=0)StartJames();
             else if(Array.IndexOf(args,"-ulsan")>=0)StartUlsan();
+            else if(Array.IndexOf(args,"-pantelleria")>=0)StartPantelleria();
             else if(Array.IndexOf(args,"-hampton-roads")>=0)StartScenario(true);
             if(!scenario.CloseAction&&!scenario.DoB&&!scenario.James&&Array.IndexOf(args,"-iron-fire")>=0){scenario.rulesetId="iron-fire";scenario.hexMode=false;animateTime=false;GetComponent<UmpirePanel>().ShowTab(9);}
             if(Array.IndexOf(args,"-patrick-henry")>=0){if(!scenario.Hampton)StartScenario(true);GetComponent<UmpirePanel>().ShowTab(11);support.InspectPatrick();}

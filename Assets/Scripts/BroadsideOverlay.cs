@@ -43,6 +43,7 @@ namespace Ironclads
         bool Crosses(int sign,float width)=>GunneryTools.RayCrossesHex(Apex(Center,Heading,sign,offset*RuleChart.HexMeters),Heading+sign*90-width/2,Guns.Target)||GunneryTools.RayCrossesHex(Apex(Center,Heading,sign,offset*RuleChart.HexMeters),Heading+sign*90+width/2,Guns.Target);
         void LateUpdate()
         {
+            if(BreakoutDesk.IsOpen(scene))return;
             if(scene==null||scene.seaRoot==null)return;
             bool show=!scene.scenario.CloseAction&&visible&&scene.showOverlay&&!scene.globeMode;
             for(int i=0;i<4;i++) {

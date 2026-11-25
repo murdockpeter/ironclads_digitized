@@ -20,6 +20,8 @@ namespace Ironclads
             if(caShown!=selected){caShown=selected;var draft=CAT.Draft(selected);caPlot=draft.plot;caTasks=(string[])draft.tasks.Clone();caAddress=CloseActionRules.Address(CloseActionRules.Bow(scene.scenario.ships[selected]));caNote=state.logs[selected].notes;caBgn="";CAT.target=Enumerable.Range(0,state.logs.Length).First(i=>CloseActionScenario.Spec(scene.scenario,i).side!=CloseActionScenario.Spec(scene.scenario,selected).side);}
             GUI.DrawTexture(new Rect(0,0,330,Screen.height),panelTex);GUILayout.BeginArea(new Rect(20,15,290,Screen.height-30));
             GUILayout.Label("CLOSE ACTION",title);GUILayout.Label("NELSON vs BRUEYS / 23 JUNE 1798 / SCENARIO 6",sub);
+            if(Button("Pantelleria / 42 battleships (1901)")){scene.StartPantelleria();GUILayout.EndArea();return;}
+            if(Button("Breakout! / 3D campaign desk (Dec 1864)")){BreakoutDesk.Show(scene);GUILayout.EndArea();return;}
             GUILayout.BeginHorizontal();if(Button("Fleet view")){CAT.topDown=false;scene.Overview();}if(Button("Inspect ship")){CAT.topDown=false;scene.Focus(selected);}GUILayout.EndHorizontal();
             GUILayout.BeginHorizontal();if(Button("< Ship")){scene.selected=(selected+state.logs.Length-1)%state.logs.Length;caShown=-1;}if(Button("Ship >")){scene.selected=(selected+1)%state.logs.Length;caShown=-1;}GUILayout.EndHorizontal();
             Text((CloseActionScenario.Spec(scene.scenario,selected).side==0?"BRITISH / ":"FRENCH / ")+scene.scenario.ShortName(selected));

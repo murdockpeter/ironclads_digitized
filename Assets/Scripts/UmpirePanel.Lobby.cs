@@ -7,7 +7,7 @@ namespace Ironclads
     {
         bool hostUmpire=true;
         int assignmentPlayer;
-        string[] SideNames=>scene.scenario.CloseAction?new[]{"British","French"}:scene.scenario.DoB?new[]{"Russia","Japan"}:new[]{"Union","Confederacy"};
+        string[] SideNames=>scene.scenario.Pantelleria?new[]{"Britain / Italy","France / Russia"}:scene.scenario.CloseAction?new[]{"British","French"}:scene.scenario.DoB?new[]{"Russia","Japan"}:new[]{"Union","Confederacy"};
         void MultiplayerLobby()
         {
             var net=scene.network;

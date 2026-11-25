@@ -314,6 +314,7 @@ namespace Ironclads
         }
         void LateUpdate()
         {
+            if(BreakoutDesk.IsOpen(scene))return;
             if(scene==null||!scene.scenario.CloseAction){SetChartActive(false);return;}Bind();scene.view.orthographic=false;
             scene.scenario.windFrom=Mathf.Repeat((State.windDirection-1)*60+180,360);scene.scenario.windKnots=new[]{0,3,7,12,19}[State.wind];
             if(topDown&&!scene.globeMode){scene.view.orthographic=true;scene.view.orthographicSize=scene.distance*.45f;scene.view.transform.position=scene.target+Vector3.up*scene.distance;scene.view.transform.rotation=Quaternion.Euler(90,0,0);}
@@ -362,6 +363,7 @@ namespace Ironclads
         GUIStyle labels;
         void OnGUI()
         {
+            if(BreakoutDesk.IsOpen(scene))return;
             if(scene==null||!scene.scenario.CloseAction||scene.globeMode||!scene.showOverlay)return;
             if(labels==null)labels=new GUIStyle(GUI.skin.label){fontSize=10,alignment=TextAnchor.MiddleCenter,normal={textColor=new Color(.80f,.88f,.87f,.8f)}};
             var placed=new List<Rect>();

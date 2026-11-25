@@ -3,7 +3,7 @@ using UnityEngine;
 
 namespace Ironclads
 {
-    public class DawnNavalTable : MonoBehaviour
+    public partial class DawnNavalTable : MonoBehaviour
     {
         public MaritimeScene scene;
         public int target=3;
@@ -17,6 +17,7 @@ namespace Ironclads
         readonly ParticleSystem.Particle[] cloud=new ParticleSystem.Particle[1500];
         Material smokeMaterial;
         public int ExhaustCount=>exhaust.Count;
+        public long ExhaustParticlesEmitted {get;private set;}
         public bool Own(int i)=>scene.network==null||scene.network.CanControl(i);
         public float Remaining(int i)=>Mathf.Max(0,scene.scenario.dobTurnSeconds-scene.scenario.ships[i].dobMovedSeconds);
         public void ResetEffects(){foreach(var p in exhaust)if(p!=null){p.gameObject.SetActive(false);if(Application.isPlaying)Destroy(p.gameObject);else DestroyImmediate(p.gameObject);}exhaust.Clear();exhaustShips.Clear();emission.Clear();}
@@ -33,7 +34,7 @@ namespace Ironclads
             var s=scene.scenario.ships[ship];if(s.speed<=0)return false;
             float advance=(hard?200:300)*.9144f,seconds=advance/(s.speed*1852/3600);
             if(seconds>Remaining(ship)+.01f)return false;
-            Vector3 forward=Quaternion.Euler(0,s.heading,0)*Vector3.forward;float heading=Mathf.Repeat(s.heading+degrees,360),bridgeOffset=UlsanScenario.Ships[ship].length*.22f;
+            Vector3 forward=Quaternion.Euler(0,s.heading,0)*Vector3.forward;float heading=Mathf.Repeat(s.heading+degrees,360),bridgeOffset=DawnFleet.Length(scene.scenario,ship)*.22f;
             Vector3 bridge=s.Position+forward*(advance*(s.astern?-1:1)+bridgeOffset),end=bridge-Quaternion.Euler(0,heading,0)*Vector3.forward*bridgeOffset;
             if(!UlsanScenario.Inside(end))return false;GetComponent<RuleChart>().Remember();s.east=end.x;s.north=end.z;s.heading=heading;s.dobMovedSeconds+=seconds;scene.network?.SubmitShip(ship);
             scene.status=$"{s.name}: {(hard?200:300)} yd advance, bridge pivot {degrees:+0;-0}°. Apply effective speed after turn loss and acceleration manually.";return true;
@@ -55,7 +56,7 @@ namespace Ironclads
                 var go=new GameObject("Cruiser coal exhaust");go.transform.SetParent(funnel.transform,false);var ps=go.AddComponent<ParticleSystem>();ps.Stop(true,ParticleSystemStopBehavior.StopEmittingAndClear);
                 var main=ps.main;main.loop=true;main.playOnAwake=false;main.simulationSpace=ParticleSystemSimulationSpace.World;main.maxParticles=1500;main.startSpeed=0;main.startLifetime=25;main.startSize=1;
                 var e=ps.emission;e.enabled=false;var shape=ps.shape;shape.enabled=false;
-                var size=ps.sizeOverLifetime;size.enabled=true;size.size=new ParticleSystem.MinMaxCurve(1,new AnimationCurve(new Keyframe(0,.6f),new Keyframe(.3f,3.5f),new Keyframe(1,6)));
+                var size=ps.sizeOverLifetime;size.enabled=true;size.size=new ParticleSystem.MinMaxCurve(1,scene.scenario.Pantelleria?new AnimationCurve(new Keyframe(0,.65f),new Keyframe(.35f,2.8f),new Keyframe(1,5)):new AnimationCurve(new Keyframe(0,.6f),new Keyframe(.3f,3.5f),new Keyframe(1,6)));
                 var color=ps.colorOverLifetime;color.enabled=true;var g=new Gradient();g.SetKeys(new[]{new GradientColorKey(Color.white,0),new GradientColorKey(Color.white,1)},new[]{new GradientAlphaKey(.7f,0),new GradientAlphaKey(.5f,.5f),new GradientAlphaKey(0,1)});color.color=g;
                 var sheet=ps.textureSheetAnimation;sheet.enabled=true;sheet.numTilesX=sheet.numTilesY=2;sheet.frameOverTime=new ParticleSystem.MinMaxCurve(0);sheet.startFrame=new ParticleSystem.MinMaxCurve(0,3.999f);
                 var r=ps.GetComponent<ParticleSystemRenderer>();r.sharedMaterial=smokeMaterial;r.sortMode=ParticleSystemSortMode.Distance;r.maxParticleSize=.8f;ps.Play();exhaust.Add(ps);exhaustShips.Add(ship);emission.Add(0);
@@ -63,9 +64,10 @@ namespace Ironclads
         }
         void LateUpdate()
         {
+            if(BreakoutDesk.IsOpen(scene))return;
             if(scene==null||scene.seaRoot==null)return;
             if(!scene.scenario.DoB){if(ruler!=null){ruler.gameObject.SetActive(false);arc.gameObject.SetActive(false);}if(exhaust.Count>0)ResetEffects();return;}
-            target=Mathf.Clamp(target,0,6);
+            target=Mathf.Clamp(target,0,scene.scenario.ships.Length-1);
             if(ruler==null){var material=new Material(Shader.Find("Ironclads/Chart"));material.SetColor("_Color",new Color(.45f,1,.85f,.85f));ruler=WorldBuilder.Line(scene.seaRoot,"DoB range and bearing",new Vector3[2],material,1.1f);arc=WorldBuilder.Line(scene.seaRoot,"DoB custom angle ruler",new Vector3[2],material,.8f);}
             bool show=!scene.globeMode&&scene.showOverlay;ruler.gameObject.SetActive(show&&measure);arc.gameObject.SetActive(show&&arcVisible);Shader.SetGlobalFloat("_ChartWaveHeight",scene.scenario.waveHeight);
             Vector3 origin=scene.scenario.ships[scene.selected].Position+Vector3.up*.5f;ruler.SetPositions(new[]{origin,scene.scenario.ships[target].Position+Vector3.up*.5f});
@@ -75,9 +77,14 @@ namespace Ironclads
             if(scene.globeMode){foreach(var ps in exhaust)ps.Clear();return;}
             float dt=Mathf.Min(.1f,Time.deltaTime);Vector3 wind=BatteryEffects.Wind(scene.scenario.windFrom,scene.scenario.windKnots);
             for(int f=0;f<exhaust.Count;f++){
-                var ps=exhaust[f];var ship=scene.scenario.ships[exhaustShips[f]];emission[f]+=(ship.boilersLit?5+20*ship.engineLoad:0)*dt;
+                var ps=exhaust[f];var ship=scene.scenario.ships[exhaustShips[f]];bool polish=scene.scenario.Pantelleria;
+                emission[f]+=(polish?PantelleriaAppearance.ExhaustRate(ship.boilersLit,ship.engineLoad,f,Time.time):(ship.boilersLit?5+20*ship.engineLoad:0))*dt;
+                if(scene.scenario.Pantelleria&&scene.scenario.pantelleria.sunk[exhaustShips[f]]){ps.Clear();emission[f]=0;continue;}
                 int count=Mathf.FloorToInt(emission[f]);emission[f]-=count;
-                for(int j=0;j<count;j++){float shade=Random.Range(.16f,.30f);ps.Emit(new ParticleSystem.EmitParams{position=ps.transform.position+Random.insideUnitSphere*.3f,velocity=Vector3.up*Random.Range(2,5),startLifetime=Random.Range(19,34),startSize=Random.Range(1.4f,2.6f),startColor=new Color(shade,shade,shade*.98f,.65f),rotation=Random.Range(0,360),randomSeed=(uint)Random.Range(1,1000000)},1);}
+                for(int j=0;j<count;j++){
+                    float shade=polish?PantelleriaAppearance.ExhaustShade(ship.engineLoad,Random.Range(-1f,1f)):Random.Range(.16f,.30f);
+                    ps.Emit(new ParticleSystem.EmitParams{position=ps.transform.position+Random.insideUnitSphere*.3f,velocity=Vector3.up*(polish?Random.Range(2f,4.5f)*PantelleriaAppearance.ExhaustPulse(f,Time.time):Random.Range(2,5)),startLifetime=polish?Random.Range(17f,29f):Random.Range(19,34),startSize=polish?Random.Range(1.2f,2.3f):Random.Range(1.4f,2.6f),startColor=new Color(shade,shade,shade*(polish?.95f:.98f),polish?.34f+.20f*ship.engineLoad:.65f),rotation=Random.Range(0,360),randomSeed=(uint)Random.Range(1,1000000)},1);ExhaustParticlesEmitted++;
+                }
                 int live=ps.GetParticles(cloud);for(int j=0;j<live;j++){float age=cloud[j].startLifetime-cloud[j].remainingLifetime;cloud[j].velocity=BatteryEffects.TransportVelocity(cloud[j].velocity,wind,age,dt,(cloud[j].randomSeed%1024)*.17f,Time.time,cloud[j].position);}ps.SetParticles(cloud,live);
             }
         }

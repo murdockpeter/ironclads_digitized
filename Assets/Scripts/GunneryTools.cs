@@ -59,6 +59,7 @@ namespace Ironclads
         void Positions(LineRenderer line,Vector3[] points){line.positionCount=points.Length;line.SetPositions(points);}
         void LateUpdate()
         {
+            if(BreakoutDesk.IsOpen(scene))return;
             if(scene==null||scene.seaRoot==null)return;
             if(scene.scenario.CloseAction||scene.scenario.DoB){if(sector!=null){foreach(var l in new[]{sector,axis,sight,targetOutline})l.gameObject.SetActive(false);foreach(var l in bands)l.gameObject.SetActive(false);}return;}if(sector==null)Build();
             if((scene.selected==0||scene.scenario.Hampton||scene.scenario.Miniatures)&&preset<3)preset=3;

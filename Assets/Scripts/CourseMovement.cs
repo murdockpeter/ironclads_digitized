@@ -50,6 +50,7 @@ namespace Ironclads
         }
         void LateUpdate()
         {
+            if(BreakoutDesk.IsOpen(scene))return;
             if(scene==null||scene.seaRoot==null)return;
             if(preview==null){var mat=new Material(Shader.Find("Ironclads/Chart"));mat.SetColor("_Color",new Color(.5f,1,.8f,.9f));preview=WorldBuilder.Line(scene.seaRoot,"Course movement preview",new Vector3[2],mat,.65f);}
             bool show=scene.scenario.Miniatures&&!scene.globeMode&&scene.showOverlay;preview.gameObject.SetActive(show);if(!show)return;

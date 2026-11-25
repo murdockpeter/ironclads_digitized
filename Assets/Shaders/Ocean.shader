@@ -10,6 +10,7 @@ Shader "Ironclads/Ocean"
    CGPROGRAM
    #pragma vertex vert
    #pragma fragment frag
+   #pragma target 3.0
    #pragma multi_compile_fog
    #include "UnityCG.cginc"
    #include "Lighting.cginc"
@@ -25,17 +26,26 @@ Shader "Ironclads/Ocean"
    }
    v2f vert(appdata v) {
     v2f o; float3 w = mul(unity_ObjectToWorld,v.vertex).xyz;
-    w.y += wave(w.xz); o.world=w; o.pos=mul(UNITY_MATRIX_VP,float4(w,1));
+    // The outer ocean has kilometre-scale cells: displacing those cells with short
+    // waves produces broad false ridges. Only the near, finely sampled patch moves.
+    float displacement=1-smoothstep(1200,2400,distance(w,_WorldSpaceCameraPos));
+    w.y += wave(w.xz)*displacement; o.world=w; o.pos=mul(UNITY_MATRIX_VP,float4(w,1));
     UNITY_TRANSFER_FOG(o,o.pos); return o;
    }
    fixed4 frag(v2f i):SV_Target {
-    float2 p=i.world.xz; float e=.16;
-    float dx=(wave(p+float2(e,0))-wave(p-float2(e,0)))/(2*e);
-    float dz=(wave(p+float2(0,e))-wave(p-float2(0,e)))/(2*e);
+    float2 p=i.world.xz;
     float2 wind=normalize(_Wind.xy+.00001);
+    float2 across=float2(wind.y,-wind.x);
+    // Filter each analytic wave slope by its pixel footprint; unresolved sine
+    // normals otherwise become moving moire bands in the fleet overview.
+    float footprint=max(length(ddx(p)),length(ddy(p)));
+    float2 slope=_WaveHeight*(wind*.0448*cos(dot(p,wind)*.14+_SeaTime*1.2)*exp(-pow(footprint*.14,2))
+      +across*.0406*cos(dot(p,across)*.29+_SeaTime*1.7)*exp(-pow(footprint*.29,2))
+      +float2(.0292,.024)*cos(p.x*.73+p.y*.6+_SeaTime*2.3)*exp(-pow(footprint*.95,2)));
+    float dx=slope.x,dz=slope.y;
     float2 a=tex2D(_NormalTex,p*.024+wind*_SeaTime*.006).rg*2-1;
     float2 b=tex2D(_NormalTex,float2(p.y,-p.x)*.061-wind*_SeaTime*.009).rg*2-1;
-    float detail=.14+saturate(_WindSpeed/40)*.26;
+    float detail=(.14+saturate(_WindSpeed/40)*.26)/(1+footprint*.12);
     float3 n=normalize(float3(-dx+(a.x+b.x*.5)*detail,1,-dz+(a.y+b.y*.5)*detail));
     float3 v=normalize(_WorldSpaceCameraPos-i.world);
     float fresnel=.025+.75*pow(1-saturate(dot(n,v)),5);

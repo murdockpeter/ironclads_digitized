@@ -54,7 +54,7 @@ namespace Ironclads
         void Attach(TcpClient socket)
         {
             lock(gate) {
-                if(!running||peers.Count>=8){socket.Close();return;}
+                if(!running||peers.Count>=MultiplayerSession.MaxPlayers-1){socket.Close();return;}
                 socket.NoDelay=true;socket.SendTimeout=5000;var current=new Peer(this,socket,++serial);peers.Add(current.id,current);
                 Post(new Notice(current.id,"connected"));current.Start();
             }
