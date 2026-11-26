@@ -1,11 +1,11 @@
 Shader "Ironclads/Coastal Ground" {
- Properties { _Color("Tint",Color)=(1,1,1,1) _MainTex("Detail",2D)="white" {} _Beach("Beach profile",Float)=0 }
+ Properties { _Color("Tint",Color)=(1,1,1,1) _MainTex("Detail",2D)="white" {} _Beach("Beach profile",Float)=0 _CampaignMap("Mapped campaign colors",Float)=0 _MapBounds("Map bounds",Vector)=(0,0,1,1) }
  SubShader { Tags { "RenderType"="Opaque" } LOD 200
  CGPROGRAM
  #pragma surface surf Standard fullforwardshadows
  #pragma target 3.0
  struct Input { float3 worldPos;float4 color:COLOR; };
- fixed4 _Color;float _Beach;
+ fixed4 _Color;float _Beach,_CampaignMap;float4 _MapBounds;sampler2D _MainTex;
  float hash(float2 p){return frac(sin(dot(p,float2(127.1,311.7)))*43758.5453);}
  float noise(float2 p){float2 i=floor(p),f=frac(p);f=f*f*(3-2*f);return lerp(lerp(hash(i),hash(i+float2(1,0)),f.x),lerp(hash(i+float2(0,1)),hash(i+1),f.x),f.y);}
  void surf(Input IN,inout SurfaceOutputStandard o){
@@ -20,6 +20,9 @@ Shader "Ironclads/Coastal Ground" {
   float3 beach=lerp(wetSand,drySand,smoothstep(-.10,.70,IN.worldPos.y));
   beach*=.97+.03*sin(p.x*1.7+p.y*.45+noise(p*.025)*4);
   c=lerp(c,beach,_Beach*IN.color.a);
+  float2 mapUV=saturate((p-_MapBounds.xy)/max(_MapBounds.zw,float2(1,1)));
+  float3 mapped=tex2D(_MainTex,mapUV).rgb*(.98+.04*noise(p*.015));
+  c=lerp(c,mapped,_CampaignMap);
   o.Albedo=c*_Color.rgb;o.Metallic=0;o.Smoothness=.08;
  }
  ENDCG

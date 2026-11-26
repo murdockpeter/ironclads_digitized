@@ -17,6 +17,8 @@ namespace Ironclads
     {
         public string id, name, type, commander="Unassigned", readiness="Not supplied", supplies="Not supplied", condition="Not supplied", task="", notes="";
         public CampaignSide side;
+        public bool supportResource;
+        public string guideStation="",guideArmament="",guideRestrictions="";
         public int station=-1;
         public float x,z,heading;
     }
@@ -46,9 +48,9 @@ namespace Ironclads
     // Authoritative umpire state. Player dispatches are built by an explicit allowlist below.
     [Serializable] public class BreakoutCampaign
     {
-        public int schema=2, minute, nextId=1;
+        public int schema=3, minute, nextId=1;
         public bool live;
-        [NonSerialized] public bool migratedFromSchematic;
+        [NonSerialized] public bool migratedFromSchematic,migratedRoster;
         public string title="Hampton Roads — Breakout!", environment="Weather, tide, current, visibility and navigability: umpire to supply.", adjudication="Define a viable escaping force and Atlantic arrival criteria before play. No preset ship count or turn limit.", outcome="Undecided", umpireNotes="";
         public List<CampaignCommand> commands=new List<CampaignCommand>();
         public List<CampaignVessel> vessels=new List<CampaignVessel>();
@@ -63,14 +65,10 @@ namespace Ironclads
         public static BreakoutCampaign Create()
         {
             var c=new BreakoutCampaign();
-            c.commands.Add(new CampaignCommand{side=CampaignSide.Union,briefing="Protect Union control of the James River and essential logistical traffic. Detect, report, intercept and, where feasible, defeat threatening Confederate naval movements. Readiness and station assignments will be supplied separately. Patrol changes and ship movements begin only in live play. Reports may be incomplete, delayed or mistaken."});
-            c.commands.Add(new CampaignCommand{side=CampaignSide.Confederate,briefing="Develop and execute a plan to get a viable Confederate naval force through Union-controlled waters into the open Atlantic. Which vessels attempt escape and how they proceed are your decisions. Readiness and supplies will be supplied separately. Preparatory reconnaissance requests are permitted; operational missions begin only in live play."});
-            string[] css={"Virginia II","Richmond","Fredericksburg","Hampton","Nansemond","Drewry","Beaufort","Torpedo","Scorpion"};
-            string[] uss={"Onondaga","Hunchback","Eutaw","Daylight","Miami","Mendota","Commodore Perry","Western World","Henry Brinker","Commodore Morris"};
-            c.commands[0].briefing+="\n\nAvailable vessels: USS "+string.Join(", USS ",uss)+". Army shore batteries, river pickets, signal stations, tugs and Hampton Roads facilities may provide assistance as the umpire determines.";
-            c.commands[1].briefing+="\n\nAvailable vessels: CSS "+string.Join(", CSS ",css)+". Naval facilities, boats, pilots and accessible shore support may assist as the umpire determines.";
-            for(int i=0;i<css.Length;i++){var p=CampaignGeography.Staging(i,CampaignSide.Confederate);c.vessels.Add(new CampaignVessel{id="CSS-"+i,name="CSS "+css[i],side=CampaignSide.Confederate,type=i<3?"Ironclad":i<6?"Gunboat":"Supporting vessel",x=p.x,z=p.z});}
-            for(int i=0;i<uss.Length;i++){var p=CampaignGeography.Staging(i,CampaignSide.Union);c.vessels.Add(new CampaignVessel{id="USS-"+i,name="USS "+uss[i],side=CampaignSide.Union,type=i==0?"Double-turret monitor":"Supporting vessel",x=p.x,z=p.z});}
+            c.commands.Add(new CampaignCommand{side=CampaignSide.Union,briefing=CampaignOrderOfBattle.Briefing(CampaignSide.Union)});
+            c.commands.Add(new CampaignCommand{side=CampaignSide.Confederate,briefing=CampaignOrderOfBattle.Briefing(CampaignSide.Confederate)});
+            c.vessels=CampaignOrderOfBattle.Markers();
+            c.adjudication="Guide operational window: 22 Dec 1864 1800 to 23 Dec 1864 1800. Umpire defines viable escaping force and Atlantic arrival criteria. The clock does not automatically end play or execute operations.";
             c.Log("Campaign prepared at 1800 on 22 December 1864. All locations, readiness and supplies await umpire assignment. Staging markers do not imply deployed positions.");return c;
         }
         public void BeginLive(){if(live)throw new InvalidOperationException("Live play has already begun.");live=true;Log("Live play begins. Operational orders may now be delivered and resolved.");}
@@ -138,11 +136,14 @@ namespace Ironclads
         static void Delay(int delay){if(delay<0||delay>10080)throw new ArgumentException("Delay must be 0 to 10080 minutes.");}
         public void Validate()
         {
-            if((schema!=1&&schema!=2)||minute<0||minute>525600||nextId<1||commands==null||vessels==null||orders==null||reports==null||events==null||ledger==null)throw new InvalidDataException("Invalid or unsupported campaign save.");
-            if(commands.Count!=2||commands.Any(c=>c==null)||commands[0].side!=CampaignSide.Union||commands[1].side!=CampaignSide.Confederate||vessels.Count!=19)throw new InvalidDataException("Campaign commands or roster are incomplete.");
-            var expected=Create().vessels;
+            if((schema!=1&&schema!=2&&schema!=3)||minute<0||minute>525600||nextId<1||commands==null||vessels==null||orders==null||reports==null||events==null||ledger==null)throw new InvalidDataException("Invalid or unsupported campaign save.");
+            if(commands.Count!=2||commands.Any(c=>c==null)||commands[0].side!=CampaignSide.Union||commands[1].side!=CampaignSide.Confederate)throw new InvalidDataException("Campaign commands or roster are incomplete.");
+            var expected=schema<=2?CampaignOrderOfBattle.Legacy():CampaignOrderOfBattle.Markers();
+            var optional=CampaignOrderOfBattle.Legacy().Single(v=>v.id=="CSS-8");
+            var allowed=schema<=2?expected:expected.Concat(new[]{optional}).ToList();
+            if(!expected.All(e=>vessels.Any(v=>v!=null&&v.id==e.id))||vessels.Count<expected.Count||vessels.Count>expected.Count+(schema==3?1:0))throw new InvalidDataException("Campaign roster is incomplete.");
             float limit=schema==1?3000:120000;
-            if(vessels.Any(v=>v==null||!expected.Any(e=>e.id==v.id&&e.side==v.side&&e.name==v.name&&e.type==v.type)||v.station< -1||v.station>=CampaignBoard.StationNames.Length||!float.IsFinite(v.x)||!float.IsFinite(v.z)||!float.IsFinite(v.heading)||Math.Abs(v.x)>limit||Math.Abs(v.z)>limit||(schema==2&&v.station>=0&&!CampaignGeography.InBounds(v.x,v.z)))||vessels.Select(v=>v.id).Distinct().Count()!=19)throw new InvalidDataException("Invalid campaign vessels.");
+            if(vessels.Any(v=>v==null||!allowed.Any(e=>e.id==v.id&&e.side==v.side&&e.name==v.name&&e.type==v.type&&e.supportResource==v.supportResource)||v.station< -1||v.station>=CampaignBoard.StationNames.Length||!float.IsFinite(v.x)||!float.IsFinite(v.z)||!float.IsFinite(v.heading)||Math.Abs(v.x)>limit||Math.Abs(v.z)>limit||(schema>=2&&v.station>=0&&!CampaignGeography.InBounds(v.x,v.z)))||vessels.Select(v=>v.id).Distinct().Count()!=vessels.Count)throw new InvalidDataException("Invalid campaign vessels.");
             if(orders.Any(o=>o==null||!Enum.IsDefined(typeof(CampaignSide),o.side)||!new[]{"Queued","Delivered","Resolved","Cancelled"}.Contains(o.status)||o.submitted<0||o.submitted>minute||o.due<o.submitted||(!live&&!o.reconnaissance&&(o.status=="Delivered"||o.status=="Resolved")))||reports.Any(r=>r==null||!Enum.IsDefined(typeof(CampaignSide),r.side)||r.observed<0||r.observed>minute||r.due<r.observed||r.released< -1||r.released>minute||(r.released>=0&&r.released<r.due))||events.Any(e=>e==null||e.due<0)||ledger.Any(e=>e==null||e.minute<0||e.minute>minute))throw new InvalidDataException("Invalid campaign queue or timeline.");
             var ids=orders.Select(o=>o.id).Concat(reports.Select(r=>r.id)).Concat(events.Select(e=>e.id)).ToArray();
             if(ids.Any(string.IsNullOrWhiteSpace)||ids.Distinct().Count()!=ids.Length||ids.Any(id=>id.Length<2||!int.TryParse(id.Substring(1),out int n)||n<1||n>=nextId))throw new InvalidDataException("Invalid campaign identifiers.");
@@ -151,11 +152,21 @@ namespace Ironclads
         {
             var c=JsonUtility.FromJson<BreakoutCampaign>(json);if(c==null)throw new InvalidDataException("Empty campaign save.");c.Validate();
             if(c.schema==1){var stations=CampaignBoard.Stations;for(int i=0;i<c.vessels.Count;i++){var v=c.vessels[i];v.notes+=(string.IsNullOrEmpty(v.notes)?"":"\n")+$"Original schematic position: {v.x:0.###}, {v.z:0.###}.";var p=v.station>=0?stations[v.station]:CampaignGeography.Staging(i<9?i:i-9,v.side);v.x=p.x;v.z=p.z;}c.schema=2;c.migratedFromSchematic=true;c.Log("Migrated schematic save to geographic map. Assigned vessels are placed at approximate station anchors; review deployment. Original schematic coordinates retained in private vessel notes. All plans, orders and report release states retained.");c.Validate();}
+            if(c.schema==2) {
+                var roster=CampaignOrderOfBattle.Markers();
+                foreach(var v in c.vessels) {
+                    var updated=roster.FirstOrDefault(e=>e.id==v.id);
+                    if(updated!=null){v.type=updated.type;v.guideStation=updated.guideStation;v.guideArmament=updated.guideArmament;v.guideRestrictions=updated.guideRestrictions;}
+                    else v.guideRestrictions="Retained from legacy save; absent from supplied OOB v1.0. Umpire authorization required.";
+                }
+                foreach(var v in roster)if(!c.vessels.Any(e=>e.id==v.id))c.vessels.Add(v);
+                c.schema=3;c.migratedRoster=true;c.Log("Updated to KS OOB v1.0: new markers staged off map. Existing positions, readiness, plans, orders and report release states retained. Legacy Scorpion retained for umpire review.");c.Validate();
+            }
             return c;
         }
         public static BreakoutCampaign Load(string path)
         {
-            var c=Parse(File.ReadAllText(path));if(c.migratedFromSchematic&&!File.Exists(path+".schematic-v1"))File.Copy(path,path+".schematic-v1");return c;
+            var c=Parse(File.ReadAllText(path));if(c.migratedRoster&&!File.Exists(path+".pre-oob-v3"))File.Copy(path,path+".pre-oob-v3");if(c.migratedFromSchematic&&!File.Exists(path+".schematic-v1"))File.Copy(path,path+".schematic-v1");return c;
         }
         public void Save(string path)
         {

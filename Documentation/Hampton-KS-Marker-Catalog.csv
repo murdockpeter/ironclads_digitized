@@ -1,0 +1,57 @@
+id,name,side,type,supportResource,guideStation,guideArmament,guideRestrictions,commander
+CSS-0,CSS Virginia II,Confederate,Ironclad,False,Chaffin's Bluff,4 guns,Flagship,Flag Officer John K. Mitchell
+CSS-1,CSS Richmond,Confederate,Ironclad,False,Chaffin's Bluff,4 guns,,Lieutenant A. D. Wharton
+CSS-2,CSS Fredericksburg,Confederate,Ironclad,False,Chaffin's Bluff,4 guns,,Commander Thomas E. Rootes
+CSS-3,CSS Hampton,Confederate,Gunboat,False,Chaffin's Bluff,2 guns,Light gunboats and reconnaissance,Lieutenant J. S. Maury
+CSS-4,CSS Nansemond,Confederate,Gunboat,False,Chaffin's Bluff,2 guns,,Unassigned
+CSS-5,CSS Drewry,Confederate,Gunboat,False,Chaffin's Bluff,1 gun,,Unassigned
+CSS-6,CSS Beaufort,Confederate,Gunboat,False,Chaffin's Bluff,2 guns,,Unassigned
+CSS-9,CSS Patrick Henry,Confederate,School ship,False,Drewry's Bluff / Richmond,4 guns,Reassignment requires authorization,Unassigned
+CSS-10,CSS Roanoke,Confederate,Gunboat,False,Drewry's Bluff / Richmond,2 guns,Undergoing repairs,Unassigned
+CSS-7,CSS Torpedo,Confederate,Supporting vessel,False,Drewry's Bluff / Richmond,1 gun,Machinery readiness uncertain,Unassigned
+USS-0,USS Onondaga,Union,Double-turret monitor,False,Aiken's Landing / Dutch Gap,Not specified in guide,Flagship,Commander William A. Parker
+USS-10,USS Massasoit,Union,Gunboat,False,Aiken's Landing / Dutch Gap,Not specified in guide,Forward support; upper-river security,Commander R. T. Renshaw
+USS-11,USS Spuyten Duyvil,Union,Torpedo vessel,False,Aiken's Landing / Dutch Gap,Not specified in guide,Experimental torpedo vessel; special operations,Unassigned
+USS-2,USS Eutaw,Union,Gunboat,False,Deep Bottom,Not specified in guide,,Unassigned
+USS-1,USS Hunchback,Union,Gunboat,False,Deep Bottom / Upper James,Not specified in guide,Forward patrol,Unassigned
+USS-9,USS Commodore Morris,Union,Gunboat,False,Turkey Bend,Not specified in guide,,Unassigned
+USS-3,USS Daylight,Union,Gunboat,False,Turkey Bend,Not specified in guide,Patrol,Unassigned
+USS-4,USS Miami,Union,Gunboat,False,City Point,Not specified in guide,City Point security and Army liaison,Acting Volunteer Lieutenant G. W. Graves
+USS-12,USS General Putnam,Union,Gunboat,False,Appomattox River,Not specified in guide,,Unassigned
+USS-13,USS Commodore Barney,Union,Gunboat,False,Appomattox River,Not specified in guide,,Unassigned
+USS-5,USS Mendota,Union,Gunboat,False,Pagan Creek,Not specified in guide,Lower-river patrols,Commander E. T. Nichols
+USS-6,USS Commodore Perry,Union,Gunboat,False,Point of Shoals,Not specified in guide,,Unassigned
+USS-7,USS Western World,Union,Gunboat,False,Pagan Creek,Not specified in guide,,Unassigned
+USS-8,USS Henry Brinker,Union,Gunboat,False,Deep Water Lighthouse,Not specified in guide,,Unassigned
+USS-14,USS Dawn,Union,Gunboat,False,Harrison's Bar,Not specified in guide,,Unassigned
+CSA-R00,Chaffin's Bluff defenses,Confederate,Shore battery,True,Chaffin's Bluff,Group marker; quantity and armament not specified,Umpire allocation required; Army or distant support requires coordination where applicable,Unassigned
+CSA-R01,Drewry's Bluff defenses,Confederate,Shore battery,True,Drewry's Bluff,Group marker; quantity and armament not specified,Umpire allocation required; Army or distant support requires coordination where applicable,Unassigned
+CSA-R02,Battery Brooke,Confederate,Shore battery,True,Upper James,Group marker; quantity and armament not specified,Umpire allocation required; Army or distant support requires coordination where applicable,Unassigned
+CSA-R03,Battery Wood,Confederate,Shore battery,True,Upper James,Group marker; quantity and armament not specified,Umpire allocation required; Army or distant support requires coordination where applicable,Unassigned
+CSA-R04,Battery Semmes,Confederate,Shore battery,True,Upper James,Group marker; quantity and armament not specified,Umpire allocation required; Army or distant support requires coordination where applicable,Unassigned
+CSA-R05,Battery Dantzler,Confederate,Shore battery,True,Upper James,Group marker; quantity and armament not specified,Umpire allocation required; Army or distant support requires coordination where applicable,Unassigned
+CSA-R06,Howlett defensive line,Confederate,Shore battery,True,Howlett line,Group marker; quantity and armament not specified,Umpire allocation required; Army or distant support requires coordination where applicable,Unassigned
+CSA-R07,Confederate torpedo field,Confederate,Torpedo field,True,Upper James,Group marker; quantity and armament not specified,Umpire allocation required; Army or distant support requires coordination where applicable,Unassigned
+CSA-R08,Confederate river obstructions,Confederate,Obstruction,True,Upper James,Group marker; quantity and armament not specified,Umpire allocation required; Army or distant support requires coordination where applicable,Unassigned
+CSA-R09,Rocketts naval workshops,Confederate,Support facility,True,Richmond / Rocketts,Group marker; quantity and armament not specified,Umpire allocation required; Army or distant support requires coordination where applicable,Unassigned
+CSA-R10,Confederate coal,Confederate,Stores,True,Richmond / Rocketts,Group marker; quantity and armament not specified,Umpire allocation required; Army or distant support requires coordination where applicable,Unassigned
+CSA-R11,Confederate ammunition,Confederate,Stores,True,Richmond / Rocketts,Group marker; quantity and armament not specified,Umpire allocation required; Army or distant support requires coordination where applicable,Unassigned
+CSA-R12,Confederate river pilots,Confederate,Personnel,True,Upper James,Group marker; quantity and armament not specified,Umpire allocation required; Army or distant support requires coordination where applicable,Unassigned
+CSA-R13,Confederate Army signal personnel,Confederate,Signal station,True,Upper James,Group marker; quantity and armament not specified,Umpire allocation required; Army or distant support requires coordination where applicable,Unassigned
+CSA-R14,Confederate small boats and pickets,Confederate,Small boats,True,Upper James,Group marker; quantity and armament not specified,Umpire allocation required; Army or distant support requires coordination where applicable,Unassigned
+CSA-R15,Confederate local working party,Confederate,Personnel,True,Upper James,Group marker; quantity and armament not specified,Umpire allocation required; Army or distant support requires coordination where applicable,Unassigned
+USA-R00,Fort Brady and supporting defenses,Union,Shore battery,True,Fort Brady,Group marker; quantity and armament not specified,Umpire allocation required; Army or distant support requires coordination where applicable,Unassigned
+USA-R01,Deep Bottom defenses,Union,Shore battery,True,Deep Bottom,Group marker; quantity and armament not specified,Umpire allocation required; Army or distant support requires coordination where applicable,Unassigned
+USA-R02,Haxall's Landing defenses,Union,Shore battery,True,Haxall's Landing,Group marker; quantity and armament not specified,Umpire allocation required; Army or distant support requires coordination where applicable,Unassigned
+USA-R03,Dutch Gap observation post,Union,Signal station,True,Dutch Gap,Group marker; quantity and armament not specified,Umpire allocation required; Army or distant support requires coordination where applicable,Unassigned
+USA-R04,Dutch Gap signal station,Union,Signal station,True,Dutch Gap,Group marker; quantity and armament not specified,Umpire allocation required; Army or distant support requires coordination where applicable,Unassigned
+USA-R05,City Point transports,Union,Transports,True,City Point,Group marker; quantity and armament not specified,Umpire allocation required; Army or distant support requires coordination where applicable,Unassigned
+USA-R06,City Point coal,Union,Stores,True,City Point,Group marker; quantity and armament not specified,Umpire allocation required; Army or distant support requires coordination where applicable,Unassigned
+USA-R07,City Point ordnance,Union,Stores,True,City Point,Group marker; quantity and armament not specified,Umpire allocation required; Army or distant support requires coordination where applicable,Unassigned
+USA-R08,City Point Army positions,Union,Shore battery,True,City Point,Group marker; quantity and armament not specified,Umpire allocation required; Army or distant support requires coordination where applicable,Unassigned
+USA-R09,Fort Monroe support,Union,Support facility,True,Fort Monroe,Group marker; quantity and armament not specified,Umpire allocation required; Army or distant support requires coordination where applicable,Unassigned
+USA-R10,Norfolk support,Union,Support facility,True,Norfolk,Group marker; quantity and armament not specified,Umpire allocation required; Army or distant support requires coordination where applicable,Unassigned
+USA-R11,Union river obstructions,Union,Obstruction,True,James River,Group marker; quantity and armament not specified,Umpire allocation required; Army or distant support requires coordination where applicable,Unassigned
+USA-R12,Union picket boats,Union,Small boats,True,James River,Group marker; quantity and armament not specified,Umpire allocation required; Army or distant support requires coordination where applicable,Unassigned
+USA-R13,Union river pilots,Union,Personnel,True,James River,Group marker; quantity and armament not specified,Umpire allocation required; Army or distant support requires coordination where applicable,Unassigned
+USA-R14,Union tugs,Union,Tug,True,James River,Group marker; quantity and armament not specified,Umpire allocation required; Army or distant support requires coordination where applicable,Unassigned

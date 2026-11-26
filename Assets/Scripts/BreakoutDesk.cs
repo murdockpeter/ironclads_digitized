@@ -15,11 +15,13 @@ namespace Ironclads
         public bool placing;
         public bool suppressAutosave;
         public bool TextInputFocused {get;private set;}
+        public bool UIVisible {get;private set;}=true;
+        public void ToggleUI(bool editing){if(!open||editing)return;UIVisible=!UIVisible;FocusMap();}
         bool mapFocusRequested;
         int textControlIndex;
         public void FocusMap(){mapFocusRequested=true;TextInputFocused=false;}
         public CampaignBoard board;
-        public float DockWidth=>Mathf.Min(500,Screen.width*.43f);
+        public float DockWidth=>UIVisible?Mathf.Min(500,Screen.width*.43f):0;
         public static bool IsOpen(MaritimeScene scene)=>scene!=null&&scene.GetComponent<BreakoutDesk>()?.open==true;
         MaritimeScene scene;
         int tacticalSunMask;
@@ -28,6 +30,7 @@ namespace Ironclads
         Vector2 scroll;
         string message="",saveName="Breakout",activeSaveName="Breakout",advance="15",moveReason="",from="",to="",orderText="",orderDelay="0",reportSource="",reportRecipient="",reportText="",reportAssessment="Unconfirmed",reportDelay="0",observationAge="0",eventTitle="",eventNotes="",eventDelay="15",exportRecipient="",ruling="",confirm="";
         bool recon,showRoster;
+        int rosterFilter,rosterSide;
         float headingChoice;
         string positionLatitude="",positionLongitude="";
         float nextAutosave;
@@ -47,7 +50,7 @@ namespace Ironclads
             if(desk.state==null) {
                 desk.activeSaveName=desk.saveName=PlayerPrefs.GetString("BreakoutCampaign.ActiveSlot","Breakout");
                 desk.state=BreakoutCampaign.Create();
-                try{if(File.Exists(desk.SavePath)){desk.state=BreakoutCampaign.Load(desk.SavePath);desk.message=desk.state.migratedFromSchematic?"Upgraded schematic save; review assigned ships at geographic station presets. Original file archived as .schematic-v1.":"Resumed saved campaign.";}}
+                try{if(File.Exists(desk.SavePath)){desk.state=BreakoutCampaign.Load(desk.SavePath);desk.message=desk.state.migratedRoster?"Updated KS roster; existing markers retained, new markers staged off map. Original archived as .pre-oob-v3.":desk.state.migratedFromSchematic?"Upgraded schematic save; review assigned ships at geographic station presets. Original file archived as .schematic-v1.":"Resumed saved campaign.";}}
                 catch(Exception e){desk.message="Could not resume save: "+e.Message+" Original preserved; using a recovery slot.";desk.activeSaveName=desk.saveName="Recovered-"+DateTime.Now.ToString("yyyyMMdd-HHmmss");}
             }
             if(desk.board==null){desk.board=desk.gameObject.AddComponent<CampaignBoard>();desk.board.desk=desk;desk.board.Build();}
@@ -61,6 +64,7 @@ namespace Ironclads
         void Update()
         {
             if(!open)return;
+            if(Application.isFocused&&Input.GetKeyDown(KeyCode.H))ToggleUI(TextInputFocused);
             if(!suppressAutosave&&Time.unscaledTime>=nextAutosave){nextAutosave=Time.unscaledTime+20;try{state.Save(SavePath);}catch(Exception e){message="Autosave failed: "+e.Message;}}
             if(Input.GetKeyDown(KeyCode.F12))scene.Screenshot();
         }
@@ -84,14 +88,16 @@ namespace Ironclads
         int SidePicker(int side)=>GUILayout.SelectionGrid(side,new[]{"Union","Confederate"},2,button);
         void OnGUI()
         {
-            if(!open)return;if(text==null)Styles();GUI.depth=-10;float w=DockWidth;
-            textControlIndex=0;
+            if(!open)return;
             if(mapFocusRequested){GUI.FocusControl(null);GUIUtility.keyboardControl=0;mapFocusRequested=false;}
+            if(!UIVisible){TextInputFocused=false;return;}
+            if(text==null)Styles();GUI.depth=-10;float w=DockWidth;
+            textControlIndex=0;
             GUI.DrawTexture(new Rect(0,0,w,Screen.height),background);
             GUILayout.BeginArea(new Rect(14,12,w-28,Screen.height-24));
             GUILayout.Label("HAMPTON ROADS — BREAKOUT!",big);T(BreakoutCampaign.Clock(state.minute)+" / "+(state.live?"LIVE":"PREPARATION"));
             GUILayout.Label("PRIVATE UMPIRE DESK • GSHHG / USGS geographic map",small);
-            int next=GUILayout.SelectionGrid(tab,new[]{"Clock","Vessels","Plans","Orders","Reports","Events","Files","Ledger"},4,button);if(next!=tab){tab=next;scroll=Vector2.zero;confirm="";}
+            int next=GUILayout.SelectionGrid(tab,new[]{"Clock","Markers","Plans","Orders","Reports","Events","Files","Ledger"},4,button);if(next!=tab){tab=next;scroll=Vector2.zero;confirm="";}
             scroll=GUILayout.BeginScrollView(scroll);
             switch(tab){case 0:Clock();break;case 1:Vessels();break;case 2:Plans();break;case 3:Orders();break;case 4:Reports();break;case 5:Events();break;case 6:Files();break;case 7:Ledger();break;}
             GUILayout.EndScrollView();GUILayout.Label(message,small,GUILayout.MinHeight(35));GUILayout.EndArea();
@@ -101,7 +107,7 @@ namespace Ironclads
             var v=state.vessels[selected];T(v.name+" / "+(v.station<0?"LOCATION NOT ASSIGNED":CampaignBoard.StationNames[v.station]+" / "+CampaignGeography.CoordinateLabel(v.x,v.z))+" / "+v.readiness);
             GUILayout.EndArea();
             GUI.DrawTexture(new Rect(w+8,Screen.height-51,Screen.width-w-16,43),background);
-            GUI.Label(new Rect(w+20,Screen.height-48,Screen.width-w-40,42),"Modern GSHHG coast + USGS NHD river banks + USGS 3DEP terrain • not an 1864 shoreline or depth chart.\nWASD pan • Shift faster • RMB orbit • MMB pan • wheel zoom • Alt-click range. Click map to leave text editing.",small);
+            GUI.Label(new Rect(w+20,Screen.height-48,Screen.width-w-40,42),"Modern GSHHG coast + USGS NHD river banks + USGS 3DEP terrain • not an 1864 shoreline or depth chart.\nWASD pan • Shift faster • RMB orbit • MMB pan • wheel zoom • Alt-click range. H hides/shows UI. Click map to leave text editing.",small);
             TextInputFocused=GUI.GetNameOfFocusedControl().StartsWith("CampaignText",StringComparison.Ordinal);
         }
         void Clock()
@@ -128,12 +134,17 @@ namespace Ironclads
         }
         void Vessels()
         {
-            H("19-VESSEL CAMPAIGN ROSTER");T("All readiness, supplies and stations begin unassigned. Blue is Union; red is Confederate. Staging boxes are off-chart holding areas. Models are generic markers.");
-            GUILayout.BeginHorizontal();if(B("Previous ship"))SelectVessel((selected+18)%19);if(B("Next ship"))SelectVessel((selected+1)%19);GUILayout.EndHorizontal();
+            H(state.vessels.Count(v=>!v.supportResource)+" VESSELS / "+state.vessels.Count(v=>v.supportResource)+" SUPPORT GROUPS");T("KS problem guides / OOB v1.0. Blue is Union; red is Confederate. Off-map staging is unassigned, not a deployed position. Exact coordinates and resource quantities require umpire assignment.");
+            GUILayout.BeginHorizontal();if(B("Previous marker"))SelectVessel((selected+state.vessels.Count-1)%state.vessels.Count);if(B("Next marker"))SelectVessel((selected+1)%state.vessels.Count);GUILayout.EndHorizontal();
             if(B(showRoster?"Hide full roster":"Choose from full roster"))showRoster=!showRoster;
-            if(showRoster)for(int i=0;i<state.vessels.Count;i++)if(B((i==selected?"> ":"")+state.vessels[i].name+" / "+(state.vessels[i].station<0?"Unassigned":CampaignBoard.StationNames[state.vessels[i].station])))SelectVessel(i);
+            if(showRoster) {
+                rosterFilter=GUILayout.SelectionGrid(rosterFilter,new[]{"All","Ships","Support"},3,button);rosterSide=GUILayout.SelectionGrid(rosterSide,new[]{"Both sides","Union","Confederate"},3,button);
+                for(int i=0;i<state.vessels.Count;i++){var entry=state.vessels[i];if((rosterFilter==1&&entry.supportResource)||(rosterFilter==2&&!entry.supportResource)||(rosterSide>0&&(int)entry.side!=rosterSide-1))continue;if(B((i==selected?"> ":"")+entry.name+" / "+(entry.station<0?"Unassigned":CampaignBoard.StationNames[entry.station])))SelectVessel(i);}
+            }
             var v=state.vessels[selected];H(v.name+" / "+v.side);
-            v.commander=F("Assigned commander / command (up to six per side)",v.commander);v.readiness=F("Actual readiness — umpire only",v.readiness);v.supplies=F("Actual fuel / ammunition / stores",v.supplies);v.condition=F("Actual mechanical / damage condition",v.condition);v.task=A("Current task / orders",v.task,55);v.notes=A("Private ship notes",v.notes,55);
+            T("Guide starting area: "+v.guideStation+"\n"+v.guideArmament+"\n"+v.guideRestrictions);
+            if(v.supportResource)T("Symbolic resource group: model details do not specify quantities. Shore assets should use point or coordinate placement; station presets are river anchors. Movement remains an explicit umpire ruling.");
+            v.commander=F("Assigned commander / command",v.commander);v.readiness=F("Actual readiness — umpire only",v.readiness);v.supplies=F("Actual fuel / ammunition / stores",v.supplies);v.condition=F("Actual mechanical / damage condition",v.condition);v.task=A("Current task / orders",v.task,55);v.notes=A("Private ship notes",v.notes,55);
             H(state.live?"ADJUDICATE MOVEMENT":"INITIAL DEPLOYMENT SETUP");
             stationChoice=GUILayout.SelectionGrid(stationChoice,CampaignBoard.StationNames,2,button);moveReason=A(state.live?"Movement ruling (required)":"Initial station assignment note (required)",moveReason,50);
             T("Marker heading: "+headingChoice.ToString("0")+"° true (north = 0°)");headingChoice=GUILayout.HorizontalSlider(headingChoice,0,359);
@@ -142,12 +153,14 @@ namespace Ironclads
             if(B(placing?"Cancel map placement":"Place at a point on the 3D board")){if(placing)placing=false;else if(string.IsNullOrWhiteSpace(moveReason))message="Enter a setup note or movement ruling first.";else {placing=true;message="Click the 3D board to place "+v.name+". The station selected above will label this position.";}}
             positionLatitude=F("Placement latitude (decimal degrees north)",positionLatitude);positionLongitude=F("Placement longitude (negative degrees west)",positionLongitude);
             if(B("Apply coordinate placement"))Act(()=>{if(!double.TryParse(positionLatitude,NumberStyles.Float,CultureInfo.InvariantCulture,out double lat)||!double.TryParse(positionLongitude,NumberStyles.Float,CultureInfo.InvariantCulture,out double lon))throw new ArgumentException("Enter decimal latitude and signed longitude.");var p=CampaignGeography.Point(lat,lon);state.Place(v,stationChoice,p.x,p.z,headingChoice,moveReason);board.Sync();});
-            if(v.station>=0){T("Actual position: "+CampaignGeography.CoordinateLabel(v.x,v.z));if(CampaignGeography.Land(v.x,v.z))T("Marker is on mapped modern land. Review the placement or adjudicate grounding.");}
+            if(v.station>=0){T("Actual position: "+CampaignGeography.CoordinateLabel(v.x,v.z));if(!v.supportResource&&CampaignGeography.Land(v.x,v.z))T("Marker is on mapped modern land. Review the placement or adjudicate grounding.");}
             T("Station anchors are approximate geographic presets. Use coordinate or point placement for exact umpire positions. The modern map includes later channel changes and reclamation; navigability, depths, tides and grounding remain your rulings. Actual positions stay out of exports unless you issue a report.");
         }
         void Plans()
         {
             planSide=SidePicker(planSide);var p=state.commands[planSide];H(p.side+" COMMAND PREPARATION");
+            if(B("Open "+p.side+" commander problem PDF"))Application.OpenURL(new Uri(Path.Combine(Application.streamingAssetsPath,"CampaignBriefings","Hampton_Roads_"+p.side+"_KS_Problem.pdf")).AbsoluteUri);
+            T("Guide operational window: 22 Dec 1864 1800 to 23 Dec 1864 1800. Older saves retain their edited briefing; use the bundled guide when reviewing deployment and command roles.");
             p.briefing=A("Player briefing / additional known information (included in this side's exports)",p.briefing,115);
             p.intent=A("Commander's intent / priorities",p.intent);p.responsibilities=A("Command relationships / responsibilities",p.responsibilities);p.standingOrders=A("Initial standing orders / patrol instructions",p.standingOrders);p.routes=A("Routes / formations / rendezvous",p.routes);p.communications=A("Signals / reports / communication delays",p.communications);p.contingencies=A("Emergencies / withdrawal / concentration",p.contingencies);p.intelligence=A("Reconnaissance / intelligence requirements",p.intelligence);
             T("These fields record plans. Submit actionable requests under Orders. Enter up to six player commands per side in responsibilities and assign vessels under Vessels.");

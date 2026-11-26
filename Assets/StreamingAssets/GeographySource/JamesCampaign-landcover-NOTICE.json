@@ -1,0 +1,129 @@
+{
+  "source": "USGS/MRLC NLCD 2021 Land Cover L48",
+  "license": "Public-domain USGS/MRLC land-cover data; original thematic palette",
+  "legend": "https://www.mrlc.gov/data/legends/annual-nlcd-land-cover-legend",
+  "year": 2021,
+  "width": 4096,
+  "height": 2560,
+  "bounds": [
+    -77.6,
+    36.75,
+    -75.8,
+    37.65
+  ],
+  "resampling": "nearest neighbor",
+  "palette": "muted late-season thematic interpretation; not satellite RGB",
+  "historicalNote": "Modern land cover, not an 1864 reconstruction; modern developed areas remain visible.",
+  "url": "https://www.mrlc.gov/geoserver/mrlc_display/wcs?service=WCS&version=1.0.0&request=GetCoverage&coverage=NLCD_2021_Land_Cover_L48&crs=EPSG%3A4326&bbox=-77.60%2C36.75%2C-75.80%2C37.65&width=4096&height=2560&format=GeoTIFF&interpolation=nearest+neighbor",
+  "sourceSHA256": "847e141b0c1dce2f1b526f6b8ba351e01fb4bdd9fbb64b6cd220e9ea64551f2f",
+  "classes": {
+    "0": 223504,
+    "11": 2838774,
+    "21": 598250,
+    "22": 523189,
+    "23": 299196,
+    "24": 123849,
+    "31": 27298,
+    "41": 317918,
+    "42": 1437173,
+    "43": 996452,
+    "52": 219908,
+    "71": 227042,
+    "81": 72269,
+    "82": 1132193,
+    "90": 1161666,
+    "95": 287079
+  },
+  "paletteRGB": {
+    "0": [
+      133,
+      125,
+      95
+    ],
+    "255": [
+      133,
+      125,
+      95
+    ],
+    "11": [
+      119,
+      133,
+      106
+    ],
+    "12": [
+      208,
+      211,
+      205
+    ],
+    "21": [
+      151,
+      150,
+      119
+    ],
+    "22": [
+      155,
+      144,
+      127
+    ],
+    "23": [
+      141,
+      135,
+      128
+    ],
+    "24": [
+      120,
+      122,
+      120
+    ],
+    "31": [
+      177,
+      163,
+      132
+    ],
+    "41": [
+      112,
+      119,
+      71
+    ],
+    "42": [
+      65,
+      99,
+      69
+    ],
+    "43": [
+      88,
+      110,
+      70
+    ],
+    "52": [
+      139,
+      137,
+      91
+    ],
+    "71": [
+      163,
+      153,
+      103
+    ],
+    "81": [
+      167,
+      153,
+      97
+    ],
+    "82": [
+      157,
+      131,
+      88
+    ],
+    "90": [
+      91,
+      119,
+      99
+    ],
+    "95": [
+      149,
+      151,
+      111
+    ]
+  }
+}

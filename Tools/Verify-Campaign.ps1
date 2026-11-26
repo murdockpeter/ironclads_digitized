@@ -1,4 +1,4 @@
-param([string]$OutputDirectory)
+param([string]$OutputDirectory,[string]$BuildDirectory)
 $ErrorActionPreference='Stop'
 $campaignRoot=Split-Path $PSScriptRoot
 if(-not $OutputDirectory){$OutputDirectory=Join-Path $campaignRoot 'Artifacts\CampaignVerification\Runtime'}
@@ -20,6 +20,7 @@ public static class BreakoutReviewWindow {
 }
 $campaignPlayer=Join-Path $campaignRoot 'Builds\Windows-CampaignGeography\Ironclads.exe'
 if(-not(Test-Path -LiteralPath $campaignPlayer)){$campaignPlayer=Join-Path $campaignRoot 'Builds\Windows-BreakoutCampaign\Ironclads.exe'}
+if($BuildDirectory){$campaignPlayer=Join-Path (Join-Path $campaignRoot $BuildDirectory) 'Ironclads.exe'}
 $campaignArgs='-verify-campaign "'+$OutputDirectory+'" -screen-fullscreen 0 -screen-width 1600 -screen-height 1000 -logFile "'+$OutputDirectory+'\player.log"'
 $campaignProcess=Start-Process -FilePath $campaignPlayer -WorkingDirectory (Split-Path $campaignPlayer) -ArgumentList $campaignArgs -WindowStyle Hidden -PassThru
 # A hidden Unity window returns black screenshots. Render off-screen without taking focus.

@@ -26,7 +26,7 @@ namespace Ironclads
         public static (double lat,double lon) Coordinates(float x,float z)=>(Latitude+z/Navigation.EarthRadius*180/Math.PI,Longitude+x/(Navigation.EarthRadius*Math.Cos(Latitude*Math.PI/180))*180/Math.PI);
         public static string CoordinateLabel(float x,float z){var p=Coordinates(x,z);return $"{p.lat:0.00000}° N, {-p.lon:0.00000}° W";}
         public static bool InBounds(float x,float z){if(!float.IsFinite(x)||!float.IsFinite(z))return false;var p=Coordinates(x,z);return p.lat>=South&&p.lat<=North&&p.lon>=West&&p.lon<=East;}
-        public static Vector3 Staging(int index,CampaignSide side)=>new Vector3(-103000+(index%3)*2800,0,(side==CampaignSide.Confederate?26000:-16000)-(index/3)*4700);
+        public static Vector3 Staging(int index,CampaignSide side)=>new Vector3(-103000+(index%5)*1800,0,(side==CampaignSide.Confederate?26000:-16000)-(index/5)*2400);
         static void Load()
         {
             var resource=Resources.Load<TextAsset>("Geography/JamesCampaign");if(resource==null)throw new InvalidOperationException("James campaign geography is missing. Run Tools/build-campaign-geography.py and Tools/triangulate-campaign-geography.cjs.");
